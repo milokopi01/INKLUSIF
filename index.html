@@ -93,50 +93,13 @@
     <!-- Carta Organisasi -->
     <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5 mb-5">
       <h2 class="text-lg font-bold text-emerald-800 mb-1 flex items-center gap-2"><i data-lucide="git-fork" class="w-5 h-5"></i> Carta Organisasi JPKS SK Selama (K)</h2>
-      <p class="text-sm text-gray-500 mb-5">Jawatankuasa Penyelarasan Khas (JPKS) - Struktur Tadbir Urus Program Pendidikan Inklusif</p>
-      <div class="overflow-x-auto">
-        <div class="flex flex-col items-center gap-4 min-w-fit">
-          <!-- Guru Besar -->
-          <div class="org-card w-64 bg-emerald-600 text-white rounded-xl px-5 py-4 text-center shadow-md">
-            <i data-lucide="award" class="w-6 h-6 mx-auto mb-1"></i>
-            <p class="font-bold">Guru Besar</p>
-            <p class="text-xs text-emerald-100">Pengerusi JPKS</p>
-          </div>
-          <div class="w-px h-6 bg-emerald-300"></div>
-          <!-- Penolong Kanan -->
-          <div class="org-card w-64 bg-emerald-500 text-white rounded-xl px-5 py-4 text-center shadow-md">
-            <i data-lucide="user-cog" class="w-6 h-6 mx-auto mb-1"></i>
-            <p class="font-bold">Penolong Kanan</p>
-            <p class="text-xs text-emerald-100">Timbalan Pengerusi</p>
-          </div>
-          <div class="w-px h-6 bg-emerald-300"></div>
-          <!-- Koordinator PPKI -->
-          <div class="org-card w-64 bg-emerald-400 text-white rounded-xl px-5 py-4 text-center shadow-md">
-            <i data-lucide="briefcase" class="w-6 h-6 mx-auto mb-1"></i>
-            <p class="font-bold">Koordinator PPKI</p>
-            <p class="text-xs text-emerald-50">Setiausaha</p>
-          </div>
-          <div class="w-px h-6 bg-emerald-300"></div>
-          <!-- Row 3: Guru PPKI -->
-          <div class="flex gap-4 flex-wrap justify-center">
-            <div class="org-card w-44 bg-white border-2 border-emerald-300 text-emerald-800 rounded-xl px-3 py-3 text-center shadow-sm">
-              <i data-lucide="user" class="w-5 h-5 mx-auto mb-1"></i>
-              <p class="font-semibold text-sm">5 Guru PPKI</p>
-              <p class="text-xs text-gray-500">Guru Pendamping</p>
-            </div>
-            <div class="org-card w-44 bg-white border-2 border-emerald-300 text-emerald-800 rounded-xl px-3 py-3 text-center shadow-sm">
-              <i data-lucide="heart" class="w-5 h-5 mx-auto mb-1"></i>
-              <p class="font-semibold text-sm">Ibu Bapa / Penjaga</p>
-              <p class="text-xs text-gray-500">Ahli JPKS</p>
-            </div>
-            <div class="org-card w-44 bg-white border-2 border-emerald-300 text-emerald-800 rounded-xl px-3 py-3 text-center shadow-sm">
-              <i data-lucide="stethoscope" class="w-5 h-5 mx-auto mb-1"></i>
-              <p class="font-semibold text-sm">Pegawai PPKI</p>
-              <p class="text-xs text-gray-500">Penasihat Teknikal</p>
-            </div>
-          </div>
-        </div>
+      <div class="flex items-center justify-between mb-5 flex-wrap gap-2">
+        <p class="text-sm text-gray-500">Jawatankuasa Penyelarasan Khas (JPKS) - Struktur Tadbir Urus Program Pendidikan Inklusif</p>
+        <button onclick="bukaModalCarta(0)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium text-xs hover:bg-emerald-700 transition">
+          <i data-lucide="settings-2" class="w-3.5 h-3.5"></i> Edit Carta
+        </button>
       </div>
+      <div id="cartaOrg" class="overflow-x-auto"></div>
     </div>
 
     <div class="grid md:grid-cols-2 gap-5 mb-5">
@@ -466,10 +429,46 @@
         </select></div>
       </div>
       <div class="grid grid-cols-2 gap-3">
-        <div><label class="text-xs font-semibold text-gray-600">Skor Saringan (%)</label><input type="number" min="0" max="100" id="muridSkor" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+        <div><label class="text-xs font-semibold text-gray-600">Skor Saringen (%)</label><input type="number" min="0" max="100" id="muridSkor" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
         <div><label class="text-xs font-semibold text-gray-600">Tindakan</label><input id="muridTindakan" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
       </div>
       <button onclick="simpanMurid()" class="w-full mt-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 transition">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CARTA -->
+<div id="modalCarta" class="no-print fixed inset-0 z-50 hidden items-center justify-center modal-overlay p-4">
+  <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold text-emerald-800">Edit Kotak Carta</h3>
+      <button onclick="tutupModalCarta()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="space-y-3">
+      <input type="hidden" id="cartaIdx" />
+      <div><label class="text-xs font-semibold text-gray-600">Nama Jawatan</label><input id="cartaNama" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+      <div><label class="text-xs font-semibold text-gray-600">Peranan</label><input id="cartaPeranan" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+      <div><label class="text-xs font-semibold text-gray-600">Ikon</label><select id="cartaIkon" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none">
+        <option value="award">award</option><option value="user-cog">user-cog</option><option value="briefcase">briefcase</option>
+        <option value="user">user</option><option value="heart">heart</option><option value="stethoscope">stethoscope</option>
+        <option value="users">users</option><option value="star">star</option><option value="shield">shield</option>
+        <option value="book-open">book-open</option><option value="graduation-cap">graduation-cap</option>
+        <option value="landmark">landmark</option><option value="crown">crown</option>
+      </select></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs font-semibold text-gray-600">Warna</label><select id="cartaWarna" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none">
+          <option value="emerald-600">Hijau Gelap</option><option value="emerald-500">Hijau</option>
+          <option value="emerald-400">Hijau Terang</option><option value="putih">Putih (Berbingkai)</option>
+        </select></div>
+        <div><label class="text-xs font-semibold text-gray-600">Posisi</label><select id="cartaTier" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none">
+          <option value="atas">Atas (Vertikal)</option><option value="bawah">Bawah (Melintang)</option>
+        </select></div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="simpanCarta()" class="flex-1 px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 transition">Simpan</button>
+        <button onclick="tambahCarta()" class="px-4 py-2.5 rounded-lg bg-emerald-100 text-emerald-700 font-medium text-sm hover:bg-emerald-200 transition">Tambah Baru</button>
+        <button onclick="padamCarta()" class="px-4 py-2.5 rounded-lg bg-error-100 text-error-600 font-medium text-sm hover:bg-error-200 transition">Padam</button>
+      </div>
     </div>
   </div>
 </div>
@@ -499,7 +498,8 @@ var state = {
   guruAktif: null,
   markah: {},
   logIbuBapa: [],
-  pencerapan: {}
+  pencerapan: {},
+  carta: []
 };
 
 var HARI = ['Isnin','Selasa','Rabu','Khamis','Jumaat'];
@@ -585,7 +585,7 @@ function muatSemuaData(){
 }
 
 function saveLocalAll(){
-  try { localStorage.setItem('spib_data', JSON.stringify({murid:state.murid, guru:state.guru, saringan:state.saringan, prasarana:state.prasarana, markah:state.markah, logIbuBapa:state.logIbuBapa})); } catch(e){}
+  try { localStorage.setItem('spib_data', JSON.stringify({murid:state.murid, guru:state.guru, saringan:state.saringan, prasarana:state.prasarana, markah:state.markah, logIbuBapa:state.logIbuBapa, carta:state.carta})); } catch(e){}
 }
 function muatLocalAll(){
   try {
@@ -596,9 +596,10 @@ function muatLocalAll(){
     state.prasarana = d.prasarana && d.prasarana.length ? d.prasarana : SEED_PRASARANA();
     state.markah = d.markah && Object.keys(d.markah).length ? d.markah : JSON.parse(JSON.stringify(MARKAH_SEED));
     state.logIbuBapa = d.logIbuBapa && d.logIbuBapa.length ? d.logIbuBapa : LOG_IBU_BAPA_SEED.slice();
+    state.carta = d.carta && d.carta.length ? d.carta : SEED_CARTA();
   } catch(e){
     state.murid = SEED_MURID(); state.guru = SEED_GURU(); state.prasarana = SEED_PRASARANA();
-    state.markah = JSON.parse(JSON.stringify(MARKAH_SEED)); state.logIbuBapa = LOG_IBU_BAPA_SEED.slice();
+    state.markah = JSON.parse(JSON.stringify(MARKAH_SEED)); state.logIbuBapa = LOG_IBU_BAPA_SEED.slice(); state.carta = SEED_CARTA();
   }
   renderAll();
 }
@@ -630,6 +631,14 @@ function SEED_PRASARANA(){ return [
   {id:'P004',jenis:'Ramp',lokasi:'Pintu Blok B',status:'Dalam Pembaikan',catatan:'Jangka siap: 2026-09-30'},
   {id:'P005',jenis:'Tempat Duduk Kerusi Roda',lokasi:'Dewan Besar',status:'Sedia',catatan:'Disahkan 2026-01-15'}
 ];}
+function SEED_CARTA(){ return [
+  {id:'C01',nama:'Guru Besar',peranan:'Pengerusi JPKS',ikon:'award',tier:'atas',warna:'emerald-600'},
+  {id:'C02',nama:'Penolong Kanan',peranan:'Timbalan Pengerusi',ikon:'user-cog',tier:'atas',warna:'emerald-500'},
+  {id:'C03',nama:'Koordinator PPKI',peranan:'Setiausaha',ikon:'briefcase',tier:'atas',warna:'emerald-400'},
+  {id:'C04',nama:'5 Guru PPKI',peranan:'Guru Pendamping',ikon:'user',tier:'bawah',warna:'putih'},
+  {id:'C05',nama:'Ibu Bapa / Penjaga',peranan:'Ahli JPKS',ikon:'heart',tier:'bawah',warna:'putih'},
+  {id:'C06',nama:'Pegawai PPKI',peranan:'Penasihat Teknikal',ikon:'stethoscope',tier:'bawah',warna:'putih'}
+];}
 
 /* ---------- RENDER ALL ---------- */
 function renderAll(){
@@ -639,6 +648,7 @@ function renderAll(){
   renderPrasarana();
   renderMarkah();
   renderLogIbuBapa();
+  renderCarta();
   populateSelects();
   lucide.createIcons();
 }
@@ -814,7 +824,6 @@ function janaLaporanSaringan(){
   document.getElementById('printArea').innerHTML=html;
   lucide.createIcons();
   window.print();
-  // Simpan rekod saringan
   var rekod={id:'S'+Date.now(), muridId:muridId, tarikh:tarikh, domain:'Semua', skor:res.skor, kategori:res.skor>=50?'Persetujuan':'Intervensi RPI', butiran:JSON.stringify(res.details), logIbuBapa:''};
   state.saringan.push(rekod);
   murid.skor=res.skor;
@@ -1115,6 +1124,83 @@ function cetakSWOT(){
     '<td style="padding:10px; border:2px solid #f59e0b; vertical-align:top;"><strong style="color:#f59e0b;">ANCAMAN (Threats)</strong><ul><li>Pertambahan enrolmen</li><li>Kekangan peruntukan</li><li>Pertukaran guru berpengalaman</li></ul></td></tr></table>'+
     '<p style="text-align:center; font-size:10px; margin-top:24px; color:#666;">SPIB PPKI - SK Selama (K)</p></div>';
   window.print();
+}
+
+/* ---------- CARTA ORGANISASI ---------- */
+function renderCarta(){
+  var c=document.getElementById('cartaOrg'); if(!c) return;
+  var atas=state.carta.filter(function(x){return x.tier==='atas';});
+  var bawah=state.carta.filter(function(x){return x.tier==='bawah';});
+  var html='<div class="flex flex-col items-center gap-4 min-w-fit">';
+  atas.forEach(function(b,i){
+    var idx=state.carta.indexOf(b);
+    var isPutih=b.warna==='putih';
+    var bg=isPutih?'bg-white border-2 border-emerald-300 text-emerald-800':'bg-'+b.warna+' text-white';
+    var sub=isPutih?'text-gray-500':(b.warna==='emerald-400'?'text-emerald-50':'text-emerald-100');
+    html+='<div class="org-card w-64 '+bg+' rounded-xl px-5 py-4 text-center shadow-md relative group">'+
+      '<button onclick="bukaModalCarta('+idx+')" class="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>'+
+      '<i data-lucide="'+b.ikon+'" class="w-6 h-6 mx-auto mb-1"></i>'+
+      '<p class="font-bold">'+b.nama+'</p>'+
+      '<p class="text-xs '+sub+'">'+b.peranan+'</p></div>';
+    if(i<atas.length-1) html+='<div class="w-px h-6 bg-emerald-300"></div>';
+  });
+  if(bawah.length){
+    html+='<div class="flex gap-4 flex-wrap justify-center">';
+    bawah.forEach(function(b){
+      var idx=state.carta.indexOf(b);
+      html+='<div class="org-card w-44 bg-white border-2 border-emerald-300 text-emerald-800 rounded-xl px-3 py-3 text-center shadow-sm relative group">'+
+        '<button onclick="bukaModalCarta('+idx+')" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition text-emerald-600"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>'+
+        '<i data-lucide="'+b.ikon+'" class="w-5 h-5 mx-auto mb-1"></i>'+
+        '<p class="font-semibold text-sm">'+b.nama+'</p>'+
+        '<p class="text-xs text-gray-500">'+b.peranan+'</p></div>';
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  c.innerHTML=html;
+  lucide.createIcons();
+}
+function bukaModalCarta(idx){
+  if(idx===undefined){
+    document.getElementById('cartaIdx').value='';
+    document.getElementById('cartaNama').value='';
+    document.getElementById('cartaPeranan').value='';
+    document.getElementById('cartaIkon').value='user';
+    document.getElementById('cartaWarna').value='putih';
+    document.getElementById('cartaTier').value='bawah';
+  } else {
+    var b=state.carta[idx]; if(!b) return;
+    document.getElementById('cartaIdx').value=idx;
+    document.getElementById('cartaNama').value=b.nama;
+    document.getElementById('cartaPeranan').value=b.peranan;
+    document.getElementById('cartaIkon').value=b.ikon;
+    document.getElementById('cartaWarna').value=b.warna;
+    document.getElementById('cartaTier').value=b.tier;
+  }
+  var m=document.getElementById('modalCarta'); m.classList.remove('hidden'); m.classList.add('flex'); lucide.createIcons();
+}
+function tutupModalCarta(){ var m=document.getElementById('modalCarta'); m.classList.add('hidden'); m.classList.remove('flex'); }
+function simpanCarta(){
+  var idx=document.getElementById('cartaIdx').value;
+  var box={nama:document.getElementById('cartaNama').value,peranan:document.getElementById('cartaPeranan').value,ikon:document.getElementById('cartaIkon').value,warna:document.getElementById('cartaWarna').value,tier:document.getElementById('cartaTier').value};
+  if(idx===''){ box.id='C'+Date.now(); state.carta.push(box); }
+  else { box.id=state.carta[parseInt(idx)].id; state.carta[parseInt(idx)]=box; }
+  saveLocalAll(); renderCarta(); tutupModalCarta(); toast('Carta dikemas kini');
+}
+function tambahCarta(){
+  document.getElementById('cartaIdx').value='';
+  document.getElementById('cartaNama').value='';
+  document.getElementById('cartaPeranan').value='';
+  document.getElementById('cartaIkon').value='user';
+  document.getElementById('cartaWarna').value='putih';
+  document.getElementById('cartaTier').value='bawah';
+}
+function padamCarta(){
+  var idx=document.getElementById('cartaIdx').value;
+  if(idx===''){ tutupModalCarta(); return; }
+  if(!confirm('Padam kotak ini?')) return;
+  state.carta.splice(parseInt(idx),1);
+  saveLocalAll(); renderCarta(); tutupModalCarta(); toast('Kotak dipadam');
 }
 
 /* ---------- UTIL ---------- */
