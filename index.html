@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#059669" />
+<meta name="description" content="Sistem Pengurusan Inklusif Bersepadu (SPIB) PPKI - PPKI SK Selama (K)" />
+<title>SPIB PPKI - Sistem Pengurusan Inklusif Bersepadu</title>
+<link rel="manifest" href="./manifest.json" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23059669'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3ESPIB%3C/text%3E%3C/svg%3E" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: { 50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',800:'#065f46',900:'#064e3b' },
+          accent: { 500:'#0ea5e9',600:'#0284c7',700:'#0369a1' },
+          warning: { 400:'#fbbf24',500:'#f59e0b',600:'#d97706' },
+          error: { 400:'#f87171',500:'#ef4444',600:'#dc2626' }
+        },
+        fontFamily: { sans: ['Inter','Segoe UI','system-ui','sans-serif'] }
+      }
+    }
+  };
+</script>
+<style>
+  body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+  .nav-tab.active { background:#059669; color:#fff; box-shadow:0 4px 14px rgba(5,150,105,.35); }
+  .nav-tab.active svg { color:#fff; }
+  .tab-btn.active { background:#059669; color:#fff; }
+  .fade-in { animation: fadeIn .35s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .org-card { transition: transform .2s, box-shadow .2s; }
+  .org-card:hover { transform: translateY(-3px); box-shadow:0 12px 28px rgba(0,0,0,.12); }
+  .modal-overlay { background:rgba(0,0,0,.5); }
+  ::-webkit-scrollbar { width:8px; height:8px; }
+  ::-webkit-scrollbar-thumb { background:#10b981; border-radius:4px; }
+  .print-area { display:none; }
+  @media print {
+    body * { visibility:hidden; }
+    .print-area, .print-area * { visibility:visible; }
+    .print-area { display:block; position:absolute; left:0; top:0; width:100%; background:#fff !important; color:#000 !important; }
+    .no-print { display:none !important; }
+    @page { size:A4; margin:15mm; }
+    .print-hide { display:none !important; }
+  }
+</style>
+</head>
+<body class="bg-emerald-50/40 min-h-screen">
+
+<!-- HEADER -->
+<header class="no-print sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm border-b border-emerald-100">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-md">SPIB</div>
+      <div>
+        <h1 class="text-base font-bold text-emerald-800 leading-tight">SPIB PPKI</h1>
+        <p class="text-xs text-emerald-600 leading-tight">SK Selama (K) - Sistem Pengurusan Inklusif Bersepadu</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span id="connStatus" class="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Talian
+      </span>
+      <button id="installBtn" class="hidden items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition">
+        <i data-lucide="download" class="w-4 h-4"></i> Pasang
+      </button>
+    </div>
+  </div>
+  <!-- NAV TABS -->
+  <nav class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto">
+    <button class="nav-tab active flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition whitespace-nowrap" data-tab="m1">
+      <i data-lucide="landmark" class="w-4 h-4"></i> Tadbir Urus & Dasar
+    </button>
+    <button class="nav-tab flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition whitespace-nowrap" data-tab="m2">
+      <i data-lucide="users" class="w-4 h-4"></i> Guru & Penjadualan
+    </button>
+    <button class="nav-tab flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition whitespace-nowrap" data-tab="m3">
+      <i data-lucide="clipboard-list" class="w-4 h-4"></i> Profil MBK & Saringan
+    </button>
+    <button class="nav-tab flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition whitespace-nowrap" data-tab="m4">
+      <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Prestasi & Pelaporan
+    </button>
+  </nav>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+  <!-- ===================== MODUL 1: TADBIR URUS & DASAR ===================== -->
+  <section id="m1" class="module fade-in">
+    <!-- Carta Organisasi -->
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5 mb-5">
+      <h2 class="text-lg font-bold text-emerald-800 mb-1 flex items-center gap-2"><i data-lucide="git-fork" class="w-5 h-5"></i> Carta Organisasi JPKS SK Selama (K)</h2>
+      <p class="text-sm text-gray-500 mb-5">Jawatankuasa Penyelarasan Khas (JPKS) - Struktur Tadbir Urus Program Pendidikan Inklusif</p>
+      <div class="overflow-x-auto">
+        <div class="flex flex-col items-center gap-4 min-w-fit">
+          <!-- Guru Besar -->
+          <div class="org-card w-64 bg-emerald-600 text-white rounded-xl px-5 py-4 text-center shadow-md">
+            <i data-lucide="award" class="w-6 h-6 mx-auto mb-1"></i>
+            <p class="font-bold">Guru Besar</p>
+            <p class="text-xs text-emerald-100">Pengerusi JPKS</p>
+          </div>
+          <div class="w-px h-6 bg-emerald-300"></div>
+          <!-- Penolong Kanan -->
+          <div class="org-card w-64 bg-emerald-500 text-white rounded-xl px-5 py-4 text-center shadow-md">
+            <i data-lucide="user-cog" class="w-6 h-6 mx-auto mb-1"></i>
+            <p class="font-bold">Penolong Kanan</p>
+            <p class="text-xs text-emerald-100">Timbalan Pengerusi</p>
+          </div>
+          <div class="w-px h-6 bg-emerald-300"></div>
+          <!-- Koordinator PPKI -->
+          <div class="org-card w-64 bg-emerald-400 text-white rounded-xl px-5 py-4 text-center shadow-md">
+            <i data-lucide="briefcase" class="w-6 h-6 mx-auto mb-1"></i>
+            <p class="font-bold">Koordinator PPKI</p>
+            <p class="text-xs text-emerald-50">Setiausaha</p>
+          </div>
+          <div class="w-px h-6 bg-emerald-300"></div>
+          <!-- Row 3: Guru PPKI -->
+          <div class="flex gap-4 flex-wrap justify-center">
+            <div class="org-card w-44 bg-white border-2 border-emerald-300 text-emerald-800 rounded-xl px-3 py-3 text-center shadow-sm">
+              <i data-lucide="user" class="w-5 h-5 mx-auto mb-1"></i>
+              <p class="font-semibold text-sm">5 Guru PPKI</p>
+              <p class="text-xs text-gray-500">Guru Pendamping</p>
+            </div>
+            <div class="org-card w-44 bg-white border-2 border-emerald-300 text-emerald-800 rounded-xl px-3 py-3 text-center shadow-sm">
+              <i data-lucide="heart" class="w-5 h-5 mx-auto mb-1"></i>
+              <p class="font-semibold text-sm">Ibu Bapa / Penjaga</p>
+              <p class="text-xs text-gray-500">Ahli JPKS</p>
+            </div>
+            <div class="org-card w-44 bg-white border-2 border-emerald-300 text-emerald-800 rounded-xl px-3 py-3 text-center shadow-sm">
+              <i data-lucide="stethoscope" class="w-5 h-5 mx-auto mb-1"></i>
+              <p class="font-semibold text-sm">Pegawai PPKI</p>
+              <p class="text-xs text-gray-500">Penasihat Teknikal</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-5 mb-5">
+      <!-- Borang Surat Pelantikan -->
+      <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5">
+        <h2 class="text-lg font-bold text-emerald-800 mb-1 flex items-center gap-2"><i data-lucide="file-text" class="w-5 h-5"></i> Penjana Surat Pelantikan</h2>
+        <p class="text-sm text-gray-500 mb-4">Jawatankuasa Inklusif - Cetak format A4</p>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs font-semibold text-gray-600">Pilih Guru</label>
+            <select id="slcGuruJawatankuasa" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"></select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-gray-600">Jawatan</label>
+            <select id="slcJawatan" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+              <option>Pengerusi</option><option>Timbalan Pengerusi</option><option>Setiausaha</option>
+              <option>Timbalan Setiausaha</option><option>Ahli Jawatankuasa</option><option>Bendahari</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-gray-600">Tarikh Pelantikan</label>
+            <input type="date" id="dtPelantikan" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" />
+          </div>
+          <button onclick="cetakSuratPelantikan()" class="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 transition">
+            <i data-lucide="printer" class="w-4 h-4"></i> Jana & Cetak Surat
+          </button>
+        </div>
+      </div>
+
+      <!-- Minit Mesyuarat -->
+      <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5">
+        <h2 class="text-lg font-bold text-emerald-800 mb-1 flex items-center gap-2"><i data-lucide="file-signature" class="w-5 h-5"></i> Minit Mesyuarat JPKS</h2>
+        <p class="text-sm text-gray-500 mb-4">Bil 1/2026 - Paparan & Edit</p>
+        <div class="space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="text-xs font-semibold text-gray-600">Bilangan</label><input value="Bil 1/2026" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none" /></div>
+            <div><label class="text-xs font-semibold text-gray-600">Tarikh</label><input type="date" value="2026-01-20" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none" /></div>
+          </div>
+          <div><label class="text-xs font-semibold text-gray-600">Masa</label><input value="10:00 pagi" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none" /></div>
+          <div><label class="text-xs font-semibold text-gray-600">Tempat</label><input value="Bilik Guru Besar, SK Selama (K)" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none" /></div>
+          <div><label class="text-xs font-semibold text-gray-600">Perkara 1</label><textarea class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none" rows="2">Pembentangan dasar pendidikan inklusif KPM dan pelaksanaan SPI Bil. 1/2026 di sekolah.</textarea></div>
+          <div><label class="text-xs font-semibold text-gray-600">Perkara 2</label><textarea class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none" rows="2">Pelantikan Jawatankuasa Inklusif sesi 2026/2027.</textarea></div>
+          <div><label class="text-xs font-semibold text-gray-600">Perkara 3</label><textarea class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none" rows="2">Perlaksanaan saringan SSKI-IS bagi 10 murid inklusif oleh 5 guru PPKI.</textarea></div>
+          <button onclick="cetakMinit()" class="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 transition">
+            <i data-lucide="printer" class="w-4 h-4"></i> Cetak Minit
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dokumen Dasar -->
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5">
+      <h2 class="text-lg font-bold text-emerald-800 mb-1 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5"></i> Rujukan Dokumen Dasar KPM</h2>
+      <p class="text-sm text-gray-500 mb-4">Dokumen rujukan utama pelaksanaan program pendidikan inklusif</p>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div class="flex items-start gap-3 p-4 rounded-xl border border-emerald-100 bg-emerald-50/50">
+          <i data-lucide="scale" class="w-5 h-5 text-emerald-600 mt-0.5"></i>
+          <div><p class="font-semibold text-sm text-emerald-800">Akta Pendidikan 1996</p><p class="text-xs text-gray-600 mt-0.5">Akta 550 - Peruntukan pendidikan khas & inklusif di sekolah aliran perdana.</p></div>
+        </div>
+        <div class="flex items-start gap-3 p-4 rounded-xl border border-emerald-100 bg-emerald-50/50">
+          <i data-lucide="file-badge" class="w-5 h-5 text-emerald-600 mt-0.5"></i>
+          <div><p class="font-semibold text-sm text-emerald-800">SPI Bil. 1/2026</p><p class="text-xs text-gray-600 mt-0.5">Surat Pekeliling Ikhtisas - Dasar Pelaksanaan Program Pendidikan Inklusif KPM.</p></div>
+        </div>
+        <div class="flex items-start gap-3 p-4 rounded-xl border border-emerald-100 bg-emerald-50/50">
+          <i data-lucide="globe" class="w-5 h-5 text-emerald-600 mt-0.5"></i>
+          <div><p class="font-semibold text-sm text-emerald-800">UNCRPD 2008</p><p class="text-xs text-gray-600 mt-0.5">Konvensyen Hak Orang Kurang Upaya - Malaysia ratifikasi 2010.</p></div>
+        </div>
+        <div class="flex items-start gap-3 p-4 rounded-xl border border-emerald-100 bg-emerald-50/50">
+          <i data-lucide="graduation-cap" class="w-5 h-5 text-emerald-600 mt-0.5"></i>
+          <div><p class="font-semibold text-sm text-emerald-800">PPPPM 2013-2025</p><p class="text-xs text-gray-600 mt-0.5">Pelan Pembangunan Pendidikan Malaysia - Pelaksanaan pendidikan inklusif.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MODUL 2: GURU & PENJADUALAN ===================== -->
+  <section id="m2" class="module fade-in hidden">
+    <div class="grid lg:grid-cols-3 gap-5 mb-5">
+      <!-- Profil Guru -->
+      <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-emerald-100 p-5">
+        <h2 class="text-lg font-bold text-emerald-800 mb-1 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5"></i> Profil Guru PPKI</h2>
+        <p class="text-sm text-gray-500 mb-4">5 Guru Pendamping PPKI</p>
+        <div id="guruCards" class="space-y-3"></div>
+      </div>
+
+      <!-- Jadual Waktu -->
+      <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-emerald-100 p-5">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5"></i> Jadual Waktu Bimbingan Anjal</h2>
+            <p class="text-sm text-gray-500">Isnin - Jumaat | Boleh diedit secara terus</p>
+          </div>
+          <button onclick="simpanJadual()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 transition">
+            <i data-lucide="save" class="w-4 h-4"></i> Simpan Jadual
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs border-collapse">
+            <thead>
+              <tr class="bg-emerald-600 text-white">
+                <th class="px-2 py-2 text-left sticky left-0 bg-emerald-600">Slot</th>
+                <th class="px-2 py-2">Isnin</th><th class="px-2 py-2">Selasa</th><th class="px-2 py-2">Rabu</th><th class="px-2 py-2">Khamis</th><th class="px-2 py-2">Jumaat</th>
+              </tr>
+            </thead>
+            <tbody id="jadualBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Laporan LDP -->
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div>
+          <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2"><i data-lucide="book-marked" class="w-5 h-5"></i> Laporan LDP Bil 1/2026</h2>
+          <p class="text-sm text-gray-500">Tajuk: Pedagogi Terbeza & AI</p>
+        </div>
+        <button onclick="cetakLDP()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 transition">
+          <i data-lucide="printer" class="w-4 h-4"></i> Cetak Laporan
+        </button>
+      </div>
+      <div class="prose prose-sm max-w-none text-gray-700 space-y-3">
+        <p><strong>Tarikh:</strong> 15 Januari 2026 | <strong>Lokasi:</strong> Pusat Sumber SK Selama (K) | <strong>Penceramah:</strong> En. Ahmad bin Hassan (Koordinator PPKI)</p>
+        <p><strong>Objektif:</strong> Membekalkan pengetahuan dan kemahiran kepada 5 guru PPKI mengenai pelaksanaan pedagogi terbeza dan penggunaan alat AI dalam pengajaran pembelajaran murid inklusif.</p>
+        <p><strong>Aktiviti:</strong> Sesi pendedahan konsep pedagogi terbeza (Differentiated Instruction) merangkumi 3 dimensi: kandungan, proses, dan produk. Demonstrasi penggunaan alat AI (ChatGPT, Gemini) untuk menjana bahan pengajaran terbeza bagi murid dengan pelbagai tahap kesediaan.</p>
+        <p><strong>Refleksi:</strong> Seramai 5 guru PPKI telah mengikuti program LDP ini dengan jayanya. Guru-guru menunjukkan peningkatan keyakinan dalam menyediakan Rancangan Pengajaran Harian (RPH) yang menggabungkan pendekatan pedagogi terbeza dan integrasi alat AI sebagai sokongan pengajaran.</p>
+        <p><strong>Cadangan Tindakan:</strong> Pemantauan pelaksanaan pedagogi terbeza dalam kelas bimbingan akan dijalankan pada Februari 2026. Guru-guru dikehendaki menyerahkan satu RPH terbeza lengkap dengan bahan AI sebagai tugasan LDP.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MODUL 3: PROFIL MBK & SARINGAN ===================== -->
+  <section id="m3" class="module fade-in hidden">
+    <!-- Senarai Murid -->
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5 mb-5">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div>
+          <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2"><i data-lucide="users-round" class="w-5 h-5"></i> Pangkalan Data Murid Inklusif</h2>
+          <p class="text-sm text-gray-500">10 Murid Inklusif PPKI SK Selama (K)</p>
+        </div>
+        <button onclick="bukaModalMurid()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i> Tambah Murid
+        </button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-emerald-600 text-white text-xs">
+              <th class="px-3 py-2.5 text-left">Nama</th>
+              <th class="px-3 py-2.5 text-left">MyKid</th>
+              <th class="px-3 py-2.5 text-left">Diagnosis</th>
+              <th class="px-3 py-2.5 text-left">Kelas</th>
+              <th class="px-3 py-2.5 text-center">Skor</th>
+              <th class="px-3 py-2.5 text-left">Tindakan</th>
+              <th class="px-3 py-2.5 text-center print-hide">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="muridTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Borang Saringan SSKI-IS -->
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5 mb-5">
+      <h2 class="text-lg font-bold text-emerald-800 mb-1 flex items-center gap-2"><i data-lucide="clipboard-check" class="w-5 h-5"></i> Borang Saringan SSKI-IS</h2>
+      <p class="text-sm text-gray-500 mb-4">25 Item Kesediaan - 5 Domain (Kognitif, Komunikasi, Sosioemosi, Tingkah Laku, Motor)</p>
+      <div class="grid sm:grid-cols-2 gap-3 mb-4">
+        <div><label class="text-xs font-semibold text-gray-600">Pilih Murid</label><select id="saringMurid" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500"></select></div>
+        <div><label class="text-xs font-semibold text-gray-600">Tarikh Saringan</label><input type="date" id="saringTarikh" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+      </div>
+      <div id="saringanItems" class="space-y-5"></div>
+      <div class="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <p class="text-sm font-semibold text-emerald-800">Skor Automatik</p>
+          <p class="text-xs text-emerald-600">Skor = (Item 'Ya' / 25) × 100</p>
+        </div>
+        <div class="text-3xl font-bold text-emerald-700" id="saringanSkor">0%</div>
+        <button onclick="janaLaporanSaringan()" class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 transition">
+          <i data-lucide="file-output" class="w-4 h-4"></i> Jana & Cetak Laporan
+        </button>
+      </div>
+    </div>
+
+    <!-- Log Perjumpaan Ibu Bapa -->
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5">
+      <h2 class="text-lg font-bold text-emerald-800 mb-1 flex items-center gap-2"><i data-lucide="message-square" class="w-5 h-5"></i> Log Perjumpaan Tiga Hala</h2>
+      <p class="text-sm text-gray-500 mb-4">Perjumpaan Guru - Ibu Bapa - Murid</p>
+      <div id="logIbuBapaList" class="space-y-3"></div>
+      <div class="mt-4 grid sm:grid-cols-4 gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100">
+        <div><label class="text-xs font-semibold text-gray-600">Murid</label><select id="logMurid" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none"></select></div>
+        <div><label class="text-xs font-semibold text-gray-600">Tarikh</label><input type="date" id="logTarikh" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none" /></div>
+        <div><label class="text-xs font-semibold text-gray-600">Perkara</label><input id="logPerkara" placeholder="Perkara perjumpaan" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none" /></div>
+        <div class="flex items-end"><button onclick="tambahLogIbuBapa()" class="w-full px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 transition">Tambah Log</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MODUL 4: PRESTASI & PELAPORAN ===================== -->
+  <section id="m4" class="module fade-in hidden">
+    <!-- Jadual Markah -->
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5 mb-5">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div>
+          <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2"><i data-lucide="table" class="w-5 h-5"></i> Peperiksaan Pertengahan Tahun 2026</h2>
+          <p class="text-sm text-gray-500">Markah subjek teras & ulasan sahsiah sosial</p>
+        </div>
+        <button onclick="cetakMarkah()" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 transition">
+          <i data-lucide="printer" class="w-4 h-4"></i> Cetak
+        </button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-emerald-600 text-white text-xs">
+              <th class="px-3 py-2.5 text-left">Nama</th>
+              <th class="px-3 py-2.5 text-center">BM</th>
+              <th class="px-3 py-2.5 text-center">BI</th>
+              <th class="px-3 py-2.5 text-center">MT</th>
+              <th class="px-3 py-2.5 text-center">SJ</th>
+              <th class="px-3 py-2.5 text-left">Ulasan Sahsiah Sosial</th>
+            </tr>
+          </thead>
+          <tbody id="markahTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-5 mb-5">
+      <!-- Pencerapan PdP -->
+      <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2"><i data-lucide="eye" class="w-5 h-5"></i> Pencerapan PdP</h2>
+          <button onclick="cetakPencerapan()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium text-xs hover:bg-emerald-700 transition">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i> Cetak
+          </button>
+        </div>
+        <p class="text-sm text-gray-500 mb-4">Instrumen pencerapan kelas inklusif oleh Guru Besar</p>
+        <div class="space-y-3">
+          <div><label class="text-xs font-semibold text-gray-600">Guru Dicerap</label><select id="pcerGuru" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none"></select></div>
+          <div><label class="text-xs font-semibold text-gray-600">Tarikh Pencerapan</label><input type="date" id="pcerTarikh" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none" /></div>
+          <div class="space-y-2">
+            <label class="text-xs font-semibold text-gray-600">Aspek Pencerapan (1-5)</label>
+            <div id="pencerapanAspek"></div>
+          </div>
+          <div><label class="text-xs font-semibold text-gray-600">Ulasan Guru Besar</label><textarea id="pcerUlasan" rows="3" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none"></textarea></div>
+        </div>
+      </div>
+
+      <!-- Inventori Prasarana -->
+      <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2"><i data-lucide="building-2" class="w-5 h-5"></i> Inventori Prasarana OKU</h2>
+          <button onclick="cetakPrasarana()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium text-xs hover:bg-emerald-700 transition">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i> Cetak
+          </button>
+        </div>
+        <p class="text-sm text-gray-500 mb-4">Inventori kemudahan mesra OKU SK Selama (K)</p>
+        <div id="prasaranaList" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <!-- SWOT -->
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-5">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2"><i data-lucide="grid-3x3" class="w-5 h-5"></i> Analisis SWOT Tahunan</h2>
+        <button onclick="cetakSWOT()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium text-xs hover:bg-emerald-700 transition">
+          <i data-lucide="printer" class="w-3.5 h-3.5"></i> Cetak
+        </button>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border-2 border-emerald-300 bg-emerald-50/50">
+          <h3 class="font-bold text-emerald-800 mb-2 flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4"></i> Kekuatan (Strengths)</h3>
+          <ul class="text-sm text-gray-700 space-y-1.5 list-disc pl-5">
+            <li>5 guru PPKI beropsyen dengan kelulusan khas.</li>
+            <li>Sokongan penuh Guru Besar & JPKS.</li>
+            <li>Prasarana mesra OKU sedia ada (ramp, tandas, grab rails).</li>
+            <li>Sistem digital SPIB untuk pemantauan data real-time.</li>
+          </ul>
+        </div>
+        <div class="p-4 rounded-xl border-2 border-error-300 bg-error-50/40">
+          <h3 class="font-bold text-error-700 mb-2 flex items-center gap-2"><i data-lucide="trending-down" class="w-4 h-4"></i> Kelemahan (Weaknesses)</h3>
+          <ul class="text-sm text-gray-700 space-y-1.5 list-disc pl-5">
+            <li>Nisbah guru-murid masih tinggi (1:2).</li>
+            <li>Kekurangan bahan bantu mengajar khusus diagnosis tertentu.</li>
+            <li>Tahap penguasaan pedagogi terbeza masih perihatin.</li>
+          </ul>
+        </div>
+        <div class="p-4 rounded-xl border-2 border-accent-500 bg-sky-50/50">
+          <h3 class="font-bold text-accent-700 mb-2 flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4"></i> Peluang (Opportunities)</h3>
+          <ul class="text-sm text-gray-700 space-y-1.5 list-disc pl-5">
+            <li>Sokongan PPKI Perak & KPM melalui SPI Bil. 1/2026.</li>
+            <li>Kolaborasi dengan universiti untuk program praktikum PPKI.</li>
+            <li>Integrasi AI dalam pedagogi terbeza (LDP 2026).</li>
+          </ul>
+        </div>
+        <div class="p-4 rounded-xl border-2 border-warning-500 bg-amber-50/50">
+          <h3 class="font-bold text-warning-600 mb-2 flex items-center gap-2"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Ancaman (Threats)</h3>
+          <ul class="text-sm text-gray-700 space-y-1.5 list-disc pl-5">
+            <li>Pertambahan enrolmen murid inklusif setiap tahun.</li>
+            <li>Kekangan peruntukan kewangan untuk prasarana tambahan.</li>
+            <li>Pertukaran guru berpengalaman menjejaskan kontinuiti program.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- MODAL MURID -->
+<div id="modalMurid" class="no-print fixed inset-0 z-50 hidden items-center justify-center modal-overlay p-4">
+  <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold text-emerald-800">Borang Murid Inklusif</h3>
+      <button onclick="tutupModalMurid()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="space-y-3">
+      <input type="hidden" id="muridId" />
+      <div><label class="text-xs font-semibold text-gray-600">Nama</label><input id="muridNama" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+      <div><label class="text-xs font-semibold text-gray-600">MyKid</label><input id="muridMykid" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs font-semibold text-gray-600">Diagnosis</label><select id="muridDiagnosis" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none">
+          <option>Autisme</option><option>ADHD</option><option>Masalah Pembelajaran</option><option>Masalah Pendengaran</option><option>Masalah Penglihatan</option><option>Lain-lain</option>
+        </select></div>
+        <div><label class="text-xs font-semibold text-gray-600">Kelas</label><select id="muridKelas" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none">
+          <option>1 Inklusif</option><option>2 Inklusif</option><option>3 Inklusif</option><option>4 Inklusif</option><option>5 Inklusif</option>
+        </select></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs font-semibold text-gray-600">Skor Saringan (%)</label><input type="number" min="0" max="100" id="muridSkor" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+        <div><label class="text-xs font-semibold text-gray-600">Tindakan</label><input id="muridTindakan" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+      </div>
+      <button onclick="simpanMurid()" class="w-full mt-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-700 transition">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="printArea" class="print-area"></div>
+
+<footer class="no-print text-center py-6 text-xs text-gray-400">
+  SPIB PPKI &copy; 2026 - SK Selama (K) | Sistem Pengurusan Inklusif Bersepadu
+</footer>
+
+<script>
+/* ============================================================
+   SPIB PPKI - Frontend Logic
+   ============================================================ */
+
+// GANTIKAN URL INI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
+var API_URL = 'GANTIKAN_DENGAN_URL_WEB_APP_APPS_SCRIPT_ANDA';
+
+var state = {
+  murid: [],
+  guru: [],
+  saringan: [],
+  prasarana: [],
+  online: navigator.onLine,
+  jadual: {},
+  guruAktif: null,
+  markah: {},
+  logIbuBapa: [],
+  pencerapan: {}
+};
+
+var HARI = ['Isnin','Selasa','Rabu','Khamis','Jumaat'];
+var SLOT = ['07:50-08:20','08:20-09:00','09:00-09:40','09:40-10:20','Rehat','10:40-11:20','11:20-12:00','12:00-12:40'];
+
+var SARINGAN_DOMAIN = [
+  { nama:'Kognitif', items:['Mengikut arahan mudah','Mengenal bentuk asas','Mengingat maklumat ringkas','Memahami sebab-akibat','Menyelesaikan masalah mudah'] },
+  { nama:'Komunikasi', items:['Bertutur perkataan mudah','Memahami arahan lisan','Menyatakan keperluan','Menjawab soalan mudah','Berkomunikasi dengan rakan'] },
+  { nama:'Sosioemosi', items:['Berinteraksi dengan rakan','Mengawal emosi asas','Menunjukkan empati','Bekerja dalam kumpulan','Menerima perubahan rutin'] },
+  { nama:'Tingkah Laku', items:['Mengikut peraturan kelas','Duduk dengan tenang','Menunggu giliran','Tidak mengganggu rakan','Fokus pada tugasan'] },
+  { nama:'Motor', items:['Memegang pensil dengan betul','Memotong garis lurus','Mengikat tali kasut','Membaling dan menangkap','Imbang badan ketika berjalan'] }
+];
+
+var ASPEK_PENCERAPAN = [
+  'Perancangan PdP','Penggunaan BBM','Penglibatan Murid','Pengurusan Kelas','Pedagogi Terbeza','Penilaian Formatif','Penggunaan AI','Komunikasi Inklusif'
+];
+
+var MARKAH_SEED = {
+  M001:{bm:65,bi:58,mt:70,sj:62,ulasan:'Aktif dalam perbualan kumpulan, perlu bimbingan fokus tugas.'},
+  M002:{bm:55,bi:50,mt:48,sj:52,ulasan:'Sering bertindak impulsif, memerlukan strategi pengurusan tingkah laku.'},
+  M003:{bm:40,bi:35,mt:38,sj:42,ulasan:'Memerlukan sokongan tambahan dalam literasi dan numerasi.'},
+  M004:{bm:72,bi:68,mt:75,sj:70,ulasan:'Kerap menunjukkan minat dalam sains, interaksi sosial baik.'},
+  M005:{bm:48,bi:45,mt:52,sj:50,ulasan:'Memerlukan alat bantu pendengaran, penyertaan kelas baik.'},
+  M006:{bm:80,bi:75,mt:85,sj:78,ulasan:'Pencapaian cemerlang, mampu menjadi role model rakan.'},
+  M007:{bm:35,bi:30,mt:32,sj:38,ulasan:'Memerlukan RPI intensif, sokongan satu-ke-satu diperlukan.'},
+  M008:{bm:60,bi:55,mt:58,sj:56,ulasan:'Kemajuan baik dalam komunikasi, perlu galakan sosial.'},
+  M009:{bm:52,bi:48,mt:50,sj:54,ulasan:'Menggunakan braille dengan baik, keyakinan diri meningkat.'},
+  M010:{bm:42,bi:38,mt:40,sj:44,ulasan:'Tumpuan mudah terganggu, perlu rutin dan jadual visual.'}
+};
+
+var LOG_IBU_BAPA_SEED = [
+  { muridId:'M001', tarikh:'2026-01-22', perkara:'Perbincangan penyesuaian rutin kelas dan alat komunikasi.' },
+  { muridId:'M003', tarikh:'2026-01-24', perkara:'Persetujuan pelaksanaan RPI intensif di rumah dan sekolah.' },
+  { muridId:'M006', tarikh:'2026-01-25', perkara:'Maklum balas positif perkembangan akademik dan sosial.' }
+];
+
+/* ---------- INIT ---------- */
+document.addEventListener('DOMContentLoaded', function() {
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function(){});
+  window.addEventListener('online', function(){ state.online=true; updateConnStatus(); });
+  window.addEventListener('offline', function(){ state.online=false; updateConnStatus(); });
+  updateConnStatus();
+  initNav();
+  initPencerapan();
+  muatSemuaData();
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); window.deferredPrompt=e; document.getElementById('installBtn').classList.remove('hidden'); document.getElementById('installBtn').classList.add('flex'); });
+  document.getElementById('installBtn').addEventListener('click', function(){ if(window.deferredPrompt){ window.deferredPrompt.prompt(); window.deferredPrompt.userChoice.then(function(){ window.deferredPrompt=null; document.getElementById('installBtn').classList.add('hidden'); }); } });
+});
+
+function updateConnStatus(){
+  var el=document.getElementById('connStatus');
+  if(state.online){ el.className='hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700'; el.innerHTML='<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Talian'; }
+  else { el.className='hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-amber-100 text-amber-700'; el.innerHTML='<span class="w-2 h-2 rounded-full bg-amber-500"></span> Luar Talian'; }
+}
+
+function initNav(){
+  var tabs=document.querySelectorAll('.nav-tab');
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ tabs.forEach(function(x){ x.classList.remove('active'); }); t.classList.add('active'); var mod=t.getAttribute('data-tab'); document.querySelectorAll('.module').forEach(function(m){ m.classList.add('hidden'); }); var sec=document.getElementById(mod); sec.classList.remove('hidden'); sec.classList.add('fade-in'); lucide.createIcons(); }); });
+}
+
+/* ---------- API / STORAGE ---------- */
+function apiGet(action){
+  if(!API_URL || API_URL.indexOf('GANTIKAN')>-1 || !state.online) return Promise.reject('offline');
+  return fetch(API_URL + '?action=' + action, { method:'GET' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d && !d.error) return d; throw new Error(d.error||'API error'); });
+}
+function apiPost(payload){
+  if(!API_URL || API_URL.indexOf('GANTIKAN')>-1 || !state.online) return Promise.reject('offline');
+  return fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d && d.success) return d.data; throw new Error(d.error||'API error'); });
+}
+
+function muatSemuaData(){
+  apiGet('getAll').then(function(d){
+    state.murid = d.murid || [];
+    state.guru = d.guru || [];
+    state.saringan = d.saringan || [];
+    state.prasarana = d.prasarana || [];
+    saveLocalAll();
+  }).catch(function(){ muatLocalAll(); });
+}
+
+function saveLocalAll(){
+  try { localStorage.setItem('spib_data', JSON.stringify({murid:state.murid, guru:state.guru, saringan:state.saringan, prasarana:state.prasarana, markah:state.markah, logIbuBapa:state.logIbuBapa})); } catch(e){}
+}
+function muatLocalAll(){
+  try {
+    var d=JSON.parse(localStorage.getItem('spib_data')||'{}');
+    state.murid = d.murid && d.murid.length ? d.murid : SEED_MURID();
+    state.guru = d.guru && d.guru.length ? d.guru : SEED_GURU();
+    state.saringan = d.saringan || [];
+    state.prasarana = d.prasarana && d.prasarana.length ? d.prasarana : SEED_PRASARANA();
+    state.markah = d.markah && Object.keys(d.markah).length ? d.markah : JSON.parse(JSON.stringify(MARKAH_SEED));
+    state.logIbuBapa = d.logIbuBapa && d.logIbuBapa.length ? d.logIbuBapa : LOG_IBU_BAPA_SEED.slice();
+  } catch(e){
+    state.murid = SEED_MURID(); state.guru = SEED_GURU(); state.prasarana = SEED_PRASARANA();
+    state.markah = JSON.parse(JSON.stringify(MARKAH_SEED)); state.logIbuBapa = LOG_IBU_BAPA_SEED.slice();
+  }
+  renderAll();
+}
+
+function SEED_MURID(){ return [
+  {id:'M001',nama:'Aisyah binti Zahari',mykid:'201805101056',diagnosis:'Autisme',kelas:'1 Inklusif',skor:72,tindakan:'Borang Persetujuan Ibu Bapa'},
+  {id:'M002',nama:'Muhammad Faiz bin Roslan',mykid:'201712140873',diagnosis:'ADHD',kelas:'2 Inklusif',skor:64,tindakan:'Borang Persetujuan Ibu Bapa'},
+  {id:'M003',nama:'Nurul Husna binti Karim',mykid:'201903220541',diagnosis:'Masalah Pembelajaran',kelas:'1 Inklusif',skor:44,tindakan:'Cadangan Intervensi RPI'},
+  {id:'M004',nama:'Daniel bin Aiman',mykid:'201811080912',diagnosis:'Autisme',kelas:'3 Inklusif',skor:56,tindakan:'Borang Persetujuan Ibu Bapa'},
+  {id:'M005',nama:'Sofia binti Hafiz',mykid:'201907150634',diagnosis:'Masalah Pendengaran',kelas:'2 Inklusif',skor:48,tindakan:'Cadangan Intervensi RPI'},
+  {id:'M006',nama:'Arif bin Shahmi',mykid:'201802190778',diagnosis:'ADHD',kelas:'3 Inklusif',skor:80,tindakan:'Borang Persetujuan Ibu Bapa'},
+  {id:'M007',nama:'Zara binti Lokman',mykid:'201909110489',diagnosis:'Masalah Pembelajaran',kelas:'1 Inklusif',skor:36,tindakan:'Cadangan Intervensi RPI'},
+  {id:'M008',nama:'Haziq bin Najib',mykid:'201806250321',diagnosis:'Autisme',kelas:'4 Inklusif',skor:60,tindakan:'Borang Persetujuan Ibu Bapa'},
+  {id:'M009',nama:'Diana binti Fauzi',mykid:'201710030657',diagnosis:'Masalah Penglihatan',kelas:'4 Inklusif',skor:52,tindakan:'Borang Persetujuan Ibu Bapa'},
+  {id:'M010',nama:'Irfan bin Muzammil',mykid:'201904180142',diagnosis:'ADHD',kelas:'2 Inklusif',skor:40,tindakan:'Cadangan Intervensi RPI'}
+];}
+function SEED_GURU(){ return [
+  {id:'G001',nama:'En. Ahmad bin Hassan',opsyen:'Pendidikan Khas Integrasi (Masalah Pembelajaran)',kelasBimbingan:'3 Bimbingan',subjek:'Bahasa Melayu, Matematik',jadualWaktu:JSON.stringify(SEED_JADUAL())},
+  {id:'G002',nama:'Pn. Siti Aminah binti Yusof',opsyen:'Pendidikan Khas Integrasi (Autisme)',kelasBimbingan:'4 Bimbingan',subjek:'Bahasa Inggeris, Sains',jadualWaktu:JSON.stringify(SEED_JADUAL())},
+  {id:'G003',nama:'Cik Norashikin binti Ramli',opsyen:'Pendidikan Khas Integrasi (Masalah Pendengaran)',kelasBimbingan:'2 Bimbingan',subjek:'Bahasa Melayu, Pendidikan Seni',jadualWaktu:JSON.stringify(SEED_JADUAL())},
+  {id:'G004',nama:'En. Mohd Zaki bin Idris',opsyen:'Pendidikan Khas Integrasi (Masalah Penglihatan)',kelasBimbingan:'5 Bimbingan',subjek:'Matematik, Pendidikan Jasmani',jadualWaktu:JSON.stringify(SEED_JADUAL())},
+  {id:'G005',nama:'Pn. Faridah binti Othman',opsyen:'Pendidikan Khas Integrasi (Masalah Pembelajaran)',kelasBimbingan:'1 Bimbingan',subjek:'Bahasa Melayu, Pendidikan Islam',jadualWaktu:JSON.stringify(SEED_JADUAL())}
+];}
+function SEED_JADUAL(){ var j={}; HARI.forEach(function(h){ j[h]={}; SLOT.forEach(function(s){ j[h][s]=(s==='Rehat')?'Rehat':''; }); }); return j; }
+function SEED_PRASARANA(){ return [
+  {id:'P001',jenis:'Ramp',lokasi:'Pintu Utama Sekolah',status:'Sedia',catatan:'Disahkan 2026-01-15'},
+  {id:'P002',jenis:'Tandas OKU',lokasi:'Blok A, Aras Tanah',status:'Sedia',catatan:'Disahkan 2026-01-15'},
+  {id:'P003',jenis:'Grab Rails',lokasi:'Tandas OKU & Tangga Utama',status:'Sedia',catatan:'Disahkan 2026-01-15'},
+  {id:'P004',jenis:'Ramp',lokasi:'Pintu Blok B',status:'Dalam Pembaikan',catatan:'Jangka siap: 2026-09-30'},
+  {id:'P005',jenis:'Tempat Duduk Kerusi Roda',lokasi:'Dewan Besar',status:'Sedia',catatan:'Disahkan 2026-01-15'}
+];}
+
+/* ---------- RENDER ALL ---------- */
+function renderAll(){
+  renderGuru();
+  renderMurid();
+  renderSaringan();
+  renderPrasarana();
+  renderMarkah();
+  renderLogIbuBapa();
+  populateSelects();
+  lucide.createIcons();
+}
+
+function populateSelects(){
+  var gSel=document.getElementById('slcGuruJawatankuasa'); if(gSel){ gSel.innerHTML=state.guru.map(function(g){ return '<option value="'+g.nama+'">'+g.nama+'</option>'; }).join(''); }
+  var sSel=document.getElementById('saringMurid'); if(sSel){ sSel.innerHTML=state.murid.map(function(m){ return '<option value="'+m.id+'">'+m.nama+'</option>'; }).join(''); }
+  var lSel=document.getElementById('logMurid'); if(lSel){ lSel.innerHTML=state.murid.map(function(m){ return '<option value="'+m.id+'">'+m.nama+'</option>'; }).join(''); }
+  var pSel=document.getElementById('pcerGuru'); if(pSel){ pSel.innerHTML=state.guru.map(function(g){ return '<option value="'+g.id+'">'+g.nama+'</option>'; }).join(''); }
+}
+
+/* ---------- GURU ---------- */
+function renderGuru(){
+  var c=document.getElementById('guruCards'); if(!c) return;
+  c.innerHTML = state.guru.map(function(g,i){
+    return '<div class="p-4 rounded-xl border '+(i===0?'border-emerald-400 bg-emerald-50':'border-gray-200 bg-gray-50')+' cursor-pointer hover:border-emerald-400 transition" onclick="pilihGuru('+i+')">'+
+      '<div class="flex items-center gap-3">'+
+      '<div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">'+g.nama.substring(0,1)+'</div>'+
+      '<div><p class="font-semibold text-sm text-gray-800">'+g.nama+'</p><p class="text-xs text-gray-500">'+g.kelasBimbingan+'</p></div></div>'+
+      '<p class="text-xs text-gray-600 mt-2"><strong>Opsyen:</strong> '+g.opsyen+'</p>'+
+      '<p class="text-xs text-gray-600"><strong>Subjek:</strong> '+g.subjek+'</p></div>';
+  }).join('');
+  pilihGuru(0);
+}
+
+function pilihGuru(idx){
+  state.guruAktif=idx;
+  var g=state.guru[idx]; if(!g) return;
+  try { state.jadual = (typeof g.jadualWaktu==='string') ? JSON.parse(g.jadualWaktu) : (g.jadualWaktu||SEED_JADUAL()); } catch(e){ state.jadual=SEED_JADUAL(); }
+  renderJadual();
+  document.querySelectorAll('#guruCards > div').forEach(function(d,i){ d.className = d.className.replace('border-emerald-400 bg-emerald-50','border-gray-200 bg-gray-50'); if(i===idx) d.className = d.className.replace('border-gray-200 bg-gray-50','border-emerald-400 bg-emerald-50'); });
+}
+
+function renderJadual(){
+  var tb=document.getElementById('jadualBody'); if(!tb) return;
+  var html='';
+  SLOT.forEach(function(s){
+    html+='<tr class="border-b border-gray-100 '+(s==='Rehat'?'bg-amber-50':'')+'"><td class="px-2 py-1.5 font-medium text-gray-700 text-xs whitespace-nowrap sticky left-0 bg-white">'+s+'</td>';
+    HARI.forEach(function(h){
+      var val=(state.jadual[h] && state.jadual[h][s]) ? state.jadual[h][s] : '';
+      if(s==='Rehat'){ html+='<td class="px-2 py-1.5 text-center text-amber-600 text-xs">Rehat</td>'; }
+      else { html+='<td class="px-1 py-1"><input value="'+esc(val)+'" data-hari="'+h+'" data-slot="'+s+'" class="w-full px-1 py-1 text-xs text-center border border-transparent rounded hover:border-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" onchange="updateJadualCell(this)" /></td>'; }
+    });
+    html+='</tr>';
+  });
+  tb.innerHTML=html;
+}
+
+function updateJadualCell(el){
+  var h=el.getAttribute('data-hari'), s=el.getAttribute('data-slot');
+  if(!state.jadual[h]) state.jadual[h]={};
+  state.jadual[h][s]=el.value;
+}
+
+function simpanJadual(){
+  if(state.guruAktif!==null && state.guru[state.guruAktif]){
+    state.guru[state.guruAktif].jadualWaktu=JSON.stringify(state.jadual);
+    saveLocalAll();
+    apiPost({action:'saveGuru', guru:state.guru[state.guruAktif]}).then(function(){ toast('Jadual disimpan ke server'); }).catch(function(){ toast('Jadual disimpan (luar talian)'); });
+  }
+}
+
+/* ---------- MURID ---------- */
+function renderMurid(){
+  var tb=document.getElementById('muridTableBody'); if(!tb) return;
+  tb.innerHTML = state.murid.map(function(m){
+    var warna = m.skor>=50 ? 'bg-emerald-100 text-emerald-700' : 'bg-error-100 text-error-700';
+    return '<tr class="border-b border-gray-100 hover:bg-emerald-50/30">'+
+      '<td class="px-3 py-2.5 font-medium text-gray-800">'+m.nama+'</td>'+
+      '<td class="px-3 py-2.5 text-gray-600">'+m.mykid+'</td>'+
+      '<td class="px-3 py-2.5"><span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">'+m.diagnosis+'</span></td>'+
+      '<td class="px-3 py-2.5 text-gray-600">'+m.kelas+'</td>'+
+      '<td class="px-3 py-2.5 text-center"><span class="px-2 py-1 rounded-lg text-xs font-bold '+warna+'">'+m.skor+'%</span></td>'+
+      '<td class="px-3 py-2.5 text-xs text-gray-600">'+(m.tindakan||'-')+'</td>'+
+      '<td class="px-3 py-2.5 text-center print-hide"><button onclick="editMurid(\''+m.id+'\')" class="text-emerald-600 hover:text-emerald-800 mr-2"><i data-lucide="edit-2" class="w-4 h-4"></i></button><button onclick="padamMurid(\''+m.id+'\')" class="text-error-500 hover:text-error-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>';
+  }).join('');
+}
+
+function bukaModalMurid(){
+  document.getElementById('muridId').value='';
+  document.getElementById('muridNama').value='';
+  document.getElementById('muridMykid').value='';
+  document.getElementById('muridSkor').value='';
+  document.getElementById('muridTindakan').value='';
+  var m=document.getElementById('modalMurid'); m.classList.remove('hidden'); m.classList.add('flex'); lucide.createIcons();
+}
+function tutupModalMurid(){ var m=document.getElementById('modalMurid'); m.classList.add('hidden'); m.classList.remove('flex'); }
+function editMurid(id){
+  var m=state.murid.find(function(x){ return x.id===id; }); if(!m) return;
+  document.getElementById('muridId').value=m.id;
+  document.getElementById('muridNama').value=m.nama;
+  document.getElementById('muridMykid').value=m.mykid;
+  document.getElementById('muridDiagnosis').value=m.diagnosis;
+  document.getElementById('muridKelas').value=m.kelas;
+  document.getElementById('muridSkor').value=m.skor;
+  document.getElementById('muridTindakan').value=m.tindakan||'';
+  var mo=document.getElementById('modalMurid'); mo.classList.remove('hidden'); mo.classList.add('flex'); lucide.createIcons();
+}
+function simpanMurid(){
+  var id=document.getElementById('muridId').value || ('M'+String(state.murid.length+1).padStart(3,'0'));
+  var murid={id:id, nama:document.getElementById('muridNama').value, mykid:document.getElementById('muridMykid').value, diagnosis:document.getElementById('muridDiagnosis').value, kelas:document.getElementById('muridKelas').value, skor:parseInt(document.getElementById('muridSkor').value)||0, tindakan:document.getElementById('muridTindakan').value};
+  var idx=state.murid.findIndex(function(x){ return x.id===id; });
+  if(idx>-1) state.murid[idx]=murid; else state.murid.push(murid);
+  saveLocalAll(); renderMurid(); populateSelects(); lucide.createIcons(); tutupModalMurid();
+  apiPost({action:'saveMurid', murid:murid}).then(function(){ toast('Murid disimpan ke server'); }).catch(function(){ toast('Murid disimpan (luar talian)'); });
+}
+function padamMurid(id){
+  if(!confirm('Padam murid ini?')) return;
+  state.murid=state.murid.filter(function(x){ return x.id!==id; });
+  saveLocalAll(); renderMurid(); populateSelects(); lucide.createIcons();
+  apiPost({action:'deleteMurid', id:id}).catch(function(){});
+}
+
+/* ---------- SARINGAN ---------- */
+function renderSaringan(){
+  var c=document.getElementById('saringanItems'); if(!c) return;
+  var html='';
+  SARINGAN_DOMAIN.forEach(function(dom,di){
+    html+='<div class="p-4 rounded-xl border border-emerald-100 bg-emerald-50/30">'+
+      '<h3 class="font-semibold text-sm text-emerald-800 mb-3 flex items-center gap-2"><i data-lucide="circle-dot" class="w-4 h-4"></i> '+dom.nama+' <span class="text-xs text-gray-500 font-normal">(5 item)</span></h3>'+
+      '<div class="space-y-2">';
+    dom.items.forEach(function(it,ii){
+      var k=di+'-'+ii;
+      html+='<div class="flex items-center justify-between gap-2 py-1.5">'+
+        '<span class="text-sm text-gray-700 flex-1">'+(di*5+ii+1)+'. '+it+'</span>'+
+        '<div class="flex gap-1">'+
+        '<label class="flex items-center gap-1 text-xs cursor-pointer"><input type="radio" name="s'+k+'" value="1" class="saring-radio text-emerald-600" onchange="kiraSkor()" /> <span class="text-emerald-700 font-medium">Ya</span></label>'+
+        '<label class="flex items-center gap-1 text-xs cursor-pointer ml-2"><input type="radio" name="s'+k+'" value="0" class="saring-radio" checked onchange="kiraSkor()" /> <span class="text-error-600 font-medium">Tidak</span></label>'+
+        '</div></div>';
+    });
+    html+='</div></div>';
+  });
+  c.innerHTML=html;
+  kiraSkor();
+}
+
+function kiraSkor(){
+  var radios=document.querySelectorAll('.saring-radio:checked');
+  var ya=0;
+  radios.forEach(function(r){ if(r.value==='1') ya++; });
+  var skor=Math.round((ya/25)*100);
+  var el=document.getElementById('saringanSkor');
+  el.textContent=skor+'%';
+  el.className='text-3xl font-bold '+(skor>=50?'text-emerald-700':'text-error-600');
+}
+
+function getSaringanResults(){
+  var results={ ya:0, tidak:0, details:[] };
+  SARINGAN_DOMAIN.forEach(function(dom,di){
+    dom.items.forEach(function(it,ii){
+      var k='s'+di+'-'+ii;
+      var r=document.querySelector('input[name="'+k+'"]:checked');
+      var val=r?parseInt(r.value):0;
+      if(val===1) results.ya++; else { results.tidak++; results.details.push({domain:dom.nama, item:it}); }
+    });
+  });
+  results.skor=Math.round((results.ya/25)*100);
+  return results;
+}
+
+function janaLaporanSaringan(){
+  var muridId=document.getElementById('saringMurid').value;
+  var murid=state.murid.find(function(m){ return m.id===muridId; });
+  if(!murid){ alert('Sila pilih murid'); return; }
+  var tarikh=document.getElementById('saringTarikh').value || new Date().toISOString().slice(0,10);
+  var res=getSaringanResults();
+  var html='';
+  if(res.skor>=50){
+    html=janaBorangPersetujuan(murid, tarikh, res);
+  } else {
+    html=janaBorangRPI(murid, tarikh, res);
+  }
+  document.getElementById('printArea').innerHTML=html;
+  lucide.createIcons();
+  window.print();
+  // Simpan rekod saringan
+  var rekod={id:'S'+Date.now(), muridId:muridId, tarikh:tarikh, domain:'Semua', skor:res.skor, kategori:res.skor>=50?'Persetujuan':'Intervensi RPI', butiran:JSON.stringify(res.details), logIbuBapa:''};
+  state.saringan.push(rekod);
+  murid.skor=res.skor;
+  murid.tindakan = res.skor>=50 ? 'Borang Persetujuan Ibu Bapa' : 'Cadangan Intervensi RPI';
+  saveLocalAll(); renderMurid();
+  apiPost({action:'saveSaringan', saringan:rekod}).catch(function(){});
+  apiPost({action:'saveMurid', murid:murid}).catch(function(){});
+}
+
+function janaBorangPersetujuan(murid, tarikh, res){
+  return '<div style="padding:20px; font-family:Arial; color:#000;">'+
+    '<div style="text-align:center; border-bottom:3px solid #059669; padding-bottom:12px; margin-bottom:16px;">'+
+    '<h1 style="font-size:20px; font-weight:bold; margin:0;">PEJABAT PENDIDIKAN DAERAH SELAMA</h1>'+
+    '<h2 style="font-size:16px; margin:4px 0;">SEKOLAH KEBANGSAAN SELAMA (K)</h2>'+
+    '<p style="font-size:12px; margin:0;">PPKI - Program Pendidikan Inklusif</p></div>'+
+    '<h2 style="text-align:center; font-size:16px; color:#059669; margin:12px 0;">BORANG PERSETUJUAN IBU BAPA</h2>'+
+    '<p style="text-align:center; font-size:12px; margin-bottom:16px;">Penempatan Murid dalam Program Pendidikan Inklusif</p>'+
+    '<table style="width:100%; font-size:12px; border-collapse:collapse; margin-bottom:16px;">'+
+    '<tr><td style="padding:4px; width:30%;"><strong>Nama Murid:</strong></td><td style="padding:4px;">'+murid.nama+'</td></tr>'+
+    '<tr><td style="padding:4px;"><strong>No. MyKid:</strong></td><td style="padding:4px;">'+murid.mykid+'</td></tr>'+
+    '<tr><td style="padding:4px;"><strong>Diagnosis:</strong></td><td style="padding:4px;">'+murid.diagnosis+'</td></tr>'+
+    '<tr><td style="padding:4px;"><strong>Kelas:</strong></td><td style="padding:4px;">'+murid.kelas+'</td></tr>'+
+    '<tr><td style="padding:4px;"><strong>Tarikh Saringan:</strong></td><td style="padding:4px;">'+tarikh+'</td></tr></table>'+
+    '<div style="background:#d1fae5; border:2px solid #059669; border-radius:8px; padding:12px; margin-bottom:16px; text-align:center;">'+
+    '<p style="font-size:14px; font-weight:bold; color:#065f46; margin:0;">SKOR SARINGAN SSKI-IS: '+res.skor+'%</p>'+
+    '<p style="font-size:12px; color:#047857; margin:4px 0 0 0;">LULUS - Murid bersedia untuk Program Pendidikan Inklusif</p></div>'+
+    '<h3 style="font-size:13px; color:#059669; margin:12px 0 6px;">Jadual Subjek Bimbingan</h3>'+
+    '<table style="width:100%; font-size:11px; border-collapse:collapse; margin-bottom:16px;">'+
+    '<tr style="background:#059669; color:#fff;"><th style="padding:6px; border:1px solid #047857;">Subjek</th><th style="padding:6px; border:1px solid #047857;">Guru Pendamping</th><th style="padding:6px; border:1px solid #047857;">Bil. Jam/Minggu</th></tr>'+
+    '<tr><td style="padding:6px; border:1px solid #d1fae5;">Bahasa Melayu</td><td style="padding:6px; border:1px solid #d1fae5;">En. Ahmad / Pn. Faridah</td><td style="padding:6px; border:1px solid #d1fae5; text-align:center;">4</td></tr>'+
+    '<tr><td style="padding:6px; border:1px solid #d1fae5;">Matematik</td><td style="padding:6px; border:1px solid #d1fae5;">En. Ahmad / En. Zaki</td><td style="padding:6px; border:1px solid #d1fae5; text-align:center;">3</td></tr>'+
+    '<tr><td style="padding:6px; border:1px solid #d1fae5;">Bahasa Inggeris</td><td style="padding:6px; border:1px solid #d1fae5;">Pn. Siti Aminah</td><td style="padding:6px; border:1px solid #d1fae5; text-align:center;">3</td></tr>'+
+    '<tr><td style="padding:6px; border:1px solid #d1fae5;">Sains</td><td style="padding:6px; border:1px solid #d1fae5;">Pn. Siti Aminah</td><td style="padding:6px; border:1px solid #d1fae5; text-align:center;">2</td></tr></table>'+
+    '<p style="font-size:12px; margin:16px 0;">Saya ibu bapa/penjaga murid tersebut mengaku telah dibriefing mengenai Program Pendidikan Inklusif dan bersetuju penempatan murid saya dalam program ini.</p>'+
+    '<table style="width:100%; font-size:12px; margin-top:24px;"><tr><td style="width:50%; text-align:center;">'+
+    '<p style="margin:0;">.................................</p><p style="margin:4px 0;">Tanda Tangan Ibu Bapa/Penjaga</p><p style="margin:0; font-size:11px;">Tarikh: .........................</p></td>'+
+    '<td style="width:50%; text-align:center;"><p style="margin:0;">.................................</p><p style="margin:4px 0;">Tanda Tangan Guru Besar</p><p style="margin:0; font-size:11px;">Tarikh: .........................</p></td></tr></table>'+
+    '<p style="text-align:center; font-size:10px; margin-top:24px; color:#666;">SPIB PPKI - SK Selama (K) | Borang ini dijana secara automatik oleh sistem</p></div>';
+}
+
+function janaBorangRPI(murid, tarikh, res){
+  var kelemahan = res.details.map(function(d){ return '<li><strong>'+d.domain+':</strong> '+d.item+'</li>'; }).join('');
+  return '<div style="padding:20px; font-family:Arial; color:#000;">'+
+    '<div style="text-align:center; border-bottom:3px solid #dc2626; padding-bottom:12px; margin-bottom:16px;">'+
+    '<h1 style="font-size:20px; font-weight:bold; margin:0;">PEJABAT PENDIDIKAN DAERAH SELAMA</h1>'+
+    '<h2 style="font-size:16px; margin:4px 0;">SEKOLAH KEBANGSAAN SELAMA (K)</h2>'+
+    '<p style="font-size:12px; margin:0;">PPKI - Program Pendidikan Inklusif</p></div>'+
+    '<h2 style="text-align:center; font-size:16px; color:#dc2626; margin:12px 0;">BORANG CADANGAN INTERVENSI RPI</h2>'+
+    '<p style="text-align:center; font-size:12px; margin-bottom:16px;">Rancangan Pendidikan Individu (RPI) untuk Murid Memerlukan Sokongan Tambahan</p>'+
+    '<table style="width:100%; font-size:12px; border-collapse:collapse; margin-bottom:16px;">'+
+    '<tr><td style="padding:4px; width:30%;"><strong>Nama Murid:</strong></td><td style="padding:4px;">'+murid.nama+'</td></tr>'+
+    '<tr><td style="padding:4px;"><strong>No. MyKid:</strong></td><td style="padding:4px;">'+murid.mykid+'</td></tr>'+
+    '<tr><td style="padding:4px;"><strong>Diagnosis:</strong></td><td style="padding:4px;">'+murid.diagnosis+'</td></tr>'+
+    '<tr><td style="padding:4px;"><strong>Kelas:</strong></td><td style="padding:4px;">'+murid.kelas+'</td></tr>'+
+    '<tr><td style="padding:4px;"><strong>Tarikh Saringan:</strong></td><td style="padding:4px;">'+tarikh+'</td></tr></table>'+
+    '<div style="background:#fee2e2; border:2px solid #dc2626; border-radius:8px; padding:12px; margin-bottom:16px; text-align:center;">'+
+    '<p style="font-size:14px; font-weight:bold; color:#991b1b; margin:0;">SKOR SARINGAN SSKI-IS: '+res.skor+'%</p>'+
+    '<p style="font-size:12px; color:#b91c1c; margin:4px 0 0 0;">PERLU INTERVENSI - Murid memerlukan Rancangan Pendidikan Individu (RPI)</p></div>'+
+    '<h3 style="font-size:13px; color:#dc2626; margin:12px 0 6px;">Analisis Kelemahan (Item "Tidak")</h3>'+
+    '<ul style="font-size:12px; margin:0 0 16px 20px; padding:0;">'+kelemahan+'</ul>'+
+    '<h3 style="font-size:13px; color:#059669; margin:12px 0 6px;">Pelan Tindakan Intervensi</h3>'+
+    '<table style="width:100%; font-size:11px; border-collapse:collapse; margin-bottom:16px;">'+
+    '<tr style="background:#059669; color:#fff;"><th style="padding:6px; border:1px solid #047857;">Domain</th><th style="padding:6px; border:1px solid #047857;">Strategi Intervensi</th><th style="padding:6px; border:1px solid #047857;">Guru Bertugas</th></tr>'+
+    '<tr><td style="padding:6px; border:1px solid #d1fae5;">Kognitif</td><td style="padding:6px; border:1px solid #d1fae5;">Pengajaran satu-ke-satu, bahan visual & konkrit</td><td style="padding:6px; border:1px solid #d1fae5;">En. Ahmad</td></tr>'+
+    '<tr><td style="padding:6px; border:1px solid #d1fae5;">Komunikasi</td><td style="padding:6px; border:1px solid #d1fae5;">AAC, latihan komunikasi fungsional</td><td style="padding:6px; border:1px solid #d1fae5;">Pn. Siti Aminah</td></tr>'+
+    '<tr><td style="padding:6px; border:1px solid #d1fae5;">Sosioemosi</td><td style="padding:6px; border:1px solid #d1fae5;">Terapi permainan, aktiviti kumpulan kecil</td><td style="padding:6px; border:1px solid #d1fae5;">Cik Norashikin</td></tr>'+
+    '<tr><td style="padding:6px; border:1px solid #d1fae5;">Tingkah Laku</td><td style="padding:6px; border:1px solid #d1fae5;">Pengurusan tingkah laku positif, token economy</td><td style="padding:6px; border:1px solid #d1fae5;">Pn. Faridah</td></tr>'+
+    '<tr><td style="padding:6px; border:1px solid #d1fae5;">Motor</td><td style="padding:6px; border:1px solid #d1fae5;">Latihan motor halus & kasar terstruktur</td><td style="padding:6px; border:1px solid #d1fae5;">En. Zaki</td></tr></table>'+
+    '<p style="font-size:12px; margin:16px 0;">RPI ini akan disemak setiap tiga bulan oleh Jawatankuasa PPKI bersama ibu bapa.</p>'+
+    '<table style="width:100%; font-size:12px; margin-top:24px;"><tr><td style="width:50%; text-align:center;">'+
+    '<p style="margin:0;">.................................</p><p style="margin:4px 0;">Tanda Tangan Ibu Bapa/Penjaga</p></td>'+
+    '<td style="width:50%; text-align:center;"><p style="margin:0;">.................................</p><p style="margin:4px 0;">Tanda Tangan Guru Besar</p></td></tr></table>'+
+    '<p style="text-align:center; font-size:10px; margin-top:24px; color:#666;">SPIB PPKI - SK Selama (K) | Borang ini dijana secara automatik oleh sistem</p></div>';
+}
+
+/* ---------- LOG IBU BAPA ---------- */
+function renderLogIbuBapa(){
+  var c=document.getElementById('logIbuBapaList'); if(!c) return;
+  c.innerHTML = state.logIbuBapa.map(function(l,i){
+    var m=state.murid.find(function(x){ return x.id===l.muridId; });
+    return '<div class="flex items-start gap-3 p-3 rounded-xl border border-emerald-100 bg-emerald-50/30">'+
+      '<i data-lucide="calendar-check" class="w-5 h-5 text-emerald-600 mt-0.5"></i>'+
+      '<div class="flex-1"><p class="text-sm font-medium text-gray-800">'+(m?m.nama:'Tidak diketahui')+'</p>'+
+      '<p class="text-xs text-gray-500">'+l.tarikh+'</p><p class="text-sm text-gray-600 mt-1">'+l.perkara+'</p></div>'+
+      '<button onclick="padamLogIbuBapa('+i+')" class="text-error-500 hover:text-error-700 print-hide"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>';
+  }).join('') || '<p class="text-sm text-gray-400 text-center py-4">Tiada log perjumpaan direkodkan.</p>';
+}
+function tambahLogIbuBapa(){
+  var muridId=document.getElementById('logMurid').value;
+  var tarikh=document.getElementById('logTarikh').value;
+  var perkara=document.getElementById('logPerkara').value;
+  if(!muridId||!tarikh||!perkara){ alert('Sila lengkapkan borang'); return; }
+  state.logIbuBapa.push({muridId:muridId, tarikh:tarikh, perkara:perkara});
+  saveLocalAll(); renderLogIbuBapa(); lucide.createIcons();
+  document.getElementById('logPerkara').value='';
+  toast('Log perjumpaan ditambah');
+}
+function padamLogIbuBapa(i){ state.logIbuBapa.splice(i,1); saveLocalAll(); renderLogIbuBapa(); lucide.createIcons(); }
+
+/* ---------- MARKAH ---------- */
+function renderMarkah(){
+  var tb=document.getElementById('markahTableBody'); if(!tb) return;
+  tb.innerHTML = state.murid.map(function(m){
+    var mk=state.markah[m.id]||{bm:'-',bi:'-',mt:'-',sj:'-',ulasan:''};
+    return '<tr class="border-b border-gray-100 hover:bg-emerald-50/30">'+
+      '<td class="px-3 py-2.5 font-medium text-gray-800">'+m.nama+'</td>'+
+      '<td class="px-3 py-2.5 text-center">'+(mk.bm||'-')+'</td>'+
+      '<td class="px-3 py-2.5 text-center">'+(mk.bi||'-')+'</td>'+
+      '<td class="px-3 py-2.5 text-center">'+(mk.mt||'-')+'</td>'+
+      '<td class="px-3 py-2.5 text-center">'+(mk.sj||'-')+'</td>'+
+      '<td class="px-3 py-2.5 text-xs text-gray-600">'+(mk.ulasan||'-')+'</td></tr>';
+  }).join('');
+}
+
+/* ---------- PENCERAPAN ---------- */
+function initPencerapan(){
+  var c=document.getElementById('pencerapanAspek'); if(!c) return;
+  c.innerHTML = ASPEK_PENCERAPAN.map(function(a,i){
+    return '<div class="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">'+
+      '<span class="text-sm text-gray-700">'+a+'</span>'+
+      '<div class="flex gap-1">'+[1,2,3,4,5].map(function(n){ return '<button onclick="setSkorPencerapan('+i+','+n+')" id="pcerBtn'+i+'-'+n+'" class="w-7 h-7 rounded text-xs font-medium '+(n<=3?'bg-gray-100 text-gray-600 hover:bg-emerald-200':'bg-gray-100 text-gray-600 hover:bg-emerald-200')+'">'+n+'</button>'; }).join('')+'</div></div>';
+  }).join('');
+}
+function setSkorPencerapan(idx,n){
+  state.pencerapan[idx]=n;
+  for(var i=1;i<=5;i++){
+    var b=document.getElementById('pcerBtn'+idx+'-'+i);
+    if(i<=n) b.className='w-7 h-7 rounded text-xs font-medium bg-emerald-600 text-white'; else b.className='w-7 h-7 rounded text-xs font-medium bg-gray-100 text-gray-600 hover:bg-emerald-200';
+  }
+}
+
+/* ---------- PRASARANA ---------- */
+function renderPrasarana(){
+  var c=document.getElementById('prasaranaList'); if(!c) return;
+  c.innerHTML = state.prasarana.map(function(p){
+    var warna = p.status==='Sedia' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
+    return '<div class="flex items-center justify-between p-3 rounded-xl border border-emerald-100 bg-emerald-50/30">'+
+      '<div class="flex items-center gap-3"><i data-lucide="building" class="w-5 h-5 text-emerald-600"></i>'+
+      '<div><p class="text-sm font-medium text-gray-800">'+p.jenis+' - '+p.lokasi+'</p><p class="text-xs text-gray-500">'+(p.catatan||'')+'</p></div></div>'+
+      '<span class="text-xs px-2 py-1 rounded-full '+warna+'">'+p.status+'</span></div>';
+  }).join('');
+}
+
+/* ---------- CETAKAN ---------- */
+function cetakSuratPelantikan(){
+  var nama=document.getElementById('slcGuruJawatankuasa').value;
+  var jawatan=document.getElementById('slcJawatan').value;
+  var tarikh=document.getElementById('dtPelantikan').value || new Date().toISOString().slice(0,10);
+  if(!nama){ alert('Pilih guru'); return; }
+  document.getElementById('printArea').innerHTML=
+    '<div style="padding:30px; font-family:Arial; color:#000;">'+
+    '<div style="text-align:center; border-bottom:3px solid #059669; padding-bottom:12px; margin-bottom:20px;">'+
+    '<h1 style="font-size:22px; font-weight:bold; margin:0;">PEJABAT PENDIDIKAN DAERAH SELAMA</h1>'+
+    '<h2 style="font-size:17px; margin:4px 0;">SEKOLAH KEBANGSAAN SELAMA (K)</h2>'+
+    '<p style="font-size:12px; margin:0;">PPKI - Program Pendidikan Inklusif</p></div>'+
+    '<p style="text-align:right; font-size:12px;">Rujukan: SPIB/JPKS/01/2026<br>Tarikh: '+tarikh+'</p>'+
+    '<h2 style="text-align:center; font-size:18px; text-decoration:underline; margin:24px 0;">SURAT PELANTIKAN<br>JAWATANKUASA INKLUSIF</h2>'+
+    '<p style="font-size:13px; margin:16px 0;">Saya dengan sukacitanya melantik:</p>'+
+    '<p style="text-align:center; font-size:15px; font-weight:bold; margin:16px 0;">'+nama+'</p>'+
+    '<p style="font-size:13px; margin:16px 0;">sebagai <strong>'+jawatan+'</strong> Jawatankuasa Inklusif, PPKI SK Selama (K) bagi sesi 2026/2027.</p>'+
+    '<p style="font-size:13px; margin:16px 0;">Pelantikan ini berkuat kuasa mulai '+tarikh+' dan sehingga tamat sesi persekolahan 2026/2027.</p>'+
+    '<p style="font-size:13px; margin:16px 0;">Diharapkan penerima pelantikan ini dapat menjalankan tugas dengan penuh tanggungjawab dan komited terhadap pelaksanaan program pendidikan inklusif di sekolah ini.</p>'+
+    '<p style="font-size:13px; margin:16px 0;">Sekian, terima kasih.</p>'+
+    '<table style="width:100%; font-size:12px; margin-top:32px;"><tr><td></td><td style="text-align:center;">'+
+    '<p style="margin:0;">.................................</p><p style="margin:4px 0;">.................................</p><p style="margin:4px 0;">Guru Besar</p><p style="margin:0;">SK Selama (K)</p></td></tr></table>'+
+    '<p style="text-align:center; font-size:10px; margin-top:24px; color:#666;">SPIB PPKI - SK Selama (K) | Surat ini dijana secara automatik oleh sistem</p></div>';
+  window.print();
+}
+
+function cetakMinit(){
+  document.getElementById('printArea').innerHTML=
+    '<div style="padding:30px; font-family:Arial; color:#000;">'+
+    '<div style="text-align:center; border-bottom:3px solid #059669; padding-bottom:12px; margin-bottom:20px;">'+
+    '<h1 style="font-size:20px; font-weight:bold; margin:0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>'+
+    '<p style="font-size:13px; margin:0;">Jawatankuasa Penyelarasan Khas (JPKS) - PPKI</p></div>'+
+    '<h2 style="text-align:center; font-size:16px; text-decoration:underline; margin:16px 0;">MINIT MESYUARAT JPKS BIL 1/2026</h2>'+
+    '<table style="width:100%; font-size:12px; margin-bottom:16px;">'+
+    '<tr><td style="padding:4px;"><strong>Tarikh:</strong> 20 Januari 2026</td><td style="padding:4px;"><strong>Masa:</strong> 10:00 pagi</td></tr>'+
+    '<tr><td style="padding:4px;"><strong>Tempat:</strong> Bilik Guru Besar, SK Selama (K)</td><td style="padding:4px;"><strong>Bilangan:</strong> Bil 1/2026</td></tr></table>'+
+    '<p style="font-size:12px; font-weight:bold; margin:12px 0 6px;">Kehadiran:</p>'+
+    '<p style="font-size:12px; margin:0 0 12px;">Guru Besar, Penolong Kanan, Koordinator PPKI, 5 Guru PPKI, 3 wakil ibu bapa, Pegawai PPKI Daerah.</p>'+
+    '<p style="font-size:12px; font-weight:bold; margin:12px 0 6px;">Agenda:</p>'+
+    '<ol style="font-size:12px; margin:0 0 16px 20px; padding:0;">'+
+    '<li style="margin-bottom:8px;"><strong>Pembentangan dasar pendidikan inklusif KPM</strong> - Perbincangan pelaksanaan SPI Bil. 1/2026 di sekolah. Keputusan: Semua guru PPKI dikehendaki mematuhi garis panduan SPI Bil. 1/2026.</li>'+
+    '<li style="margin-bottom:8px;"><strong>Pelantikan Jawatankuasa Inklusif sesi 2026/2027</strong> - Pemilihan dan pelantikan ahli jawatankuasa. Keputusan: En. Ahmad dilantik sebagai Setiausaha, 5 guru PPKI sebagai ahli jawatankuasa.</li>'+
+    '<li style="margin-bottom:8px;"><strong>Perlaksanaan saringan SSKI-IS</strong> - Saringan kesediaan bagi 10 murid inklusif oleh 5 guru PPKI. Keputusan: Saringan dijadualkan pada minggu ke-3 Februari 2026.</li></ol>'+
+    '<p style="font-size:12px; font-weight:bold; margin:12px 0 6px;">Keputusan Mesyuarat:</p>'+
+    '<p style="font-size:12px; margin:0 0 16px;">Mesyuarat bersetuju melaksanakan SPI Bil. 1/2026 sepenuhnya, melantik jawatankuasa inklusif, dan menjalankan saringan SSKI-IS bagi semua murid inklusif sebelum akhir Februari 2026.</p>'+
+    '<table style="width:100%; font-size:12px; margin-top:32px;"><tr><td style="width:50%; text-align:center;">'+
+    '<p style="margin:0;">.................................</p><p style="margin:4px 0;">Setiausaha</p></td>'+
+    '<td style="width:50%; text-align:center;"><p style="margin:0;">.................................</p><p style="margin:4px 0;">Guru Besar / Pengerusi</p></td></tr></table>'+
+    '<p style="text-align:center; font-size:10px; margin-top:24px; color:#666;">SPIB PPKI - SK Selama (K) | Minit ini dijana dan disimpan oleh sistem</p></div>';
+  window.print();
+}
+
+function cetakLDP(){
+  document.getElementById('printArea').innerHTML=
+    '<div style="padding:30px; font-family:Arial; color:#000;">'+
+    '<div style="text-align:center; border-bottom:3px solid #059669; padding-bottom:12px; margin-bottom:20px;">'+
+    '<h1 style="font-size:20px; font-weight:bold; margin:0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>'+
+    '<p style="font-size:13px; margin:0;">Laporan LDP PPKI Bil 1/2026</p></div>'+
+    '<h2 style="text-align:center; font-size:16px; margin:16px 0;">LAPORAN PROGRAM LATIHAN DALAM PERKHIDMATAN (LDP)<br>BIL 1/2026</h2>'+
+    '<p style="text-align:center; font-size:14px; font-weight:bold; margin:12px 0;">Tajuk: Pedagogi Terbeza & AI</p>'+
+    '<table style="width:100%; font-size:12px; margin-bottom:16px;">'+
+    '<tr><td style="padding:4px;"><strong>Tarikh:</strong> 15 Januari 2026</td><td style="padding:4px;"><strong>Masa:</strong> 8:00 - 13:00</td></tr>'+
+    '<tr><td style="padding:4px;"><strong>Lokasi:</strong> Pusat Sumber SK Selama (K)</td><td style="padding:4px;"><strong>Penceramah:</strong> En. Ahmad bin Hassan</td></tr>'+
+    '<tr><td style="padding:4px;"><strong>Peserta:</strong> 5 Guru PPKI</td><td style="padding:4px;"><strong>Bilangan:</strong> 5 orang</td></tr></table>'+
+    '<p style="font-size:13px; font-weight:bold; margin:12px 0 4px;">1. Objektif</p>'+
+    '<p style="font-size:12px; margin:0 0 12px;">Membekalkan pengetahuan dan kemahiran kepada 5 guru PPKI mengenai pelaksanaan pedagogi terbeza dan penggunaan alat AI dalam pengajaran pembelajaran murid inklusif.</p>'+
+    '<p style="font-size:13px; font-weight:bold; margin:12px 0 4px;">2. Aktiviti</p>'+
+    '<p style="font-size:12px; margin:0 0 12px;">Sesi pendedahan konsep pedagogi terbeza (Differentiated Instruction) merangkumi 3 dimensi: kandungan, proses, dan produk. Demontrasi penggunaan alat AI (ChatGPT, Gemini) untuk menjana bahan pengajaran terbeza bagi murid dengan pelbagai tahap kesediaan.</p>'+
+    '<p style="font-size:13px; font-weight:bold; margin:12px 0 4px;">3. Refleksi</p>'+
+    '<p style="font-size:12px; margin:0 0 12px;">Seramai 5 guru PPKI telah mengikuti program LDP ini dengan jayanya. Guru-guru menunjukkan peningkatan keyakinan dalam menyediakan Rancangan Pengajaran Harian (RPH) yang menggabungkan pendekatan pedagogi terbeza dan integrasi alat AI sebagai sokongan pengajaran.</p>'+
+    '<p style="font-size:13px; font-weight:bold; margin:12px 0 4px;">4. Cadangan Tindakan</p>'+
+    '<p style="font-size:12px; margin:0 0 12px;">Pemantauan pelaksanaan pedagogi terbeza dalam kelas bimbingan akan dijalankan pada Februari 2026. Guru-guru dikehendaki menyerahkan satu RPH terbeza lengkap dengan bahan AI sebagai tugasan LDP.</p>'+
+    '<table style="width:100%; font-size:12px; margin-top:32px;"><tr><td style="width:50%; text-align:center;">'+
+    '<p style="margin:0;">.................................</p><p style="margin:4px 0;">Koordinator PPKI</p></td>'+
+    '<td style="width:50%; text-align:center;"><p style="margin:0;">.................................</p><p style="margin:4px 0;">Guru Besar</p></td></tr></table>'+
+    '<p style="text-align:center; font-size:10px; margin-top:24px; color:#666;">SPIB PPKI - SK Selama (K) | Laporan ini dijana oleh sistem</p></div>';
+  window.print();
+}
+
+function cetakMarkah(){
+  var rows = state.murid.map(function(m){
+    var mk=state.markah[m.id]||{};
+    return '<tr><td style="padding:5px; border:1px solid #ccc;">'+m.nama+'</td>'+
+      '<td style="padding:5px; border:1px solid #ccc; text-align:center;">'+(mk.bm||'-')+'</td>'+
+      '<td style="padding:5px; border:1px solid #ccc; text-align:center;">'+(mk.bi||'-')+'</td>'+
+      '<td style="padding:5px; border:1px solid #ccc; text-align:center;">'+(mk.mt||'-')+'</td>'+
+      '<td style="padding:5px; border:1px solid #ccc; text-align:center;">'+(mk.sj||'-')+'</td>'+
+      '<td style="padding:5px; border:1px solid #ccc; font-size:11px;">'+(mk.ulasan||'-')+'</td></tr>';
+  }).join('');
+  document.getElementById('printArea').innerHTML=
+    '<div style="padding:30px; font-family:Arial; color:#000;">'+
+    '<div style="text-align:center; border-bottom:3px solid #059669; padding-bottom:12px; margin-bottom:20px;">'+
+    '<h1 style="font-size:20px; font-weight:bold; margin:0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>'+
+    '<p style="font-size:13px; margin:0;">Peperiksaan Pertengahan Tahun 2026 - Murid Inklusif</p></div>'+
+    '<table style="width:100%; font-size:12px; border-collapse:collapse;">'+
+    '<tr style="background:#059669; color:#fff;"><th style="padding:6px; border:1px solid #047857;">Nama</th><th style="padding:6px; border:1px solid #047857;">BM</th><th style="padding:6px; border:1px solid #047857;">BI</th><th style="padding:6px; border:1px solid #047857;">MT</th><th style="padding:6px; border:1px solid #047857;">SJ</th><th style="padding:6px; border:1px solid #047857;">Ulasan Sahsiah</th></tr>'+
+    rows+'</table>'+
+    '<p style="text-align:center; font-size:10px; margin-top:24px; color:#666;">SPIB PPKI - SK Selama (K)</p></div>';
+  window.print();
+}
+
+function cetakPencerapan(){
+  var guru=state.guru.find(function(g){ return g.id===document.getElementById('pcerGuru').value; });
+  var tarikh=document.getElementById('pcerTarikh').value || '-';
+  var ulasan=document.getElementById('pcerUlasan').value || '-';
+  var aspekHtml = ASPEK_PENCERAPAN.map(function(a,i){
+    var skor=state.pencerapan[i]||'-';
+    return '<tr><td style="padding:5px; border:1px solid #ccc;">'+a+'</td><td style="padding:5px; border:1px solid #ccc; text-align:center;">'+skor+'/5</td></tr>';
+  }).join('');
+  document.getElementById('printArea').innerHTML=
+    '<div style="padding:30px; font-family:Arial; color:#000;">'+
+    '<div style="text-align:center; border-bottom:3px solid #059669; padding-bottom:12px; margin-bottom:20px;">'+
+    '<h1 style="font-size:20px; font-weight:bold; margin:0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>'+
+    '<p style="font-size:13px; margin:0;">Instrumen Pencerapan PdP Kelas Inklusif</p></div>'+
+    '<table style="width:100%; font-size:12px; margin-bottom:16px;">'+
+    '<tr><td style="padding:4px;"><strong>Guru Dicerap:</strong> '+(guru?guru.nama:'-')+'</td><td style="padding:4px;"><strong>Tarikh:</strong> '+tarikh+'</td></tr></table>'+
+    '<table style="width:100%; font-size:12px; border-collapse:collapse; margin-bottom:16px;">'+
+    '<tr style="background:#059669; color:#fff;"><th style="padding:6px; border:1px solid #047857;">Aspek Pencerapan</th><th style="padding:6px; border:1px solid #047857;">Skor (1-5)</th></tr>'+
+    aspekHtml+'</table>'+
+    '<p style="font-size:12px; font-weight:bold; margin:12px 0 4px;">Ulasan Guru Besar:</p>'+
+    '<p style="font-size:12px; margin:0 0 16px; border:1px solid #ccc; padding:8px; min-height:60px;">'+ulasan+'</p>'+
+    '<table style="width:100%; font-size:12px; margin-top:32px;"><tr><td style="width:50%; text-align:center;">'+
+    '<p style="margin:0;">.................................</p><p style="margin:4px 0;">Guru Dicerap</p></td>'+
+    '<td style="width:50%; text-align:center;"><p style="margin:0;">.................................</p><p style="margin:4px 0;">Guru Besar</p></td></tr></table>'+
+    '<p style="text-align:center; font-size:10px; margin-top:24px; color:#666;">SPIB PPKI - SK Selama (K)</p></div>';
+  window.print();
+}
+
+function cetakPrasarana(){
+  var rows = state.prasarana.map(function(p){
+    return '<tr><td style="padding:5px; border:1px solid #ccc;">'+p.jenis+'</td><td style="padding:5px; border:1px solid #ccc;">'+p.lokasi+'</td><td style="padding:5px; border:1px solid #ccc; text-align:center;">'+p.status+'</td><td style="padding:5px; border:1px solid #ccc; font-size:11px;">'+(p.catatan||'-')+'</td></tr>';
+  }).join('');
+  document.getElementById('printArea').innerHTML=
+    '<div style="padding:30px; font-family:Arial; color:#000;">'+
+    '<div style="text-align:center; border-bottom:3px solid #059669; padding-bottom:12px; margin-bottom:20px;">'+
+    '<h1 style="font-size:20px; font-weight:bold; margin:0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>'+
+    '<p style="font-size:13px; margin:0;">Inventori Prasarana Mesra OKU</p></div>'+
+    '<table style="width:100%; font-size:12px; border-collapse:collapse;">'+
+    '<tr style="background:#059669; color:#fff;"><th style="padding:6px; border:1px solid #047857;">Jenis</th><th style="padding:6px; border:1px solid #047857;">Lokasi</th><th style="padding:6px; border:1px solid #047857;">Status</th><th style="padding:6px; border:1px solid #047857;">Catatan</th></tr>'+
+    rows+'</table>'+
+    '<p style="text-align:center; font-size:10px; margin-top:24px; color:#666;">SPIB PPKI - SK Selama (K)</p></div>';
+  window.print();
+}
+
+function cetakSWOT(){
+  document.getElementById('printArea').innerHTML=
+    '<div style="padding:30px; font-family:Arial; color:#000;">'+
+    '<div style="text-align:center; border-bottom:3px solid #059669; padding-bottom:12px; margin-bottom:20px;">'+
+    '<h1 style="font-size:20px; font-weight:bold; margin:0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>'+
+    '<p style="font-size:13px; margin:0;">Analisis SWOT Program Inklusif Tahunan 2026</p></div>'+
+    '<table style="width:100%; font-size:12px; border-collapse:collapse;">'+
+    '<tr><td style="padding:10px; border:2px solid #059669; vertical-align:top; width:50%;"><strong style="color:#059669;">KEKUATAN (Strengths)</strong><ul><li>5 guru PPKI beropsyen</li><li>Sokongan Guru Besar & JPKS</li><li>Prasarana mesra OKU sedia</li><li>Sistem SPIB digital</li></ul></td>'+
+    '<td style="padding:10px; border:2px solid #dc2626; vertical-align:top;"><strong style="color:#dc2626;">KELEMAHAN (Weaknesses)</strong><ul><li>Nisbah guru-murid tinggi</li><li>Kekurangan BBM khusus</li><li>Pedagogi terbeza perihatin</li></ul></td></tr>'+
+    '<tr><td style="padding:10px; border:2px solid #0ea5e9; vertical-align:top;"><strong style="color:#0ea5e9;">PELUANG (Opportunities)</strong><ul><li>Sokongan PPKI Perak & KPM</li><li>Kolaborasi universiti</li><li>Integrasi AI dalam pedagogi</li></ul></td>'+
+    '<td style="padding:10px; border:2px solid #f59e0b; vertical-align:top;"><strong style="color:#f59e0b;">ANCAMAN (Threats)</strong><ul><li>Pertambahan enrolmen</li><li>Kekangan peruntukan</li><li>Pertukaran guru berpengalaman</li></ul></td></tr></table>'+
+    '<p style="text-align:center; font-size:10px; margin-top:24px; color:#666;">SPIB PPKI - SK Selama (K)</p></div>';
+  window.print();
+}
+
+/* ---------- UTIL ---------- */
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg){ var t=document.createElement('div'); t.textContent=msg; t.className='fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-lg'; document.body.appendChild(t); setTimeout(function(){ t.remove(); },2500); }
+</script>
+</body>
+</html>
