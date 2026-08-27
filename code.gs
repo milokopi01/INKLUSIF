@@ -25,7 +25,7 @@ var SHEET_HEADERS = {
   Saringan: ['id', 'muridId', 'tarikh', 'domain', 'skor', 'kategori', 'butiran', 'logIbuBapa'],
   Prasarana: ['id', 'jenis', 'lokasi', 'status', 'catatan'],
   LogIbuBapa: ['muridId', 'tarikh', 'perkara'],
-  Carta: ['id', 'nama', 'peranan', 'ikon', 'tier', 'warna'],
+  Carta: ['id', 'pemegang', 'nama', 'peranan', 'ikon', 'tier', 'warna'],
   Markah: ['muridId', 'bm', 'bi', 'mt', 'sj', 'ulasan']
 };
 
@@ -383,12 +383,12 @@ function seedData() {
   ];
 
   var carta = [
-    { id:'C01', nama:'Guru Besar', peranan:'Pengerusi JPKS', ikon:'award', tier:'atas', warna:'emerald-600' },
-    { id:'C02', nama:'Penolong Kanan', peranan:'Timbalan Pengerusi', ikon:'user-cog', tier:'atas', warna:'emerald-500' },
-    { id:'C03', nama:'Koordinator PPKI', peranan:'Setiausaha', ikon:'briefcase', tier:'atas', warna:'emerald-400' },
-    { id:'C04', nama:'5 Guru PPKI', peranan:'Guru Pendamping', ikon:'user', tier:'bawah', warna:'putih' },
-    { id:'C05', nama:'Ibu Bapa / Penjaga', peranan:'Ahli JPKS', ikon:'heart', tier:'bawah', warna:'putih' },
-    { id:'C06', nama:'Pegawai PPKI', peranan:'Penasihat Teknikal', ikon:'stethoscope', tier:'bawah', warna:'putih' }
+    { id:'C01', pemegang:'', nama:'Guru Besar', peranan:'Pengerusi JPKS', ikon:'award', tier:'atas', warna:'emerald-600' },
+    { id:'C02', pemegang:'', nama:'Penolong Kanan', peranan:'Timbalan Pengerusi', ikon:'user-cog', tier:'atas', warna:'emerald-500' },
+    { id:'C03', pemegang:'', nama:'Koordinator PPKI', peranan:'Setiausaha', ikon:'briefcase', tier:'atas', warna:'emerald-400' },
+    { id:'C04', pemegang:'', nama:'5 Guru PPKI', peranan:'Guru Pendamping', ikon:'user', tier:'bawah', warna:'putih' },
+    { id:'C05', pemegang:'', nama:'Ibu Bapa / Penjaga', peranan:'Ahli JPKS', ikon:'heart', tier:'bawah', warna:'putih' },
+    { id:'C06', pemegang:'', nama:'Pegawai PPKI', peranan:'Penasihat Teknikal', ikon:'stethoscope', tier:'bawah', warna:'putih' }
   ];
 
   var logIbuBapa = [

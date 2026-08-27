@@ -95,7 +95,7 @@
       <h2 class="text-lg font-bold text-emerald-800 mb-1 flex items-center gap-2"><i data-lucide="git-fork" class="w-5 h-5"></i> Carta Organisasi JPKS SK Selama (K)</h2>
       <div class="flex items-center justify-between mb-5 flex-wrap gap-2">
         <p class="text-sm text-gray-500">Jawatankuasa Penyelarasan Khas (JPKS) - Struktur Tadbir Urus Program Pendidikan Inklusif</p>
-        <button onclick="bukaModalCarta(0)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium text-xs hover:bg-emerald-700 transition">
+        <button onclick="bukaModalCarta()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium text-xs hover:bg-emerald-700 transition">
           <i data-lucide="settings-2" class="w-3.5 h-3.5"></i> Edit Carta
         </button>
       </div>
@@ -446,8 +446,9 @@
     </div>
     <div class="space-y-3">
       <input type="hidden" id="cartaIdx" />
-      <div><label class="text-xs font-semibold text-gray-600">Nama Jawatan</label><input id="cartaNama" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
-      <div><label class="text-xs font-semibold text-gray-600">Peranan</label><input id="cartaPeranan" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+      <div><label class="text-xs font-semibold text-gray-600">Nama Pemegang Jawatan</label><input id="cartaPemegang" placeholder="Contoh: En. Ahmad bin Hassan" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+      <div><label class="text-xs font-semibold text-gray-600">Nama Jawatan</label><input id="cartaNama" placeholder="Contoh: Guru Besar" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+      <div><label class="text-xs font-semibold text-gray-600">Fungsi / Peranan</label><input id="cartaPeranan" placeholder="Contoh: Pengerusi JPKS" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:ring-2 focus:ring-emerald-500" /></div>
       <div><label class="text-xs font-semibold text-gray-600">Ikon</label><select id="cartaIkon" class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none">
         <option value="award">award</option><option value="user-cog">user-cog</option><option value="briefcase">briefcase</option>
         <option value="user">user</option><option value="heart">heart</option><option value="stethoscope">stethoscope</option>
@@ -486,7 +487,7 @@
    ============================================================ */
 
 // GANTIKAN URL INI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
-var API_URL = 'https://script.google.com/macros/s/AKfycbyq59wq62jru9jJQBb1HVmkIXDTxpYJ6tYFH33FmjCRhWYV9NCYnkb9jjJB-PwNr8hh/exec';
+var API_URL = 'GANTIKAN_DENGAN_URL_WEB_APP_APPS_SCRIPT_ANDA';
 
 var state = {
   murid: [],
@@ -580,7 +581,11 @@ function muatSemuaData(){
     state.guru = d.guru || [];
     state.saringan = d.saringan || [];
     state.prasarana = d.prasarana || [];
+    state.markah = (d.markah || []).reduce(function(all, row){ all[row.muridId] = row; return all; }, {});
+    state.logIbuBapa = d.logIbuBapa || [];
+    state.carta = (d.carta && d.carta.length ? d.carta : SEED_CARTA()).map(normalizeCarta);
     saveLocalAll();
+    renderAll();
   }).catch(function(){ muatLocalAll(); });
 }
 
@@ -596,11 +601,12 @@ function muatLocalAll(){
     state.prasarana = d.prasarana && d.prasarana.length ? d.prasarana : SEED_PRASARANA();
     state.markah = d.markah && Object.keys(d.markah).length ? d.markah : JSON.parse(JSON.stringify(MARKAH_SEED));
     state.logIbuBapa = d.logIbuBapa && d.logIbuBapa.length ? d.logIbuBapa : LOG_IBU_BAPA_SEED.slice();
-    state.carta = d.carta && d.carta.length ? d.carta : SEED_CARTA();
+    state.carta = d.carta && d.carta.length ? d.carta.map(normalizeCarta) : SEED_CARTA();
   } catch(e){
     state.murid = SEED_MURID(); state.guru = SEED_GURU(); state.prasarana = SEED_PRASARANA();
     state.markah = JSON.parse(JSON.stringify(MARKAH_SEED)); state.logIbuBapa = LOG_IBU_BAPA_SEED.slice(); state.carta = SEED_CARTA();
   }
+  state.carta = state.carta.map(normalizeCarta);
   renderAll();
 }
 
@@ -631,13 +637,24 @@ function SEED_PRASARANA(){ return [
   {id:'P004',jenis:'Ramp',lokasi:'Pintu Blok B',status:'Dalam Pembaikan',catatan:'Jangka siap: 2026-09-30'},
   {id:'P005',jenis:'Tempat Duduk Kerusi Roda',lokasi:'Dewan Besar',status:'Sedia',catatan:'Disahkan 2026-01-15'}
 ];}
+function normalizeCarta(carta){
+  return {
+    id: carta.id || ('C' + Date.now() + Math.random().toString(36).slice(2, 7)),
+    pemegang: carta.pemegang || '',
+    nama: carta.nama || '',
+    peranan: carta.peranan || '',
+    ikon: carta.ikon || 'user',
+    tier: carta.tier || 'bawah',
+    warna: carta.warna || 'putih'
+  };
+}
 function SEED_CARTA(){ return [
-  {id:'C01',nama:'Guru Besar',peranan:'Pengerusi JPKS',ikon:'award',tier:'atas',warna:'emerald-600'},
-  {id:'C02',nama:'Penolong Kanan',peranan:'Timbalan Pengerusi',ikon:'user-cog',tier:'atas',warna:'emerald-500'},
-  {id:'C03',nama:'Koordinator PPKI',peranan:'Setiausaha',ikon:'briefcase',tier:'atas',warna:'emerald-400'},
-  {id:'C04',nama:'5 Guru PPKI',peranan:'Guru Pendamping',ikon:'user',tier:'bawah',warna:'putih'},
-  {id:'C05',nama:'Ibu Bapa / Penjaga',peranan:'Ahli JPKS',ikon:'heart',tier:'bawah',warna:'putih'},
-  {id:'C06',nama:'Pegawai PPKI',peranan:'Penasihat Teknikal',ikon:'stethoscope',tier:'bawah',warna:'putih'}
+  {id:'C01',pemegang:'',nama:'Guru Besar',peranan:'Pengerusi JPKS',ikon:'award',tier:'atas',warna:'emerald-600'},
+  {id:'C02',pemegang:'',nama:'Penolong Kanan',peranan:'Timbalan Pengerusi',ikon:'user-cog',tier:'atas',warna:'emerald-500'},
+  {id:'C03',pemegang:'',nama:'Koordinator PPKI',peranan:'Setiausaha',ikon:'briefcase',tier:'atas',warna:'emerald-400'},
+  {id:'C04',pemegang:'',nama:'5 Guru PPKI',peranan:'Guru Pendamping',ikon:'user',tier:'bawah',warna:'putih'},
+  {id:'C05',pemegang:'',nama:'Ibu Bapa / Penjaga',peranan:'Ahli JPKS',ikon:'heart',tier:'bawah',warna:'putih'},
+  {id:'C06',pemegang:'',nama:'Pegawai PPKI',peranan:'Penasihat Teknikal',ikon:'stethoscope',tier:'bawah',warna:'putih'}
 ];}
 
 /* ---------- RENDER ALL ---------- */
@@ -1140,8 +1157,9 @@ function renderCarta(){
     html+='<div class="org-card w-64 '+bg+' rounded-xl px-5 py-4 text-center shadow-md relative group">'+
       '<button onclick="bukaModalCarta('+idx+')" class="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>'+
       '<i data-lucide="'+b.ikon+'" class="w-6 h-6 mx-auto mb-1"></i>'+
-      '<p class="font-bold">'+b.nama+'</p>'+
-      '<p class="text-xs '+sub+'">'+b.peranan+'</p></div>';
+      '<p class="font-bold">'+esc(b.pemegang || 'Nama belum diisi')+'</p>'+
+      '<p class="text-sm '+(isPutih?'text-emerald-700':'text-white')+'">'+esc(b.nama)+'</p>'+
+      '<p class="text-xs '+sub+'">'+esc(b.peranan)+'</p></div>';
     if(i<atas.length-1) html+='<div class="w-px h-6 bg-emerald-300"></div>';
   });
   if(bawah.length){
@@ -1151,8 +1169,9 @@ function renderCarta(){
       html+='<div class="org-card w-44 bg-white border-2 border-emerald-300 text-emerald-800 rounded-xl px-3 py-3 text-center shadow-sm relative group">'+
         '<button onclick="bukaModalCarta('+idx+')" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition text-emerald-600"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>'+
         '<i data-lucide="'+b.ikon+'" class="w-5 h-5 mx-auto mb-1"></i>'+
-        '<p class="font-semibold text-sm">'+b.nama+'</p>'+
-        '<p class="text-xs text-gray-500">'+b.peranan+'</p></div>';
+        '<p class="font-semibold text-sm">'+esc(b.pemegang || 'Nama belum diisi')+'</p>'+
+        '<p class="text-sm text-emerald-700">'+esc(b.nama)+'</p>'+
+        '<p class="text-xs text-gray-500">'+esc(b.peranan)+'</p></div>';
     });
     html+='</div>';
   }
@@ -1163,6 +1182,7 @@ function renderCarta(){
 function bukaModalCarta(idx){
   if(idx===undefined){
     document.getElementById('cartaIdx').value='';
+    document.getElementById('cartaPemegang').value='';
     document.getElementById('cartaNama').value='';
     document.getElementById('cartaPeranan').value='';
     document.getElementById('cartaIkon').value='user';
@@ -1171,6 +1191,7 @@ function bukaModalCarta(idx){
   } else {
     var b=state.carta[idx]; if(!b) return;
     document.getElementById('cartaIdx').value=idx;
+    document.getElementById('cartaPemegang').value=b.pemegang || '';
     document.getElementById('cartaNama').value=b.nama;
     document.getElementById('cartaPeranan').value=b.peranan;
     document.getElementById('cartaIkon').value=b.ikon;
@@ -1182,13 +1203,17 @@ function bukaModalCarta(idx){
 function tutupModalCarta(){ var m=document.getElementById('modalCarta'); m.classList.add('hidden'); m.classList.remove('flex'); }
 function simpanCarta(){
   var idx=document.getElementById('cartaIdx').value;
-  var box={nama:document.getElementById('cartaNama').value,peranan:document.getElementById('cartaPeranan').value,ikon:document.getElementById('cartaIkon').value,warna:document.getElementById('cartaWarna').value,tier:document.getElementById('cartaTier').value};
+  var box={id:'',pemegang:document.getElementById('cartaPemegang').value.trim(),nama:document.getElementById('cartaNama').value.trim(),peranan:document.getElementById('cartaPeranan').value.trim(),ikon:document.getElementById('cartaIkon').value,warna:document.getElementById('cartaWarna').value,tier:document.getElementById('cartaTier').value};
+  if(!box.pemegang || !box.nama || !box.peranan){ alert('Sila isi nama pemegang jawatan, nama jawatan dan fungsi / peranan.'); return; }
   if(idx===''){ box.id='C'+Date.now(); state.carta.push(box); }
   else { box.id=state.carta[parseInt(idx)].id; state.carta[parseInt(idx)]=box; }
-  saveLocalAll(); renderCarta(); tutupModalCarta(); toast('Carta dikemas kini');
+  state.carta=state.carta.map(normalizeCarta);
+  saveLocalAll(); renderCarta(); tutupModalCarta();
+  apiPost({action:'saveCarta', carta:box}).then(function(){ toast('Carta disimpan ke Google Sheet'); }).catch(function(){ toast('Carta disimpan pada peranti'); });
 }
 function tambahCarta(){
   document.getElementById('cartaIdx').value='';
+  document.getElementById('cartaPemegang').value='';
   document.getElementById('cartaNama').value='';
   document.getElementById('cartaPeranan').value='';
   document.getElementById('cartaIkon').value='user';
@@ -1199,8 +1224,11 @@ function padamCarta(){
   var idx=document.getElementById('cartaIdx').value;
   if(idx===''){ tutupModalCarta(); return; }
   if(!confirm('Padam kotak ini?')) return;
+  var id=state.carta[parseInt(idx)].id;
   state.carta.splice(parseInt(idx),1);
-  saveLocalAll(); renderCarta(); tutupModalCarta(); toast('Kotak dipadam');
+  saveLocalAll(); renderCarta(); tutupModalCarta();
+  apiPost({action:'deleteCarta', id:id}).catch(function(){});
+  toast('Kotak dipadam');
 }
 
 /* ---------- UTIL ---------- */
