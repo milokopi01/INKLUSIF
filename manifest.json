@@ -1,7 +1,7 @@
 {
   "name": "JPKS SK Selama (K) — Sistem Pengurusan Inklusif",
   "short_name": "JPKS SK Selama",
-  "description": "Sistem Pengurusan Program Pendidikan Inklusif SK Selama (K) — Tadbir Urus, Sumber Manusia, Profil MBK, dan Pelaporan.",
+  "description": "Sistem Pengurusan Program Pendidikan Inklusif SK Selama (K) — Tadbir Urus, Sumber Manusia, Profil MBK, Saringan & Minda AI.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -26,25 +26,9 @@
     }
   ],
   "shortcuts": [
-    {
-      "name": "Tadbir Urus",
-      "short_name": "Tadbir",
-      "url": "./index.html#tadbir"
-    },
-    {
-      "name": "Sumber Manusia",
-      "short_name": "Guru",
-      "url": "./index.html#sumber"
-    },
-    {
-      "name": "Profil MBK",
-      "short_name": "Murid",
-      "url": "./index.html#profil"
-    },
-    {
-      "name": "Prestasi",
-      "short_name": "Laporan",
-      "url": "./index.html#prestasi"
-    }
+    { "name": "Tadbir Urus", "short_name": "Tadbir", "url": "./index.html#tadbir" },
+    { "name": "Sumber Manusia", "short_name": "Guru", "url": "./index.html#sumber" },
+    { "name": "Profil MBK", "short_name": "Murid", "url": "./index.html#profil" },
+    { "name": "Prestasi", "short_name": "Laporan", "url": "./index.html#prestasi" }
   ]
 }
