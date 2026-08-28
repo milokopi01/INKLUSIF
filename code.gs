@@ -1,446 +1,303 @@
-/* ============================================================
-   SPIB PPKI - Google Apps Script Backend
-   Pangkalan Data: Google Sheet
-   ============================================================ */
+/**
+ * SPIB-Pintar PPKI SK Selama (K) - Google Apps Script Backend
+ * Sistem Pengurusan Inklusif Bersepadu Pintar
+ *
+ * Tab Google Sheets: 'Murid', 'Saringan', 'Guru', 'Prasarana'
+ * Folder Google Drive: untuk muat naik borang persetujuan
+ */
 
-// ID Google Sheet & Folder (Pengkalan Data)
-var SHEET_ID = '1wR4WejdKEWAPYSMOJNDX3a7W2H-zq4lY4yWKguJBI0U';
-var FOLDER_ID = '1X4j3KueUHiN-0x3OawDz_0CzewT7dWcz';
+var SHEET_ID = ''; // Masukkan Google Sheet ID di sini jika ada
+var DRIVE_FOLDER_ID = ''; // Masukkan Google Drive Folder ID di sini jika ada
+var SHEET_TABS = ['Murid', 'Saringan', 'Guru', 'Prasarana'];
 
-// Nama-nama sheet dalam Google Sheet
-var SHEETS = {
-  MURID: 'Murid',
-  GURU: 'Guru',
-  SARINGAN: 'Saringan',
-  PRASARANA: 'Prasarana',
-  LOG_IBU_BAPA: 'LogIbuBapa',
-  CARTA: 'Carta',
-  MARKAH: 'Markah'
-};
+// ============================================================
+// DATA AWAL SANDARAN (FALLBACK) - 10 Murid Inklusif & 5 Guru PPKI
+// ============================================================
+var FALLBACK_MURID = [
+  { id: 'M01', nama: 'Ahmad Zikri bin Hassan', mykid: '180101-14-0123', diagnosis: 'Disleksia', kelas: 'Pemulihan Khas 1', skorSaringan: 68, failDrive: '', jantina: 'Lelaki', tarikhLahir: '2018-01-01', ibubapa: 'Hassan bin Ali', telefon: '012-3456789' },
+  { id: 'M02', nama: 'Nur Aishah binti Roslan', mykid: '170305-08-0456', diagnosis: 'Autisme Ringan', kelas: 'Pemulihan Khas 1', skorSaringan: 56, failDrive: '', jantina: 'Perempuan', tarikhLahir: '2017-03-05', ibubapa: 'Roslan bin Karim', telefon: '012-9876543' },
+  { id: 'M03', nama: 'Muhammad Faiz bin Abdullah', mykid: '180612-14-0789', diagnosis: 'ADHD', kelas: 'Pemulihan Khas 2', skorSaringan: 72, failDrive: '', jantina: 'Lelaki', tarikhLahir: '2018-06-12', ibubapa: 'Abdullah bin Samad', telefon: '013-1112222' },
+  { id: 'M04', nama: 'Siti Khadijah binti Yusof', mykid: '170820-08-0234', diagnosis: 'Disgrafia', kelas: 'Pemulihan Khas 2', skorSaringan: 60, failDrive: '', jantina: 'Perempuan', tarikhLahir: '2017-08-20', ibubapa: 'Yusof bin Hassan', telefon: '014-3334444' },
+  { id: 'M05', nama: 'Arif Hakimi bin Razali', mykid: '190105-14-0567', diagnosis: 'Disleksia', kelas: 'Pemulihan Khas 1', skorSaringan: 44, failDrive: '', jantina: 'Lelaki', tarikhLahir: '2019-01-05', ibubapa: 'Razali bin Othman', telefon: '015-5556666' },
+  { id: 'M06', nama: 'Nurul Husna binti Zahari', mykid: '170210-08-0890', diagnosis: 'Lambat Belajar', kelas: 'Pemulihan Khas 2', skorSaringan: 80, failDrive: '', jantina: 'Perempuan', tarikhLahir: '2017-02-10', ibubapa: 'Zahari bin Idris', telefon: '016-7778888' },
+  { id: 'M07', nama: 'Danish Iman bin Fauzi', mykid: '180915-14-0123', diagnosis: 'Autisme Ringan', kelas: 'Pemulihan Khas 1', skorSaringan: 52, failDrive: '', jantina: 'Lelaki', tarikhLahir: '2018-09-15', ibubapa: 'Fauzi bin Man', telefon: '017-9990000' },
+  { id: 'M08', nama: 'Aisyah Damia binti Kamal', mykid: '170401-08-0456', diagnosis: 'Disleksia', kelas: 'Pemulihan Khas 2', skorSaringan: 76, failDrive: '', jantina: 'Perempuan', tarikhLahir: '2017-04-01', ibubapa: 'Kamal bin Isa', telefon: '018-1212121' },
+  { id: 'M09', nama: 'Luqman Hakim bin Suhaimi', mykid: '180722-14-0789', diagnosis: 'ADHD', kelas: 'Pemulihan Khas 1', skorSaringan: 48, failDrive: '', jantina: 'Lelaki', tarikhLahir: '2018-07-22', ibubapa: 'Suhaimi bin Lazim', telefon: '019-3434343' },
+  { id: 'M10', nama: 'Hawa Zulaikha binti Anuar', mykid: '170610-08-0234', diagnosis: 'Lambat Belajar', kelas: 'Pemulihan Khas 2', skorSaringan: 64, failDrive: '', jantina: 'Perempuan', tarikhLahir: '2017-06-10', ibubapa: 'Anuar bin Salleh', telefon: '011-5656565' }
+];
 
-// Header (lajur) bagi setiap sheet - auto create jika tiada
-var SHEET_HEADERS = {
-  Murid: ['id', 'nama', 'mykid', 'diagnosis', 'kelas', 'skor', 'tindakan'],
-  Guru: ['id', 'nama', 'opsyen', 'kelasBimbingan', 'subjek', 'jadualWaktu'],
-  Saringan: ['id', 'muridId', 'tarikh', 'domain', 'skor', 'kategori', 'butiran', 'logIbuBapa'],
-  Prasarana: ['id', 'jenis', 'lokasi', 'status', 'catatan'],
-  LogIbuBapa: ['muridId', 'tarikh', 'perkara'],
-  Carta: ['id', 'pemegang', 'nama', 'peranan', 'ikon', 'tier', 'warna'],
-  Markah: ['muridId', 'bm', 'bi', 'mt', 'sj', 'ulasan']
-};
+var FALLBACK_GURU = [
+  { id: 'G01', nama: 'Pn. Noraini binti Mahmud', opsyen: 'Pendidikan Khas', subjekTeras: 'Bahasa Melayu', peranan: 'Ketua PPKI / Penyelaras', telefon: '012-1111111', email: 'noraini@skpm.gov.my' },
+  { id: 'G02', nama: 'En. Khairul Anuar bin Zakaria', opsyen: 'Pendidikan Khas', subjekTeras: 'Matematik', peranan: 'Guru PPKI', telefon: '012-2222222', email: 'khairul@skpm.gov.my' },
+  { id: 'G03', nama: 'Pn. Salmah binti Othman', opsyen: 'Pendidikan Khas Integrasi', subjekTeras: 'Bahasa Inggeris', peranan: 'Guru PPKI', telefon: '012-3333333', email: 'salmah@skpm.gov.my' },
+  { id: 'G04', nama: 'En. Mohd Faizal bin Ismail', opsyen: 'Pendidikan Khas', subjekTeras: 'Sains', peranan: 'Guru PPKI', telefon: '012-4444444', email: 'faizal@skpm.gov.my' },
+  { id: 'G05', nama: 'Pn. Rozita binti Abd Rahman', opsyen: 'Pendidikan Khas Integrasi', subjekTeras: 'Pendidikan Jasmani', peranan: 'Guru PPKI / Kaunselor', telefon: '012-5555555', email: 'rozita@skpm.gov.my' }
+];
 
-/* ============================================================
-   WEB APP ENTRY POINTS (doGet / doPost)
-   ============================================================ */
+var FALLBACK_PRASARANA = [
+  { id: 'P01', item: 'Tandas OKU (Lelaki)', lokasi: 'Blok A', status: 'Memuaskan', catatan: 'Skrin pintu rosak', tarikhPemantauan: '2026-01-15' },
+  { id: 'P02', item: 'Tandas OKU (Perempuan)', lokasi: 'Blok A', status: 'Baik', catatan: 'Lengkap dengan bar pegang', tarikhPemantauan: '2026-01-15' },
+  { id: 'P03', item: 'Ramp Kerusi Roda', lokasi: 'Pintu Utama', status: 'Baik', catatan: 'Kecerunan mematuhi piawai', tarikhPemantauan: '2026-01-15' },
+  { id: 'P04', item: 'Susur Tuan Taktik', lokasi: 'Tingkat 1 Blok A', status: 'Memuaskan', catatan: 'Perlu tambah braille', tarikhPemantauan: '2026-01-15' },
+  { id: 'P05', item: 'Laluan OKU', lokasi: 'Koridor Utama', status: 'Baik', catatan: 'Tiada halangan', tarikhPemantauan: '2026-01-15' }
+];
+
+// ============================================================
+// FUNGSI UTAMA HTTP
+// ============================================================
 
 function doGet(e) {
-  var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : 'getAll';
-  var result;
+  if (!e || !e.parameter || !e.parameter.action) {
+    return HtmlService.createHtmlOutputFromFile('index')
+      .setTitle('SPIB-Pintar PPKI SK Selama (K)')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+      .setXFrameMode(HtmlService.XFrameMode.ALLOWALL);
+  }
+
+  var action = e.parameter.action;
+  var result = {};
 
   try {
     switch (action) {
-      case 'getAll':
-        result = { success: true, data: getAllData() };
+      case 'readAll':
+        result = readAllData();
         break;
-      case 'getMurid':
-        result = { success: true, data: getSheetData(SHEETS.MURID) };
+      case 'readMurid':
+        result = { success: true, data: getSheetData('Murid', FALLBACK_MURID) };
         break;
-      case 'getGuru':
-        result = { success: true, data: getSheetData(SHEETS.GURU) };
+      case 'readGuru':
+        result = { success: true, data: getSheetData('Guru', FALLBACK_GURU) };
         break;
-      case 'getSaringan':
-        result = { success: true, data: getSheetData(SHEETS.SARINGAN) };
+      case 'readPrasarana':
+        result = { success: true, data: getSheetData('Prasarana', FALLBACK_PRASARANA) };
         break;
-      case 'getPrasarana':
-        result = { success: true, data: getSheetData(SHEETS.PRASARANA) };
-        break;
-      case 'getLogIbuBapa':
-        result = { success: true, data: getSheetData(SHEETS.LOG_IBU_BAPA) };
-        break;
-      case 'getCarta':
-        result = { success: true, data: getSheetData(SHEETS.CARTA) };
-        break;
-      case 'getMarkah':
-        result = { success: true, data: getSheetData(SHEETS.MARKAH) };
-        break;
-      case 'init':
-        result = { success: true, data: 'Pangkalan data SPIB PPKI sedia digunakan.' };
+      case 'readSaringan':
+        result = { success: true, data: getSheetData('Saringan', []) };
         break;
       default:
         result = { success: false, error: 'Tindakan tidak diketahui: ' + action };
     }
   } catch (err) {
-    result = { success: false, error: String(err) };
+    result = { success: false, error: err.toString() };
   }
 
   return jsonOut(result);
 }
 
 function doPost(e) {
-  var payload;
+  var result = {};
   try {
-    payload = JSON.parse(e.postData.contents);
-  } catch (err) {
-    return jsonOut({ success: false, error: 'JSON tidak sah' });
-  }
+    var data = e.parameter.data ? JSON.parse(e.parameter.data) : {};
+    var action = data.action || e.parameter.action;
 
-  var action = payload.action;
-  var result;
-
-  try {
     switch (action) {
       case 'saveMurid':
-        upsertRow(SHEETS.MURID, 'id', payload.murid);
-        result = { success: true, data: payload.murid };
-        break;
-      case 'deleteMurid':
-        deleteRow(SHEETS.MURID, 'id', payload.id);
-        result = { success: true, data: 'Murid dipadam' };
+        result = saveRecord('Murid', FALLBACK_MURID, data.record, 'M');
         break;
       case 'saveGuru':
-        upsertRow(SHEETS.GURU, 'id', payload.guru);
-        result = { success: true, data: payload.guru };
-        break;
-      case 'saveSaringan':
-        upsertRow(SHEETS.SARINGAN, 'id', payload.saringan);
-        result = { success: true, data: payload.saringan };
+        result = saveRecord('Guru', FALLBACK_GURU, data.record, 'G');
         break;
       case 'savePrasarana':
-        upsertRow(SHEETS.PRASARANA, 'id', payload.prasarana);
-        result = { success: true, data: payload.prasarana };
+        result = saveRecord('Prasarana', FALLBACK_PRASARANA, data.record, 'P');
+        break;
+      case 'saveSaringan':
+        result = saveRecord('Saringan', [], data.record, 'S');
+        break;
+      case 'deleteMurid':
+        result = deleteRecord('Murid', FALLBACK_MURID, data.id);
+        break;
+      case 'deleteGuru':
+        result = deleteRecord('Guru', FALLBACK_GURU, data.id);
         break;
       case 'deletePrasarana':
-        deleteRow(SHEETS.PRASARANA, 'id', payload.id);
-        result = { success: true, data: 'Prasarana dipadam' };
+        result = deleteRecord('Prasarana', FALLBACK_PRASARANA, data.id);
         break;
-      case 'saveLogIbuBapa':
-        appendRow(SHEETS.LOG_IBU_BAPA, payload.log);
-        result = { success: true, data: payload.log };
+      case 'deleteSaringan':
+        result = deleteRecord('Saringan', [], data.id);
         break;
-      case 'deleteLogIbuBapa':
-        deleteRowByIndex(SHEETS.LOG_IBU_BAPA, payload.index);
-        result = { success: true, data: 'Log dipadam' };
-        break;
-      case 'saveCarta':
-        upsertRow(SHEETS.CARTA, 'id', payload.carta);
-        result = { success: true, data: payload.carta };
-        break;
-      case 'deleteCarta':
-        deleteRow(SHEETS.CARTA, 'id', payload.id);
-        result = { success: true, data: 'Carta dipadam' };
-        break;
-      case 'saveMarkah':
-        upsertRow(SHEETS.MARKAH, 'muridId', payload.markah);
-        result = { success: true, data: payload.markah };
-        break;
-      case 'saveAll':
-        saveAllData(payload.data);
-        result = { success: true, data: 'Semua data disimpan' };
+      case 'uploadToDrive':
+        result = uploadToDrive(data.base64, data.fileName, data.folderId || DRIVE_FOLDER_ID);
         break;
       default:
         result = { success: false, error: 'Tindakan tidak diketahui: ' + action };
     }
   } catch (err) {
-    result = { success: false, error: String(err) };
+    result = { success: false, error: err.toString() };
   }
-
   return jsonOut(result);
 }
 
-/* ============================================================
-   UTILITI CORS & JSON
-   ============================================================ */
+// ============================================================
+// FUNGSI BACA DATA
+// ============================================================
 
-function jsonOut(obj) {
-  return ContentService
-    .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-/* ============================================================
-   FUNGSI PANGKALAN DATA (Google Sheet)
-   ============================================================ */
-
-// Buka spreadsheet utama
-function getSpreadsheet() {
-  return SpreadsheetApp.openById(SHEET_ID);
-}
-
-// Dapatkan sheet, auto-create jika tiada beserta header
-function getSheet(sheetName) {
-  var ss = getSpreadsheet();
-  var sheet = ss.getSheetByName(sheetName);
-
-  if (!sheet) {
-    // Auto-create sheet baharu
-    sheet = ss.insertSheet(sheetName);
-    var headers = SHEET_HEADERS[sheetName] || [];
-    if (headers.length) {
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      // Boldkan header
-      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-      sheet.setFrozenRows(1);
-    }
-  } else {
-    // Pastikan header wujud walaupun sheet sedia ada
-    var lastCol = sheet.getLastColumn();
-    var headers = SHEET_HEADERS[sheetName] || [];
-    if (lastCol < headers.length) {
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-      sheet.setFrozenRows(1);
-    }
-  }
-
-  return sheet;
-}
-
-// Tukar data sheet kepada array objek
-function getSheetData(sheetName) {
-  var sheet = getSheet(sheetName);
-  var lastRow = sheet.getLastRow();
-  var lastCol = sheet.getLastColumn();
-
-  if (lastRow < 2) return [];
-
-  var values = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
-  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
-
-  return values.map(function(row) {
-    var obj = {};
-    headers.forEach(function(h, i) {
-      obj[h] = row[i];
-    });
-    return obj;
-  }).filter(function(r) {
-    // Buang baris kosong
-    return Object.keys(r).some(function(k) { return r[k] !== ''; });
-  });
-}
-
-// Tambah baris baharu
-function appendRow(sheetName, data) {
-  var sheet = getSheet(sheetName);
-  var headers = SHEET_HEADERS[sheetName] || [];
-  var row = headers.map(function(h) {
-    var val = data[h];
-    return (val !== undefined && val !== null) ? val : '';
-  });
-  sheet.appendRow(row);
-}
-
-// Tambah atau kemas kini baris (upsert) berdasarkan key
-function upsertRow(sheetName, keyField, data) {
-  var sheet = getSheet(sheetName);
-  var headers = SHEET_HEADERS[sheetName] || [];
-  var lastRow = sheet.getLastRow();
-
-  // Cari index lajur key
-  var keyCol = headers.indexOf(keyField) + 1;
-  if (keyCol < 1) keyCol = 1;
-
-  // Cari baris dengan key yang sama
-  var rowIndex = -1;
-  if (lastRow >= 2) {
-    var keyValues = sheet.getRange(2, keyCol, lastRow - 1, 1).getValues();
-    for (var i = 0; i < keyValues.length; i++) {
-      if (String(keyValues[i][0]) === String(data[keyField])) {
-        rowIndex = i + 2;
-        break;
-      }
-    }
-  }
-
-  var row = headers.map(function(h) {
-    var val = data[h];
-    return (val !== undefined && val !== null) ? val : '';
-  });
-
-  if (rowIndex > 0) {
-    // Kemas kini baris sedia ada
-    sheet.getRange(rowIndex, 1, 1, headers.length).setValues([row]);
-  } else {
-    // Tambah baris baharu
-    sheet.appendRow(row);
-  }
-}
-
-// Padam baris berdasarkan nilai key
-function deleteRow(sheetName, keyField, keyVal) {
-  var sheet = getSheet(sheetName);
-  var headers = SHEET_HEADERS[sheetName] || [];
-  var lastRow = sheet.getLastRow();
-
-  if (lastRow < 2) return;
-
-  var keyCol = headers.indexOf(keyField) + 1;
-  if (keyCol < 1) keyCol = 1;
-
-  var keyValues = sheet.getRange(2, keyCol, lastRow - 1, 1).getValues();
-  for (var i = keyValues.length - 1; i >= 0; i--) {
-    if (String(keyValues[i][0]) === String(keyVal)) {
-      sheet.deleteRow(i + 2);
-    }
-  }
-}
-
-// Padam baris berdasarkan index (0-based)
-function deleteRowByIndex(sheetName, index) {
-  var sheet = getSheet(sheetName);
-  var lastRow = sheet.getLastRow();
-  if (index >= 0 && (index + 2) <= lastRow) {
-    sheet.deleteRow(index + 2);
-  }
-}
-
-/* ============================================================
-   AMBIL & SIMPAN SEMUA DATA
-   ============================================================ */
-
-function getAllData() {
+function readAllData() {
   return {
-    murid: getSheetData(SHEETS.MURID),
-    guru: getSheetData(SHEETS.GURU),
-    saringan: getSheetData(SHEETS.SARINGAN),
-    prasarana: getSheetData(SHEETS.PRASARANA),
-    logIbuBapa: getSheetData(SHEETS.LOG_IBU_BAPA),
-    carta: getSheetData(SHEETS.CARTA),
-    markah: getSheetData(SHEETS.MARKAH)
+    success: true,
+    data: {
+      murid: getSheetData('Murid', FALLBACK_MURID),
+      guru: getSheetData('Guru', FALLBACK_GURU),
+      prasarana: getSheetData('Prasarana', FALLBACK_PRASARANA),
+      saringan: getSheetData('Saringan', [])
+    }
   };
 }
 
-function saveAllData(data) {
-  if (!data) return;
-
-  if (data.murid) {
-    getSheet(SHEETS.MURID);
-    data.murid.forEach(function(m) { upsertRow(SHEETS.MURID, 'id', m); });
-  }
-  if (data.guru) {
-    getSheet(SHEETS.GURU);
-    data.guru.forEach(function(g) { upsertRow(SHEETS.GURU, 'id', g); });
-  }
-  if (data.saringan) {
-    getSheet(SHEETS.SARINGAN);
-    data.saringan.forEach(function(s) { upsertRow(SHEETS.SARINGAN, 'id', s); });
-  }
-  if (data.prasarana) {
-    getSheet(SHEETS.PRASARANA);
-    data.prasarana.forEach(function(p) { upsertRow(SHEETS.PRASARANA, 'id', p); });
-  }
-  if (data.logIbuBapa) {
-    getSheet(SHEETS.LOG_IBU_BAPA);
-    data.logIbuBapa.forEach(function(l) { appendRow(SHEETS.LOG_IBU_BAPA, l); });
-  }
-  if (data.carta) {
-    getSheet(SHEETS.CARTA);
-    data.carta.forEach(function(c) { upsertRow(SHEETS.CARTA, 'id', c); });
-  }
-  if (data.markah) {
-    getSheet(SHEETS.MARKAH);
-    Object.keys(data.markah).forEach(function(k) {
-      var mk = data.markah[k];
-      mk.muridId = k;
-      upsertRow(SHEETS.MARKAH, 'muridId', mk);
-    });
+function getSheetData(tabName, fallback) {
+  try {
+    if (!SHEET_ID) return fallback;
+    var ss = SpreadsheetApp.openById(SHEET_ID);
+    var sheet = ss.getSheetByName(tabName);
+    if (!sheet) return fallback;
+    var values = sheet.getDataRange().getValues();
+    if (values.length < 2) return fallback;
+    var headers = values[0];
+    var rows = [];
+    for (var i = 1; i < values.length; i++) {
+      var obj = {};
+      for (var j = 0; j < headers.length; j++) {
+        obj[headers[j]] = values[i][j];
+      }
+      rows.push(obj);
+    }
+    return rows.length > 0 ? rows : fallback;
+  } catch (err) {
+    return fallback;
   }
 }
 
-/* ============================================================
-   SEED DATA - Isi data awal jika sheet kosong
-   Jalankan fungsi ini sekali sahaja dari Apps Script Editor
-   ============================================================ */
+// ============================================================
+// FUNGSI SIMPAN / EDIT
+// ============================================================
 
-function seedData() {
-  // Murid
-  var murid = [
-    { id:'M001', nama:'Aisyah binti Zahari', mykid:'201805101056', diagnosis:'Autisme', kelas:'1 Inklusif', skor:72, tindakan:'Borang Persetujuan Ibu Bapa' },
-    { id:'M002', nama:'Muhammad Faiz bin Roslan', mykid:'201712140873', diagnosis:'ADHD', kelas:'2 Inklusif', skor:64, tindakan:'Borang Persetujuan Ibu Bapa' },
-    { id:'M003', nama:'Nurul Husna binti Karim', mykid:'201903220541', diagnosis:'Masalah Pembelajaran', kelas:'1 Inklusif', skor:44, tindakan:'Cadangan Intervensi RPI' },
-    { id:'M004', nama:'Daniel bin Aiman', mykid:'201811080912', diagnosis:'Autisme', kelas:'3 Inklusif', skor:56, tindakan:'Borang Persetujuan Ibu Bapa' },
-    { id:'M005', nama:'Sofia binti Hafiz', mykid:'201907150634', diagnosis:'Masalah Pendengaran', kelas:'2 Inklusif', skor:48, tindakan:'Cadangan Intervensi RPI' },
-    { id:'M006', nama:'Arif bin Shahmi', mykid:'201802190778', diagnosis:'ADHD', kelas:'3 Inklusif', skor:80, tindakan:'Borang Persetujuan Ibu Bapa' },
-    { id:'M007', nama:'Zara binti Lokman', mykid:'201909110489', diagnosis:'Masalah Pembelajaran', kelas:'1 Inklusif', skor:36, tindakan:'Cadangan Intervensi RPI' },
-    { id:'M008', nama:'Haziq bin Najib', mykid:'201806250321', diagnosis:'Autisme', kelas:'4 Inklusif', skor:60, tindakan:'Borang Persetujuan Ibu Bapa' },
-    { id:'M009', nama:'Diana binti Fauzi', mykid:'201710030657', diagnosis:'Masalah Penglihatan', kelas:'4 Inklusif', skor:52, tindakan:'Borang Persetujuan Ibu Bapa' },
-    { id:'M010', nama:'Irfan bin Muzammil', mykid:'201904180142', diagnosis:'ADHD', kelas:'2 Inklusif', skor:40, tindakan:'Cadangan Intervensi RPI' }
-  ];
+function saveRecord(tabName, fallback, record, idPrefix) {
+  try {
+    if (!SHEET_ID) {
+      return { success: true, message: 'Data disimpan (mod sandaran - tiada Sheet ID)', record: record };
+    }
+    var ss = SpreadsheetApp.openById(SHEET_ID);
+    var sheet = ss.getSheetByName(tabName);
+    if (!sheet) {
+      sheet = ss.insertSheet(tabName);
+    }
 
-  var guru = [
-    { id:'G001', nama:'En. Ahmad bin Hassan', opsyen:'Pendidikan Khas Integrasi (Masalah Pembelajaran)', kelasBimbingan:'3 Bimbingan', subjek:'Bahasa Melayu, Matematik', jadualWaktu:'{}' },
-    { id:'G002', nama:'Pn. Siti Aminah binti Yusof', opsyen:'Pendidikan Khas Integrasi (Autisme)', kelasBimbingan:'4 Bimbingan', subjek:'Bahasa Inggeris, Sains', jadualWaktu:'{}' },
-    { id:'G003', nama:'Cik Norashikin binti Ramli', opsyen:'Pendidikan Khas Integrasi (Masalah Pendengaran)', kelasBimbingan:'2 Bimbingan', subjek:'Bahasa Melayu, Pendidikan Seni', jadualWaktu:'{}' },
-    { id:'G004', nama:'En. Mohd Zaki bin Idris', opsyen:'Pendidikan Khas Integrasi (Masalah Penglihatan)', kelasBimbingan:'5 Bimbingan', subjek:'Matematik, Pendidikan Jasmani', jadualWaktu:'{}' },
-    { id:'G005', nama:'Pn. Faridah binti Othman', opsyen:'Pendidikan Khas Integrasi (Masalah Pembelajaran)', kelasBimbingan:'1 Bimbingan', subjek:'Bahasa Melayu, Pendidikan Islam', jadualWaktu:'{}' }
-  ];
+    var headers = sheet.getLastRow() > 0 ? sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0] : null;
+    if (!headers || headers.length === 0) {
+      headers = Object.keys(record);
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+    }
 
-  var prasarana = [
-    { id:'P001', jenis:'Ramp', lokasi:'Pintu Utama Sekolah', status:'Sedia', catatan:'Disahkan 2026-01-15' },
-    { id:'P002', jenis:'Tandas OKU', lokasi:'Blok A, Aras Tanah', status:'Sedia', catatan:'Disahkan 2026-01-15' },
-    { id:'P003', jenis:'Grab Rails', lokasi:'Tandas OKU & Tangga Utama', status:'Sedia', catatan:'Disahkan 2026-01-15' },
-    { id:'P004', jenis:'Ramp', lokasi:'Pintu Blok B', status:'Dalam Pembaikan', catatan:'Jangka siap: 2026-09-30' },
-    { id:'P005', jenis:'Tempat Duduk Kerusi Roda', lokasi:'Dewan Besar', status:'Sedia', catatan:'Disahkan 2026-01-15' }
-  ];
+    var recordId = record.id || (idPrefix + String(Date.now()).slice(-6));
+    record.id = recordId;
 
-  var carta = [
-    { id:'C01', pemegang:'', nama:'Guru Besar', peranan:'Pengerusi JPKS', ikon:'award', tier:'atas', warna:'emerald-600' },
-    { id:'C02', pemegang:'', nama:'Penolong Kanan', peranan:'Timbalan Pengerusi', ikon:'user-cog', tier:'atas', warna:'emerald-500' },
-    { id:'C03', pemegang:'', nama:'Koordinator PPKI', peranan:'Setiausaha', ikon:'briefcase', tier:'atas', warna:'emerald-400' },
-    { id:'C04', pemegang:'', nama:'5 Guru PPKI', peranan:'Guru Pendamping', ikon:'user', tier:'bawah', warna:'putih' },
-    { id:'C05', pemegang:'', nama:'Ibu Bapa / Penjaga', peranan:'Ahli JPKS', ikon:'heart', tier:'bawah', warna:'putih' },
-    { id:'C06', pemegang:'', nama:'Pegawai PPKI', peranan:'Penasihat Teknikal', ikon:'stethoscope', tier:'bawah', warna:'putih' }
-  ];
+    var existingRow = findRowById(sheet, recordId);
+    var rowValues = headers.map(function (h) { return record[h] !== undefined ? record[h] : ''; });
 
-  var logIbuBapa = [
-    { muridId:'M001', tarikh:'2026-01-22', perkara:'Perbincangan penyesuaian rutin kelas dan alat komunikasi.' },
-    { muridId:'M003', tarikh:'2026-01-24', perkara:'Persetujuan pelaksanaan RPI intensif di rumah dan sekolah.' },
-    { muridId:'M006', tarikh:'2026-01-25', perkara:'Maklum balas positif perkembangan akademik dan sosial.' }
-  ];
-
-  var markah = [
-    { muridId:'M001', bm:65, bi:58, mt:70, sj:62, ulasan:'Aktif dalam perbualan kumpulan, perlu bimbingan fokus tugas.' },
-    { muridId:'M002', bm:55, bi:50, mt:48, sj:52, ulasan:'Sering bertindak impulsif, memerlukan strategi pengurusan tingkah laku.' },
-    { muridId:'M003', bm:40, bi:35, mt:38, sj:42, ulasan:'Memerlukan sokongan tambahan dalam literasi dan numerasi.' },
-    { muridId:'M004', bm:72, bi:68, mt:75, sj:70, ulasan:'Kerap menunjukkan minat dalam sains, interaksi sosial baik.' },
-    { muridId:'M005', bm:48, bi:45, mt:52, sj:50, ulasan:'Memerlukan alat bantu pendengaran, penyertaan kelas baik.' },
-    { muridId:'M006', bm:80, bi:75, mt:85, sj:78, ulasan:'Pencapaian cemerlang, mampu menjadi role model rakan.' },
-    { muridId:'M007', bm:35, bi:30, mt:32, sj:38, ulasan:'Memerlukan RPI intensif, sokongan satu-ke-satu diperlukan.' },
-    { muridId:'M008', bm:60, bi:55, mt:58, sj:56, ulasan:'Kemajuan baik dalam komunikasi, perlu galakan sosial.' },
-    { muridId:'M009', bm:52, bi:48, mt:50, sj:54, ulasan:'Menggunakan braille dengan baik, keyakinan diri meningkat.' },
-    { muridId:'M010', bm:42, bi:38, mt:40, sj:44, ulasan:'Tumpuan mudah terganggu, perlu rutin dan jadual visual.' }
-  ];
-
-  // Isi setiap sheet jika kosong
-  if (getSheetData(SHEETS.MURID).length === 0) {
-    murid.forEach(function(m) { upsertRow(SHEETS.MURID, 'id', m); });
+    if (existingRow > 0) {
+      sheet.getRange(existingRow, 1, 1, headers.length).setValues([rowValues]);
+      return { success: true, message: 'Rekod dikemas kini', record: record };
+    } else {
+      sheet.appendRow(rowValues);
+      return { success: true, message: 'Rekod baharu disimpan', record: record };
+    }
+  } catch (err) {
+    return { success: false, error: err.toString() };
   }
-  if (getSheetData(SHEETS.GURU).length === 0) {
-    guru.forEach(function(g) { upsertRow(SHEETS.GURU, 'id', g); });
-  }
-  if (getSheetData(SHEETS.PRASARANA).length === 0) {
-    prasarana.forEach(function(p) { upsertRow(SHEETS.PRASARANA, 'id', p); });
-  }
-  if (getSheetData(SHEETS.CARTA).length === 0) {
-    carta.forEach(function(c) { upsertRow(SHEETS.CARTA, 'id', c); });
-  }
-  if (getSheetData(SHEETS.LOG_IBU_BAPA).length === 0) {
-    logIbuBapa.forEach(function(l) { appendRow(SHEETS.LOG_IBU_BAPA, l); });
-  }
-  if (getSheetData(SHEETS.MARKAH).length === 0) {
-    markah.forEach(function(m) { upsertRow(SHEETS.MARKAH, 'muridId', m); });
-  }
-
-  Logger.log('Seed data selesai. Semua sheet telah diisi.');
 }
 
-/* ============================================================
-   SETUP AWAL - Jalankan fungsi ini sekali dari Apps Script Editor
-   untuk pastikan semua sheet wujud dengan header yang betul.
-   ============================================================ */
+function deleteRecord(tabName, fallback, recordId) {
+  try {
+    if (!SHEET_ID) {
+      return { success: true, message: 'Rekod dipadam (mod sandaran)' };
+    }
+    var ss = SpreadsheetApp.openById(SHEET_ID);
+    var sheet = ss.getSheetByName(tabName);
+    if (!sheet) return { success: false, error: 'Tab tidak dijumpai' };
 
-function setup() {
-  Object.keys(SHEETS).forEach(function(key) {
-    getSheet(SHEETS[key]);
-  });
-  Logger.log('Setup selesai. Sheet dicipta: ' + Object.values(SHEETS).join(', '));
+    var row = findRowById(sheet, recordId);
+    if (row > 0) {
+      sheet.deleteRow(row);
+      return { success: true, message: 'Rekod berjaya dipadam' };
+    }
+    return { success: false, error: 'Rekod tidak dijumpai' };
+  } catch (err) {
+    return { success: false, error: err.toString() };
+  }
+}
+
+function findRowById(sheet, id) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return -1;
+  var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === String(id)) return i + 2;
+  }
+  return -1;
+}
+
+// ============================================================
+// FUNGSI MUAT NAIK KE GOOGLE DRIVE
+// ============================================================
+
+function uploadToDrive(base64Data, fileName, folderId) {
+  try {
+    if (!base64Data || !fileName) {
+      return { success: false, error: 'Data base64 atau nama fail kosong' };
+    }
+
+    var folder = folderId ? DriveApp.getFolderById(folderId) : getOrCreateFolder();
+    var decoded = Utilities.base64Decode(base64Data);
+    var blob = Utilities.newBlob(decoded, getMimeType(fileName), fileName);
+    var file = folder.createFile(blob);
+
+    // Set akses "Anyone with link" - Viewer
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    var fileId = file.getId();
+    var driveUrl = file.getUrl();
+    var directUrl = 'https://drive.google.com/file/d/' + fileId + '/view';
+
+    return {
+      success: true,
+      message: 'Fail berjaya dimuat naik ke Google Drive',
+      fileId: fileId,
+      fileName: fileName,
+      driveUrl: driveUrl,
+      directUrl: directUrl,
+      webViewLink: directUrl
+    };
+  } catch (err) {
+    return { success: false, error: err.toString() };
+  }
+}
+
+function getOrCreateFolder() {
+  var folderName = 'SPIB-Pintar PPKI SK Selama - Borang';
+  var it = DriveApp.getFoldersByName(folderName);
+  if (it.hasNext()) return it.next();
+  return DriveApp.createFolder(folderName);
+}
+
+function getMimeType(fileName) {
+  var ext = fileName.split('.').pop().toLowerCase();
+  var types = {
+    'pdf': 'application/pdf',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'doc': 'application/msword',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  };
+  return types[ext] || 'application/octet-stream';
+}
+
+// ============================================================
+// FUNGSI BANTUAN OUTPUT JSON
+// ============================================================
+
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
 }
