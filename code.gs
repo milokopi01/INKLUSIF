@@ -24,7 +24,7 @@ var HEADERS = {
   'Saringan': ['id', 'murid_id', 'nama', 'tarikh', 'instrumen', 'markah', 'keputusan', 'catatan'],
   'Guru': ['id', 'nama', 'gred', 'opsyen', 'subjek'],
   'Prasarana': ['id', 'item', 'lokasi', 'status', 'catatan'],
-  'Carta_Organisasi': ['jawatan', 'nama', 'jawatan_full'],
+  'Carta_Organisasi': ['peringkat', 'jawatan', 'nama', 'jawatan_full', 'foto'],
   'Fail_Upload': ['id', 'tajukKecilId', 'fileName', 'mimeType', 'saiz', 'url', 'fileId', 'tarikh'],
   'apikey': ['API_KEY']
 };
@@ -56,11 +56,19 @@ var SEED = {
     ['pr6', 'Ruang Selamat / Sensory Room', 'Bilik PPKI', 'Ada', 'Lengkap dengan alat terapi']
   ],
   'Carta_Organisasi': [
-    ['Pengerusi', 'Tn. Hj. Abdul Rahman bin Hassan', 'Guru Besar'],
-    ['Naib Pengerusi', 'Pn. Hajjah Norliza binti Othman', 'Penolong Kanan Pentadbiran'],
-    ['Penyelaras', 'En. Ahmad bin Isa', 'Penyelaras PPKI'],
-    ['Guru Pendamping', 'Pn. Siti Aminah binti Ramli', 'Guru PPKI'],
-    ['PPM', 'Pn. Rosnah binti Abdullah', 'Pembantu Pendidikan Murid']
+    [1, 'PENGERUSI', 'PN ZAWIAH SAPARI', 'GURU BESAR', ''],
+    [2, 'TIMBALAN PENGERUSI', 'NOORAINI BT. NGDE', 'GPK PENTADBIRAN', ''],
+    [3, 'SETIAUSAHA', 'PN NOOR HADILAWATI BASARI', 'PENYELARAS PPKI', ''],
+    [4, 'AJK', 'ZANARIAH BT. KAAB', 'Guru Pendidikan Khas', ''],
+    [4, 'AJK', 'PN HAZIRAH HARIS', 'Guru Pendidikan Khas', ''],
+    [4, 'AJK', 'NIK KHAIRUL AZUAN B. NIK KOB', 'Guru Pendidikan Khas', ''],
+    [4, 'AJK', 'NUR AFAZILLA BINTI ABD GHANI', 'Guru Pendidikan Islam Khas', ''],
+    [5, 'AJK', 'PN SITI ASAH BT. TALIB', 'Pembantu Pengurusan Murid', ''],
+    [5, 'AJK', 'PN FAZRINA BT. HUSSIN', 'Pembantu Pengurusan Murid', ''],
+    [6, 'AJK', 'ASLINA BINTI AMAN', 'Wakil Ibubapa', ''],
+    [6, 'AJK', 'JURIAH BINTI GIAT', 'Guru Akademik Biasa', ''],
+    [6, 'AJK', 'PN SARIZAH REJAB', 'Guru Akademik Biasa', ''],
+    [6, 'AJK', 'PN NOOR AZLEENDA RAZALI', 'Guru Pemulihan', '']
   ],
   'Fail_Upload': [],
   'apikey': []

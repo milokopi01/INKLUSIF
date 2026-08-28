@@ -439,12 +439,63 @@ const DEFAULT_STUDENTS = [
   { id: 's3', nama: 'Farah Shahidah binti Ahmad', mykid: '100714085442', oku: 'LD120710000213', diagnosis: 'Autisme Ringan', kelas: '6 Dedikasi', jenis: 'Inklusif Separa', guru_mentor: 'En. Mohd Zaki', markah_saringan: 84, status: 'Layak Inklusif Separa (Akademik)' },
 ];
 const DEFAULT_ORGCHART = [
-  { jawatan: 'Pengerusi', nama: 'Tn. Hj. Abdul Rahman bin Hassan', jawatan_full: 'Guru Besar' },
-  { jawatan: 'Naib Pengerusi', nama: 'Pn. Hajjah Norliza binti Othman', jawatan_full: 'Penolong Kanan Pentadbiran' },
-  { jawatan: 'Penyelaras', nama: 'En. Ahmad bin Isa', jawatan_full: 'Penyelaras PPKI' },
-  { jawatan: 'Guru Pendamping', nama: 'Pn. Siti Aminah binti Ramli', jawatan_full: 'Guru PPKI' },
-  { jawatan: 'PPM', nama: 'Pn. Rosnah binti Abdullah', jawatan_full: 'Pembantu Pendidikan Murid' },
+  { peringkat: 1, jawatan: 'PENGERUSI', nama: 'PN ZAWIAH SAPARI', jawatan_full: 'GURU BESAR', foto: '' },
+  { peringkat: 2, jawatan: 'TIMBALAN PENGERUSI', nama: 'NOORAINI BT. NGDE', jawatan_full: 'GPK PENTADBIRAN', foto: '' },
+  { peringkat: 3, jawatan: 'SETIAUSAHA', nama: 'PN NOOR HADILAWATI BASARI', jawatan_full: 'PENYELARAS PPKI', foto: '' },
+  { peringkat: 4, jawatan: 'AJK', nama: 'ZANARIAH BT. KAAB', jawatan_full: 'Guru Pendidikan Khas', foto: '' },
+  { peringkat: 4, jawatan: 'AJK', nama: 'PN HAZIRAH HARIS', jawatan_full: 'Guru Pendidikan Khas', foto: '' },
+  { peringkat: 4, jawatan: 'AJK', nama: 'NIK KHAIRUL AZUAN B. NIK KOB', jawatan_full: 'Guru Pendidikan Khas', foto: '' },
+  { peringkat: 4, jawatan: 'AJK', nama: 'NUR AFAZILLA BINTI ABD GHANI', jawatan_full: 'Guru Pendidikan Islam Khas', foto: '' },
+  { peringkat: 5, jawatan: 'AJK', nama: 'PN SITI ASAH BT. TALIB', jawatan_full: 'Pembantu Pengurusan Murid', foto: '' },
+  { peringkat: 5, jawatan: 'AJK', nama: 'PN FAZRINA BT. HUSSIN', jawatan_full: 'Pembantu Pengurusan Murid', foto: '' },
+  { peringkat: 6, jawatan: 'AJK', nama: 'ASLINA BINTI AMAN', jawatan_full: 'Wakil Ibubapa', foto: '' },
+  { peringkat: 6, jawatan: 'AJK', nama: 'JURIAH BINTI GIAT', jawatan_full: 'Guru Akademik Biasa', foto: '' },
+  { peringkat: 6, jawatan: 'AJK', nama: 'PN SARIZAH REJAB', jawatan_full: 'Guru Akademik Biasa', foto: '' },
+  { peringkat: 6, jawatan: 'AJK', nama: 'PN NOOR AZLEENDA RAZALI', jawatan_full: 'Guru Pemulihan', foto: '' },
 ];
+const ORG_PERINGKAT_LABEL = { 1: 'Pengerusi', 2: 'Timbalan Pengerusi', 3: 'Setiausaha', 4: 'AJK Guru', 5: 'AJK Pembantu Pengurusan Murid', 6: 'AJK Sokongan' };
+
+/* Kad ahli carta organisasi bergambar (format carta rasmi sekolah) */
+function OrgCard({ node, index, onPhoto, editMode, onChange, onRemove }) {
+  const inputId = 'orgfoto-' + index;
+  return (
+    <div className="flex flex-col items-center w-44 relative">
+      {editMode && (
+        <button type="button" onClick={() => onRemove(index)} title="Buang kotak ini"
+          className="absolute -top-2 -right-1 z-10 w-6 h-6 rounded-full bg-red-600 text-white text-xs font-bold shadow hover:bg-red-700">×</button>
+      )}
+      <label htmlFor={inputId} className="cursor-pointer group">
+        <div className="w-28 h-36 rounded-md overflow-hidden border-4 border-slate-800 bg-sky-400 flex items-center justify-center relative">
+          {node.foto
+            ? <img src={node.foto} alt={node.nama} className="w-full h-full object-cover" />
+            : <span className="text-[10px] font-semibold text-white text-center px-2 leading-tight">Klik untuk<br/>muat naik<br/>gambar</span>}
+          <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-bold">Tukar Gambar</span>
+        </div>
+      </label>
+      <input id={inputId} type="file" accept="image/*" className="hidden" onChange={e => onPhoto(index, e)} />
+      <div className="-mt-3 w-full bg-green-500 border border-green-700 px-2 py-2 text-center shadow-sm">
+        {editMode ? (
+          <div className="space-y-1">
+            <input value={node.jawatan} onChange={e => onChange(index, 'jawatan', e.target.value)} placeholder="Jawatan"
+              className="w-full text-[10px] font-bold text-center rounded px-1 py-0.5 bg-white/90 text-slate-900" />
+            <input value={node.nama} onChange={e => onChange(index, 'nama', e.target.value)} placeholder="Nama"
+              className="w-full text-[11px] font-extrabold text-center rounded px-1 py-0.5 bg-white/90 text-slate-900" />
+            <input value={node.jawatan_full} onChange={e => onChange(index, 'jawatan_full', e.target.value)} placeholder="Jawatan penuh"
+              className="w-full text-[10px] font-semibold text-center rounded px-1 py-0.5 bg-white/90 text-slate-900" />
+          </div>
+        ) : (
+          <>
+            <p className="text-[10px] font-bold text-white leading-tight">{node.jawatan}</p>
+            <p className="text-[11px] font-extrabold text-white leading-tight">{node.nama}</p>
+            <p className="text-[10px] font-semibold text-white/90 leading-tight">({node.jawatan_full})</p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 const DAYS = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
 const TIME_SLOTS = ['07:50-08:20', '08:20-09:00', '09:00-09:40', '09:40-10:20', 'Rehat', '10:50-11:30', '11:30-12:10', '12:10-12:50'];
 const DEFAULT_SCHEDULE = {};
@@ -467,9 +518,22 @@ const DEFAULT_PRASARANA = [
    TAB 1: TADBIR URUS & PENTADBIRAN
    ============================================================ */
 function TabTadbirUrus({ onToast }) {
-  const [orgChart, setOrgChart] = useState(DEFAULT_ORGCHART);
+  const [orgChart, setOrgChart] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('jpks_orgchart') || 'null');
+      if (Array.isArray(saved) && saved.length) return saved;
+    } catch (e) {}
+    return DEFAULT_ORGCHART;
+  });
   const [editOrg, setEditOrg] = useState(null);
+  const [orgEditMode, setOrgEditMode] = useState(false);
   const [orgImage, setOrgImage] = useState(null);
+
+  const cartaRef = useRef(null);
+  useEffect(() => {
+    try { localStorage.setItem('jpks_orgchart', JSON.stringify(orgChart)); } catch (e) {}
+  }, [orgChart]);
+
   const minitRef = useRef(null);
   const [minit, setMinit] = useState({
     bil: '1/2026', tarikh: '2026-01-15', masa: '09:30', tempat: 'Bilik Guru Besar',
@@ -484,6 +548,41 @@ function TabTadbirUrus({ onToast }) {
     setEditOrg(null);
     onToast({ type: 'success', msg: 'Carta organisasi berjaya dikemas kini.' });
   }
+  const orgLevels = Array.from(new Set(orgChart.map(n => Number(n.peringkat || 1)))).sort((a,b) => a-b);
+  function updateOrgField(index, field, value) {
+    setOrgChart(prev => prev.map((n, i) => i === index ? { ...n, [field]: value } : n));
+  }
+  function removeOrgNode(index) {
+    if (!window.confirm('Buang kotak ini daripada carta organisasi?')) return;
+    setOrgChart(prev => prev.filter((_, i) => i !== index));
+    onToast({ type: 'success', msg: 'Kotak dibuang daripada carta.' });
+  }
+  function addOrgNode(peringkat) {
+    setOrgChart(prev => [...prev, { peringkat: Number(peringkat), jawatan: 'AJK', nama: 'Nama Ahli', jawatan_full: 'Jawatan', foto: '' }]);
+    onToast({ type: 'success', msg: 'Kotak baharu ditambah. Klik untuk isi maklumat & gambar.' });
+  }
+  function addOrgLevel() {
+    const next = orgLevels.length ? Math.max(...orgLevels) + 1 : 1;
+    addOrgNode(next);
+  }
+  function resetOrgChart() {
+    if (!window.confirm('Set semula carta organisasi kepada susunan asal?')) return;
+    setOrgChart(DEFAULT_ORGCHART.map(r => ({ ...r })));
+    onToast({ type: 'success', msg: 'Carta organisasi diset semula.' });
+  }
+
+  function handleOrgPhoto(index, e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      setOrgChart(prev => prev.map((n, i) => i === index ? { ...n, foto: ev.target.result } : n));
+      onToast({ type: 'success', msg: 'Gambar ahli dikemas kini.' });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }
+
   function handleImageUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -498,28 +597,66 @@ function TabTadbirUrus({ onToast }) {
       <Card className="p-6">
         <SectionTitle icon="network" title="Carta Organisasi JPKS SK Selama (K)" desc="Struktur jawatankuasa pengurusan pendidikan inklusif" />
         <div className="flex flex-wrap gap-3 justify-end mb-4">
+          <Btn variant={orgEditMode ? 'green' : 'white'} onClick={() => setOrgEditMode(v => !v)}>
+            <Icon name={orgEditMode ? 'check' : 'move'} size={16} /> {orgEditMode ? 'Selesai Susun Kotak' : 'Susun Kotak (Tambah/Buang)'}
+          </Btn>
           <Btn variant="blue" onClick={() => setEditOrg(orgChart.map(r => ({...r})))}><Icon name="pencil" size={16} /> Edit Maklumat Carta</Btn>
+          <Btn variant="green" onClick={() => { setOrgEditMode(false); setTimeout(() => generatePDF(cartaRef.current, 'Carta_Organisasi_JPKS.pdf', onToast, 'PDF carta organisasi dijana.'), 150); }}><Icon name="download" size={16} /> Simpan PDF Carta</Btn>
+          <Btn variant="white" onClick={resetOrgChart}><Icon name="rotate-ccw" size={16} /> Set Semula</Btn>
           <label className="cursor-pointer">
             <span className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-800 font-bold py-2 px-4 rounded-xl border border-slate-300 border-b-2 border-b-slate-400 active:border-b-0 active:translate-y-0.5 active:shadow-inner transition-all duration-75 shadow-sm">
-              <Icon name="upload" size={16} /> Muat Naik Gambar Carta
+              <Icon name="upload" size={16} /> Muat Naik Imbasan Carta
             </span>
             <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
           </label>
         </div>
+        <p className="text-xs text-slate-500 mb-2">Tip: klik kotak gambar untuk muat naik gambar muka. Tekan <b>Susun Kotak</b> untuk tambah/buang kotak & edit nama terus pada carta — bilangan guru PPKI, guru akademik dan PPM boleh diubah ikut kesesuaian sekolah.</p>
 
-        {/* Carta Aliran Visual */}
-        <div className="flex flex-col items-center gap-3 py-4">
-          {orgChart.map((node, i) => (
-            <React.Fragment key={i}>
-              <div className={`w-full max-w-md rounded-2xl border-2 p-4 text-center ${i === 0 ? 'bg-blue-600 border-blue-800 text-white' : i === 1 ? 'bg-blue-100 border-blue-300 text-blue-900' : 'bg-white border-slate-200 text-slate-900'} shadow-sm`}>
-                <p className="text-xs font-semibold uppercase tracking-wide opacity-70">{node.jawatan}</p>
-                <p className="font-bold text-base mt-1">{node.nama}</p>
-                <p className={`text-xs mt-0.5 ${i === 0 ? 'text-blue-100' : 'text-slate-500'}`}>{node.jawatan_full}</p>
-              </div>
-              {i < orgChart.length - 1 && <Icon name="chevron-down" size={24} className="text-slate-300" />}
-            </React.Fragment>
-          ))}
+        {/* Carta Organisasi Bergambar (format rasmi) */}
+        <div ref={cartaRef} className="bg-white border border-slate-200 rounded-xl p-6 overflow-x-auto">
+          <h3 className="text-center text-xl md:text-2xl font-extrabold text-purple-900 leading-tight mb-6">
+            CARTA ORGANISASI<br />JAWATANKUASA PENDIDIKAN KHAS SEKOLAH (JPKS)<br />SK SELAMA (K)
+          </h3>
+          <div className="min-w-[720px] flex flex-col items-center">
+            {orgLevels.map((lvl, li) => {
+              const group = orgChart
+                .map((n, i) => ({ n, i }))
+                .filter(x => Number(x.n.peringkat || 1) === lvl);
+              if (!group.length) return null;
+              return (
+                <div key={lvl} className="w-full flex flex-col items-center">
+                  {li > 0 && <div className="w-1 h-6 bg-yellow-400" />}
+                  {group.length > 1 && (
+                    <div className="h-1 bg-yellow-400" style={{ width: `${(group.length - 1) * 12 + 1}rem` }} />
+                  )}
+                  <div className="flex flex-wrap justify-center items-start gap-4">
+                    {group.map(({ n, i }) => (
+                      <div key={i} className="flex flex-col items-center">
+                        {group.length > 1 && <div className="w-1 h-5 bg-yellow-400" />}
+                        <OrgCard node={n} index={i} onPhoto={handleOrgPhoto} editMode={orgEditMode}
+                          onChange={updateOrgField} onRemove={removeOrgNode} />
+                      </div>
+                    ))}
+                    {orgEditMode && (
+                      <button type="button" onClick={() => addOrgNode(lvl)}
+                        className="mt-5 w-28 h-36 rounded-md border-2 border-dashed border-slate-400 text-slate-500 hover:border-green-600 hover:text-green-700 text-xs font-bold flex flex-col items-center justify-center gap-1">
+                        <span className="text-2xl leading-none">＋</span>Tambah Kotak
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {orgEditMode && (
+              <button type="button" onClick={addOrgLevel}
+                className="mt-6 px-4 py-2 rounded-xl border-2 border-dashed border-slate-400 text-slate-600 hover:border-green-600 hover:text-green-700 text-sm font-bold">
+                ＋ Tambah Baris / Peringkat Baharu
+              </button>
+            )}
+          </div>
         </div>
+
+
 
         {orgImage && (
           <div className="mt-6">
@@ -600,16 +737,23 @@ function TabTadbirUrus({ onToast }) {
         {editOrg && (
           <div className="space-y-4">
             {editOrg.map((row, i) => (
-              <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-xl">
+              <div key={i} className="grid grid-cols-1 md:grid-cols-5 gap-3 p-3 bg-slate-50 rounded-xl items-end">
+                <Field label="Peringkat"><Input type="number" min="1" max="20" value={row.peringkat || 1} onChange={e => { const c=[...editOrg]; c[i]={...c[i], peringkat:Number(e.target.value)}; setEditOrg(c); }} /></Field>
                 <Field label="Jawatan"><Input value={row.jawatan} onChange={e => { const c=[...editOrg]; c[i]={...c[i], jawatan:e.target.value}; setEditOrg(c); }} /></Field>
                 <Field label="Nama Ahli"><Input value={row.nama} onChange={e => { const c=[...editOrg]; c[i]={...c[i], nama:e.target.value}; setEditOrg(c); }} /></Field>
                 <Field label="Jawatan Penuh"><Input value={row.jawatan_full} onChange={e => { const c=[...editOrg]; c[i]={...c[i], jawatan_full:e.target.value}; setEditOrg(c); }} /></Field>
+                <Btn variant="white" onClick={() => setEditOrg(editOrg.filter((_, j) => j !== i))}><Icon name="trash-2" size={16} /> Buang</Btn>
               </div>
             ))}
-            <div className="flex gap-2 justify-end">
-              <Btn variant="white" onClick={() => setEditOrg(null)}>Batal</Btn>
-              <Btn variant="blue" onClick={saveOrg}><Icon name="save" size={16} /> Simpan</Btn>
+            <p className="text-xs text-slate-500">Peringkat 1 = Pengerusi (atas sekali), nombor lebih besar = lebih bawah (tiada had bilangan peringkat). Ahli dengan peringkat sama akan berada dalam satu baris.</p>
+            <div className="flex gap-2 justify-between">
+              <Btn variant="white" onClick={() => setEditOrg([...editOrg, { peringkat: Math.max(1, ...editOrg.map(r => Number(r.peringkat || 1))), jawatan: 'AJK', nama: '', jawatan_full: '', foto: '' }])}><Icon name="plus" size={16} /> Tambah Ahli</Btn>
+              <div className="flex gap-2">
+                <Btn variant="white" onClick={() => setEditOrg(null)}>Batal</Btn>
+                <Btn variant="blue" onClick={saveOrg}><Icon name="save" size={16} /> Simpan</Btn>
+              </div>
             </div>
+
           </div>
         )}
       </Modal>
