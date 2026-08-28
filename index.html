@@ -1,1521 +1,1430 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="theme-color" content="#2563eb" />
-<link rel="manifest" href="manifest.json" />
-<title>JPKS SK Selama (K) — Sistem Pengurusan Inklusif</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        fontFamily: {
-          sans: ['Inter', 'system-ui', 'sans-serif'],
-        },
-      },
-    },
-  };
-</script>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-<script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<style>
-  body { font-family: 'Inter', system-ui, sans-serif; }
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-  ::-webkit-scrollbar-track { background: #f1f5f9; }
-  .fade-in { animation: fadeIn 0.3s ease-out; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  .slide-up { animation: slideUp 0.25s ease-out; }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-</style>
-  <meta property="og:image" content="https://bolt.new/static/og_default.png">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
-</head>
-<body class="bg-blue-50/30 text-slate-900">
-<div id="root"></div>
-
-<script type="text/babel">
-const { useState, useEffect, useRef, useCallback, useMemo } = React;
-
-/* ============================================================
-   KONFIGURASI API — Tukar URL Web App Google Apps Script di sini
-   ============================================================ */
-const API_URL = localStorage.getItem('jpks_api_url') || '';
-const SHEET_TEACHERS = 'Guru_PPKI';
-const SHEET_STUDENTS = 'Murid_PPPI';
-const SHEET_ORGCHART = 'Carta_Organisasi';
-const SHEET_SCHEDULE = 'Jadual_Bimbingan';
-const SHEET_MINIT = 'Minit_Mesyuarat';
-const SHEET_PPT = 'Prestasi_PPT';
-const SHEET_PRASARANA = 'Prasarana_OKU';
-const SHEET_SWOT = 'SWOT_Tahunan';
-const SHEET_SURAT = 'Surat_Pelantikan';
-
-async function apiCall(action, payload = {}) {
-  if (!API_URL) return { ok: false, error: 'URL API belum ditetapkan. Buka Tetapan untuk masukkan URL Web App.' };
-  try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action, ...payload }),
-    });
-    const text = await res.text();
-    let data;
-    try { data = JSON.parse(text); } catch { return { ok: false, error: 'Respon API tidak sah: ' + text.slice(0, 200) }; }
-    return data;
-  } catch (e) {
-    return { ok: false, error: e.message };
-  }
-}
-
-/* ============================================================
-   IKON
-   ============================================================ */
-function Icon({ name, size = 18, className = '' }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    if (ref.current && window.lucide) {
-      ref.current.innerHTML = '';
-      const svg = window.lucide.createElement
-        ? window.lucide.createElement(window.lucide.icons[toPascalCase(name)])
-        : null;
-      if (svg) { svg.setAttribute('width', size); svg.setAttribute('height', size); ref.current.appendChild(svg); }
-      else ref.current.setAttribute('data-lucide', name);
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="description" content="Sistem Pengurusan Murid Saringan Sekolah">
+  <meta name="theme-color" content="#0d6efd">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d6efd'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial'>S</text></svg>">
+  <title>Sistem Saringan Murid</title>
+  <style>
+    :root {
+      --primary-50: #eff6ff; --primary-100: #dbeafe; --primary-200: #bfdbfe;
+      --primary-300: #93c5fd; --primary-400: #60a5fa; --primary-500: #3b82f6;
+      --primary-600: #2563eb; --primary-700: #1d4ed8; --primary-800: #1e40af;
+      --primary-900: #1e3a8a; --primary: #0d6efd;
+      --accent: #0dcaf0; --accent-dark: #0a9bb5;
+      --success: #198754; --success-bg: #d1e7dd;
+      --warning: #ffc107; --warning-bg: #fff3cd;
+      --danger: #dc3545; --danger-bg: #f8d7da;
+      --neutral-50: #f8fafc; --neutral-100: #f1f5f9; --neutral-200: #e2e8f0;
+      --neutral-300: #cbd5e1; --neutral-400: #94a3b8; --neutral-500: #64748b;
+      --neutral-600: #475569; --neutral-700: #334155; --neutral-800: #1e293b;
+      --neutral-900: #0f172a;
+      --radius: 10px; --radius-sm: 6px; --radius-lg: 16px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.08);
+      --shadow: 0 2px 8px rgba(0,0,0,.10);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,.15);
+      --sidebar-w: 260px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     }
-    if (ref.current && window.lucide && window.lucide.createIcons) window.lucide.createIcons({ attrs: { width: size, height: size }, nameAttr: 'data-lucide' });
-  }, [name, size]);
-  return <span ref={ref} data-lucide={name} className={'inline-flex items-center ' + className} style={{ width: size, height: size }} />;
-}
-function toPascalCase(s) { return s.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''); }
 
-/* ============================================================
-   KOMPONEN UI BERSAMA
-   ============================================================ */
-function Card({ children, className = '' }) {
-  return <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm ${className}`}>{children}</div>;
-}
-function SectionTitle({ icon, title, desc }) {
-  return (
-    <div className="flex items-start gap-3 mb-4">
-      <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
-        <Icon name={icon} size={22} />
-      </div>
-      <div>
-        <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-        {desc && <p className="text-sm text-slate-500 mt-0.5">{desc}</p>}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body { font-family: var(--font); background: var(--neutral-100); color: var(--neutral-800); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh;
+      background: var(--neutral-900); color: white; z-index: 1000;
+      display: flex; flex-direction: column; transition: transform .3s ease;
+    }
+    .sidebar-header {
+      padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,.1);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .sidebar-logo {
+      width: 44px; height: 44px; background: var(--primary); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 700; flex-shrink: 0;
+    }
+    .sidebar-header h1 { font-size: 16px; font-weight: 700; line-height: 1.3; }
+    .sidebar-header p { font-size: 12px; color: var(--neutral-400); }
+
+    .nav-section { padding: 16px 0; flex: 1; overflow-y: auto; }
+    .nav-section::-webkit-scrollbar { width: 4px; }
+    .nav-section::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); border-radius: 4px; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 14px; padding: 12px 24px;
+      color: var(--neutral-400); text-decoration: none; font-size: 14px; font-weight: 500;
+      transition: all .2s ease; border-left: 3px solid transparent; cursor: pointer;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.06); color: white; }
+    .nav-item.active { background: rgba(13,110,253,.18); color: white; border-left-color: var(--primary); }
+    .nav-icon { font-size: 20px; width: 24px; text-align: center; flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto; background: var(--danger); color: white; font-size: 11px;
+      padding: 2px 8px; border-radius: 10px; font-weight: 600;
+    }
+
+    .sidebar-footer { padding: 16px 24px; border-top: 1px solid rgba(255,255,255,.1); }
+    .status-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--success); margin-right: 6px;
+    }
+    .status-dot.offline { background: var(--danger); }
+    .sidebar-footer p { font-size: 12px; color: var(--neutral-400); }
+
+    /* ===== MAIN ===== */
+    .main { margin-left: var(--sidebar-w); min-height: 100vh; transition: margin .3s ease; }
+
+    .topbar {
+      background: white; padding: 14px 28px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 100;
+      box-shadow: var(--shadow-sm); border-bottom: 1px solid var(--neutral-200);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .menu-toggle {
+      display: none; background: none; border: none; font-size: 24px; color: var(--neutral-700); cursor: pointer;
+    }
+    .topbar h2 { font-size: 20px; font-weight: 700; color: var(--neutral-800); }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .api-key-count {
+      display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--neutral-600);
+      background: var(--primary-50); padding: 6px 14px; border-radius: 20px; font-weight: 600;
+    }
+
+    .content { padding: 28px; }
+
+    /* ===== CARDS / STATS ===== */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px; margin-bottom: 28px;
+    }
+    .stat-card {
+      background: white; border-radius: var(--radius-lg); padding: 24px;
+      box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 16px;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .stat-icon {
+      width: 52px; height: 52px; border-radius: 14px; display: flex;
+      align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0;
+    }
+    .stat-icon.blue   { background: var(--primary-100); color: var(--primary-700); }
+    .stat-icon.green  { background: var(--success-bg); color: var(--success); }
+    .stat-icon.amber  { background: var(--warning-bg); color: #856404; }
+    .stat-icon.cyan   { background: #cff4fc; color: var(--accent-dark); }
+    .stat-value { font-size: 28px; font-weight: 700; line-height: 1.2; }
+    .stat-label { font-size: 13px; color: var(--neutral-500); }
+
+    /* ===== TABLE ===== */
+    .card {
+      background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+      overflow: hidden; margin-bottom: 24px;
+    }
+    .card-header {
+      padding: 20px 24px; border-bottom: 1px solid var(--neutral-200);
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .card-header h3 { font-size: 16px; font-weight: 700; color: var(--neutral-800); }
+    .card-body { padding: 0; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead { background: var(--neutral-50); }
+    th { padding: 12px 16px; text-align: left; font-weight: 600; color: var(--neutral-600); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+    td { padding: 12px 16px; border-top: 1px solid var(--neutral-200); color: var(--neutral-700); }
+    tbody tr { transition: background .15s ease; }
+    tbody tr:hover { background: var(--primary-50); }
+
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-success { background: var(--success-bg); color: var(--success); }
+    .badge-warning { background: var(--warning-bg); color: #856404; }
+    .badge-danger  { background: var(--danger-bg); color: var(--danger); }
+    .badge-info    { background: var(--primary-100); color: var(--primary-700); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px;
+      border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all .2s ease; text-decoration: none; font-family: var(--font);
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-700); transform: translateY(-1px); }
+    .btn-secondary { background: var(--neutral-200); color: var(--neutral-700); }
+    .btn-secondary:hover { background: var(--neutral-300); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #b02a37; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+    .btn-icon { padding: 6px 10px; font-size: 16px; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .table-actions { display: flex; gap: 6px; }
+
+    /* ===== FORM / MODAL ===== */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 2000;
+      display: none; align-items: flex-start; justify-content: center;
+      padding: 40px 20px; overflow-y: auto;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: white; border-radius: var(--radius-lg); width: 100%; max-width: 560px;
+      box-shadow: var(--shadow-lg); animation: modalIn .25s ease;
+    }
+    .modal.large { max-width: 720px; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--neutral-200); display: flex; align-items: center; justify-content: space-between; }
+    .modal-header h3 { font-size: 18px; font-weight: 700; }
+    .modal-close { background: none; border: none; font-size: 24px; color: var(--neutral-400); cursor: pointer; padding: 4px; }
+    .modal-close:hover { color: var(--neutral-700); }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--neutral-200); display: flex; justify-content: flex-end; gap: 12px; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--neutral-700); margin-bottom: 6px; }
+    .form-group label .req { color: var(--danger); }
+    .form-control {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--neutral-300);
+      border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font);
+      transition: border-color .2s ease, box-shadow .2s ease; background: white;
+    }
+    .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13,110,253,.15); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    select.form-control { cursor: pointer; }
+    textarea.form-control { resize: vertical; min-height: 80px; }
+
+    /* ===== AI CHAT ===== */
+    .chat-container { max-width: 800px; margin: 0 auto; }
+    .chat-messages {
+      background: var(--neutral-50); border-radius: var(--radius);
+      padding: 24px; min-height: 320px; max-height: 500px; overflow-y: auto;
+      margin-bottom: 16px; border: 1px solid var(--neutral-200);
+    }
+    .chat-msg { margin-bottom: 18px; display: flex; gap: 12px; }
+    .chat-msg.user { flex-direction: row-reverse; }
+    .chat-avatar {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700;
+    }
+    .chat-msg.user .chat-avatar { background: var(--primary); color: white; }
+    .chat-msg.ai .chat-avatar { background: var(--success); color: white; }
+    .chat-bubble {
+      max-width: 75%; padding: 12px 16px; border-radius: 14px; font-size: 14px; line-height: 1.6;
+    }
+    .chat-msg.user .chat-bubble { background: var(--primary); color: white; border-top-right-radius: 4px; }
+    .chat-msg.ai .chat-bubble { background: white; border: 1px solid var(--neutral-200); border-top-left-radius: 4px; }
+    .chat-bubble p { margin-bottom: 8px; }
+    .chat-bubble p:last-child { margin-bottom: 0; }
+    .chat-bubble ul, .chat-bubble ol { margin: 8px 0 8px 20px; }
+    .chat-bubble li { margin-bottom: 4px; }
+
+    .chat-input-row { display: flex; gap: 12px; }
+    .chat-input {
+      flex: 1; padding: 12px 16px; border: 1px solid var(--neutral-300);
+      border-radius: var(--radius); font-size: 14px; font-family: var(--font);
+    }
+    .chat-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13,110,253,.15); }
+
+    .typing-indicator span {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--neutral-400); margin: 0 2px; animation: typing 1.4s infinite;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: .2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: .4s; }
+    @keyframes typing { 0%,60%,100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-4px); } }
+
+    .chat-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .suggestion-chip {
+      padding: 8px 16px; background: white; border: 1px solid var(--neutral-300);
+      border-radius: 20px; font-size: 13px; color: var(--neutral-700); cursor: pointer;
+      transition: all .2s ease;
+    }
+    .suggestion-chip:hover { background: var(--primary-50); border-color: var(--primary-300); color: var(--primary-700); }
+
+    /* ===== UPLOAD ===== */
+    .upload-zone {
+      border: 2px dashed var(--neutral-300); border-radius: var(--radius-lg);
+      padding: 40px; text-align: center; cursor: pointer; transition: all .2s ease;
+      background: var(--neutral-50); margin-bottom: 20px;
+    }
+    .upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: var(--primary-50); }
+    .upload-zone .upload-icon { font-size: 48px; margin-bottom: 12px; }
+    .upload-zone p { color: var(--neutral-500); margin-bottom: 4px; }
+    .upload-zone .upload-hint { font-size: 12px; color: var(--neutral-400); }
+    #fileInput { display: none; }
+    .upload-progress { margin-top: 16px; }
+    .progress-bar { height: 6px; background: var(--neutral-200); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--primary); transition: width .3s ease; width: 0%; }
+    .upload-status { font-size: 13px; color: var(--neutral-600); margin-top: 8px; }
+
+    .file-link { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .file-link:hover { text-decoration: underline; }
+
+    /* ===== TOAST ===== */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
+    .toast {
+      background: white; padding: 14px 20px; border-radius: var(--radius);
+      box-shadow: var(--shadow-lg); font-size: 14px; font-weight: 500;
+      display: flex; align-items: center; gap: 10px; min-width: 280px; max-width: 400px;
+      animation: toastIn .3s ease; border-left: 4px solid var(--neutral-400);
+    }
+    .toast.success { border-left-color: var(--success); }
+    .toast.error   { border-left-color: var(--danger); }
+    .toast.info    { border-left-color: var(--primary); }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+
+    /* ===== PAGE ===== */
+    .page { display: none; }
+    .page.active { display: block; animation: pageIn .25s ease; }
+    @keyframes pageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .empty-state { text-align: center; padding: 40px; color: var(--neutral-400); }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; }
+
+    .loading { text-align: center; padding: 60px; color: var(--neutral-400); }
+    .spinner {
+      display: inline-block; width: 40px; height: 40px; border: 3px solid var(--neutral-200);
+      border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .info-banner {
+      background: var(--primary-50); border: 1px solid var(--primary-200);
+      border-radius: var(--radius); padding: 16px 20px; margin-bottom: 20px;
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .info-banner .info-icon { font-size: 22px; flex-shrink: 0; }
+    .info-banner h4 { font-size: 14px; font-weight: 700; color: var(--primary-800); margin-bottom: 2px; }
+    .info-banner p { font-size: 13px; color: var(--primary-700); }
+
+    /* ===== CARTA ORG ===== */
+    .org-tree { padding: 20px 0; }
+    .org-node {
+      background: white; border: 1px solid var(--neutral-200); border-radius: var(--radius);
+      padding: 16px 20px; margin: 0 auto 20px; max-width: 420px; position: relative;
+      box-shadow: var(--shadow-sm); transition: box-shadow .2s ease;
+    }
+    .org-node:hover { box-shadow: var(--shadow); }
+    .org-node .org-jawatan { font-size: 12px; font-weight: 600; color: var(--primary); text-transform: uppercase; letter-spacing: .5px; }
+    .org-node .org-nama { font-size: 16px; font-weight: 700; margin: 4px 0; }
+    .org-node .org-gred { font-size: 12px; color: var(--neutral-500); }
+    .org-node .org-skop { font-size: 13px; color: var(--neutral-600); margin-top: 8px; }
+    .org-node::after {
+      content: ''; position: absolute; bottom: -20px; left: 50%; width: 2px; height: 20px;
+      background: var(--neutral-300);
+    }
+    .org-node:last-child::after { display: none; }
+
+    .prasarana-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .prasarana-card {
+      background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm);
+      border-top: 3px solid var(--primary); transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .prasarana-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .prasarana-card .pc-type { font-size: 12px; font-weight: 600; color: var(--primary); text-transform: uppercase; }
+    .prasarana-card .pc-name { font-size: 16px; font-weight: 700; margin: 4px 0 12px; }
+    .prasarana-card .pc-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--neutral-500); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .menu-toggle { display: block; }
+      .form-row { grid-template-columns: 1fr; }
+      .content { padding: 16px; }
+    }
+    @media (max-width: 600px) {
+      .topbar h2 { font-size: 16px; }
+      .stat-card { padding: 16px; }
+      .stat-value { font-size: 22px; }
+      .api-key-count { display: none; }
+      .modal-body { padding: 16px; }
+      .chat-bubble { max-width: 85%; }
+    }
+
+    .overlay-bg {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 999;
+    }
+    .overlay-bg.active { display: block; }
+    @media (min-width: 901px) { .overlay-bg { display: none !important; } }
+  </style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">S</div>
+    <div>
+      <h1>Sistem Saringan</h1>
+      <p>Sekolah Rendah Malaysia</p>
+    </div>
+  </div>
+  <nav class="nav-section">
+    <a class="nav-item active" data-page="dashboard">
+      <span class="nav-icon">&#128202;</span> Papan Pemuka
+    </a>
+    <a class="nav-item" data-page="murid">
+      <span class="nav-icon">&#127979;</span> Murid
+    </a>
+    <a class="nav-item" data-page="saringan">
+      <span class="nav-icon">&#129657;</span> Saringan
+    </a>
+    <a class="nav-item" data-page="guru">
+      <span class="nav-icon">&#128104;&#8205;&#127979;</span> Guru
+    </a>
+    <a class="nav-item" data-page="prasarana">
+      <span class="nav-icon">&#127970;</span> Prasarana
+    </a>
+    <a class="nav-item" data-page="carta">
+      <span class="nav-icon">&#128200;</span> Carta Organisasi
+    </a>
+    <a class="nav-item" data-page="upload">
+      <span class="nav-icon">&#128229;</span> Muat Naik Fail
+    </a>
+    <a class="nav-item" data-page="ai">
+      <span class="nav-icon">&#129504;</span> Pembantu AI
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <p><span class="status-dot" id="statusDot"></span><span id="statusText">Talian sambung</span></p>
+    <p style="margin-top:4px;">PWA v1.0 &middot; 2026</p>
+  </div>
+</aside>
+
+<div class="overlay-bg" id="overlayBg"></div>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="menu-toggle" id="menuToggle">&#9776;</button>
+      <h2 id="pageTitle">Papan Pemuka</h2>
+    </div>
+    <div class="topbar-right">
+      <div class="api-key-count" id="apiKeyCount">
+        <span>&#128273;</span> <span id="keyCountText">--</span> API Key
       </div>
     </div>
-  );
-}
-function Btn({ variant = 'blue', children, onClick, type = 'button', className = '', disabled = false }) {
-  const styles = {
-    blue: 'bg-blue-600 hover:bg-blue-500 text-white border-blue-800',
-    white: 'bg-white hover:bg-slate-50 text-slate-800 border-slate-400 border border-slate-300',
-    rose: 'bg-rose-600 hover:bg-rose-500 text-white border-rose-800',
-    green: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-800',
-    amber: 'bg-amber-500 hover:bg-amber-400 text-white border-amber-700',
-  };
-  return (
-    <button type={type} onClick={onClick} disabled={disabled}
-      className={`${styles[variant]} font-bold py-2 px-4 rounded-xl border-b-2 active:border-b-0 active:translate-y-0.5 active:shadow-inner transition-all duration-75 shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}>
-      {children}
-    </button>
-  );
-}
-function Modal({ open, onClose, title, children, wide = false }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" onClick={onClose}>
-      <div className={`bg-white rounded-2xl shadow-2xl border border-slate-200 w-full ${wide ? 'max-w-3xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto slide-up`} onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 sticky top-0 bg-white rounded-t-2xl z-10">
-          <h3 className="font-bold text-slate-900">{title}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100">
-            <Icon name="x" size={20} />
-          </button>
+  </header>
+
+  <div class="content">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-icon blue">&#127979;</div>
+          <div><div class="stat-value" id="statMurid">--</div><div class="stat-label">Jumlah Murid</div></div>
         </div>
-        <div className="p-6">{children}</div>
+        <div class="stat-card">
+          <div class="stat-icon green">&#129657;</div>
+          <div><div class="stat-value" id="statSaringan">--</div><div class="stat-label">Saringan Selesai</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">&#128104;&#8205;&#127979;</div>
+          <div><div class="stat-value" id="statGuru">--</div><div class="stat-label">Jumlah Guru</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon cyan">&#127970;</div>
+          <div><div class="stat-value" id="statPrasarana">--</div><div class="stat-label">Prasarana</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Saringan Terkini</h3></div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>No</th><th>Nama Murid</th><th>Kelas</th><th>Tarikh</th><th>Jenis</th><th>Hasil</th></tr></thead>
+              <tbody id="dashSaringanBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Carta Organisasi Ringkas</h3></div>
+        <div class="card-body" style="padding:20px;">
+          <div id="dashCarta"></div>
+        </div>
       </div>
     </div>
-  );
-}
-function Field({ label, children, className = '' }) {
-  return (
-    <div className={className}>
-      <label className="block text-sm font-semibold text-slate-700 mb-1.5">{label}</label>
-      {children}
-    </div>
-  );
-}
-const inputCls = 'w-full rounded-xl border border-slate-300 px-3 py-2 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all';
-function Input(props) { return <input {...props} className={`${inputCls} ${props.className || ''}`} />; }
-function Select(props) { return <select {...props} className={`${inputCls} ${props.className || ''}`} />; }
-function Textarea(props) { return <textarea {...props} className={`${inputCls} ${props.className || ''}`} />; }
-function Badge({ children, color = 'blue' }) {
-  const map = { blue: 'bg-blue-100 text-blue-700', green: 'bg-emerald-100 text-emerald-700', amber: 'bg-amber-100 text-amber-700', rose: 'bg-rose-100 text-rose-700', slate: 'bg-slate-100 text-slate-700' };
-  return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${map[color]}`}>{children}</span>;
-}
-function Toast({ toast, onClose }) {
-  useEffect(() => {
-    if (toast) { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }
-  }, [toast, onClose]);
-  if (!toast) return null;
-  const colors = { success: 'bg-emerald-600', error: 'bg-rose-600', info: 'bg-blue-600' };
-  return (
-    <div className="fixed bottom-6 right-6 z-[60] slide-up">
-      <div className={`${colors[toast.type] || colors.info} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 max-w-sm`}>
-        <Icon name={toast.type === 'success' ? 'check-circle' : toast.type === 'error' ? 'alert-circle' : 'info'} size={20} />
-        <span className="text-sm font-medium">{toast.msg}</span>
+
+    <!-- ===== MURID ===== -->
+    <div class="page" id="page-murid">
+      <div class="card">
+        <div class="card-header">
+          <h3>Senarai Murid</h3>
+          <button class="btn btn-primary" onclick="openMuridModal()">&#43; Tambah Murid</button>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Jantina</th><th>Tarikh Saringan</th><th>Status</th><th>Catatan</th><th>Tindakan</th></tr></thead>
+              <tbody id="muridTableBody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
-  );
-}
-function EmptyState({ icon = 'inbox', msg }) {
-  return (
-    <div className="text-center py-12 text-slate-400">
-      <Icon name={icon} size={40} className="mx-auto mb-3 opacity-50" />
-      <p className="text-sm">{msg}</p>
-    </div>
-  );
-}
-function Loading({ msg = 'Memuatkan...' }) {
-  return (
-    <div className="text-center py-12">
-      <div className="inline-block w-8 h-8 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-      <p className="text-sm text-slate-500">{msg}</p>
-    </div>
-  );
-}
 
-/* ============================================================
-   UTILITI PDF & TARikh
-   ============================================================ */
-function generatePDF(element, filename, onToast, toastMsg) {
-  if (!window.html2pdf) { if (onToast) onToast({ type: 'error', msg: 'Pustaka PDF tidak dimuatkan.' }); return; }
-  const opt = { margin: 10, filename: filename, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-  window.html2pdf().set(opt).from(element).save();
-  if (onToast) onToast({ type: 'success', msg: toastMsg || 'PDF dijana.' });
-}
-function formatDate(d) {
-  if (!d) return '________________';
-  try { return new Date(d).toLocaleDateString('ms-MY', { day: '2-digit', month: 'long', year: 'numeric' }); } catch { return d; }
-}
-
-/* ============================================================
-   KOMPONEN CETAK FORMAL (untuk PDF)
-   ============================================================ */
-function PrintLetterhead({ sekolah }) {
-  return (
-    <div style={{ textAlign: 'center', borderBottom: '3px solid #000', paddingBottom: '8px', marginBottom: '20px', fontFamily: 'Arial, Helvetica, sans-serif' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-        <span style={{ fontSize: '28px' }}>🎓</span>
+    <!-- ===== SARINGAN ===== -->
+    <div class="page" id="page-saringan">
+      <div class="info-banner">
+        <span class="info-icon">&#8505;&#65039;</span>
         <div>
-          <h2 style={{ fontSize: '16px', fontWeight: 'bold', textTransform: 'uppercase', margin: 0 }}>{sekolah || 'SK SELAMA (K)'}</h2>
-          <p style={{ fontSize: '11px', margin: '2px 0' }}>Kementerian Pendidikan Malaysia</p>
-          <p style={{ fontSize: '11px', margin: '2px 0' }}>Jabatan Pendidikan Negeri Perak Darul Ridzuan</p>
-          <p style={{ fontSize: '11px', margin: '2px 0' }}>Pejabat Pendidikan Daerah Selama</p>
+          <h4>Saringan Kesihatan Murid</h4>
+          <p>Rekodkan hasil saringan penglihatan, pendengaran, dan pemeriksaan kesihatan murid.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Senarai Saringan</h3>
+          <button class="btn btn-primary" onclick="openSaringanModal()">&#43; Tambah Saringan</button>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>No</th><th>Nama Murid</th><th>Kelas</th><th>Tarikh</th><th>Jenis</th><th>Hasil</th><th>Saring Oleh</th><th>Catatan</th><th>Tindakan</th></tr></thead>
+              <tbody id="saringanTableBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-  );
-}
-function PrintSignature({ name, title }) {
-  return (
-    <div style={{ textAlign: 'right', marginTop: '32px', fontFamily: 'Arial, Helvetica, sans-serif' }}>
-      <p style={{ fontSize: '12px', marginBottom: '4px' }}>Saya yang menurut perintah,</p>
-      <div style={{ display: 'inline-block', textAlign: 'center' }}>
-        <div style={{ width: '160px', height: '60px', borderBottom: '1px solid #000', marginBottom: '4px' }}></div>
-        <p style={{ fontWeight: 'bold', fontSize: '12px', margin: 0 }}>{name || '________________'}</p>
-        <p style={{ fontSize: '11px', margin: 0 }}>{title || ''}</p>
+
+    <!-- ===== GURU ===== -->
+    <div class="page" id="page-guru">
+      <div class="card">
+        <div class="card-header">
+          <h3>Senarai Guru</h3>
+          <button class="btn btn-primary" onclick="openGuruModal()">&#43; Tambah Guru</button>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>No</th><th>Nama</th><th>No. KP</th><th>Jawatan</th><th>Kelas</th><th>Telefon</th><th>E-mel</th><th>Tindakan</th></tr></thead>
+              <tbody id="guruTableBody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
-  );
-}
 
-/* ============================================================
-   UNIVERSAL INLINE FILE UPLOADER
-   ============================================================ */
-function FileUploader({ sectionId, onToast }) {
-  const [files, setFiles] = useState([]);
-  const [dragOver, setDragOver] = useState(false);
-  const [lightbox, setLightbox] = useState(null);
-  const inputRef = useRef(null);
-
-  function handleFiles(fileList) {
-    const arr = Array.from(fileList);
-    let loaded = 0;
-    arr.forEach(file => {
-      if (file.size > 10 * 1024 * 1024) { onToast({ type: 'error', msg: file.name + ' melebihi 10MB.' }); return; }
-      const reader = new FileReader();
-      reader.onload = ev => {
-        setFiles(prev => [...prev, { id: 'f' + Date.now() + Math.random().toString(36).slice(2), name: file.name, type: file.type, size: file.size, base64: ev.target.result, isImage: file.type.startsWith('image/') }]);
-        loaded++;
-        if (loaded === arr.length) onToast({ type: 'success', msg: arr.length + ' fail dimuat naik sebagai Base64.' });
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-  function deleteFile(id) { setFiles(files.filter(f => f.id !== id)); onToast({ type: 'success', msg: 'Fail dipadam.' }); }
-  function openFile(file) { const w = window.open(file.base64, '_blank'); if (!w) onToast({ type: 'error', msg: 'Sekatan pop-up aktif. Sila benarkan pop-up.' }); }
-  function getFileMeta(file) {
-    const n = file.name.toLowerCase();
-    if (file.isImage) return { icon: 'image', color: 'text-blue-600', bg: 'bg-blue-100', label: 'IMG' };
-    if (n.endsWith('.pdf')) return { icon: 'file-text', color: 'text-rose-600', bg: 'bg-rose-100', label: 'PDF' };
-    if (n.endsWith('.doc') || n.endsWith('.docx')) return { icon: 'file-text', color: 'text-blue-600', bg: 'bg-blue-100', label: 'DOC' };
-    if (n.endsWith('.xls') || n.endsWith('.xlsx')) return { icon: 'file-spreadsheet', color: 'text-emerald-600', bg: 'bg-emerald-100', label: 'XLS' };
-    if (n.endsWith('.ppt') || n.endsWith('.pptx')) return { icon: 'presentation', color: 'text-amber-600', bg: 'bg-amber-100', label: 'PPT' };
-    return { icon: 'file', color: 'text-slate-600', bg: 'bg-slate-100', label: 'FILE' };
-  }
-  function fmtSize(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b / 1024).toFixed(1) + ' KB'; return (b / 1048576).toFixed(1) + ' MB'; }
-
-  return (
-    <div className="mt-4 border-t border-slate-100 pt-4">
-      <p className="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-1.5"><Icon name="paperclip" size={15} /> Fail Lampiran</p>
-      <div className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${dragOver ? 'border-blue-500 bg-blue-50' : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50'}`} onClick={() => inputRef.current?.click()} onDragOver={e => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={e => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); }}>
-        <input ref={inputRef} type="file" multiple className="hidden" onChange={e => { if (e.target.files.length) handleFiles(e.target.files); e.target.value = ''; }} />
-        <Icon name="upload-cloud" size={28} className="mx-auto mb-2 text-slate-400" />
-        <p className="text-sm text-slate-500 font-medium">Seret fail ke sini atau klik untuk muat naik</p>
-        <p className="text-xs text-slate-400 mt-1">Gambar, PDF, Word, Excel, PowerPoint (max 10MB)</p>
+    <!-- ===== PRASARANA ===== -->
+    <div class="page" id="page-prasarana">
+      <div class="card">
+        <div class="card-header">
+          <h3>Prasarana Sekolah</h3>
+          <button class="btn btn-primary" onclick="openPrasaranaModal()">&#43; Tambah Prasarana</button>
+        </div>
+        <div class="card-body" style="padding:20px;">
+          <div class="prasarana-card-grid" id="prasaranaGrid"></div>
+        </div>
       </div>
-      {files.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
-          {files.map(f => {
-            const fm = getFileMeta(f);
-            return (
-              <div key={f.id} className="border border-slate-200 rounded-xl p-3 hover:shadow-md transition-shadow">
-                {f.isImage ? (
-                  <div className="cursor-pointer" onClick={() => setLightbox(f)}><img src={f.base64} alt={f.name} className="w-full h-24 object-cover rounded-lg mb-2" /></div>
-                ) : (
-                  <div className={`w-full h-24 ${fm.bg} rounded-lg mb-2 flex flex-col items-center justify-center`}><Icon name={fm.icon} size={28} className={fm.color} /><span className={`text-xs font-bold mt-1 ${fm.color}`}>{fm.label}</span></div>
-                )}
-                <p className="text-xs font-medium text-slate-700 truncate" title={f.name}>{f.name}</p>
-                <p className="text-xs text-slate-400">{fmtSize(f.size)}</p>
-                <div className="flex gap-1 mt-2">
-                  <button onClick={() => openFile(f)} className="flex-1 text-xs py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium flex items-center justify-center gap-1"><Icon name="external-link" size={12} /> Buka</button>
-                  <button onClick={() => deleteFile(f.id)} className="flex-1 text-xs py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 font-medium flex items-center justify-center gap-1"><Icon name="trash-2" size={12} /> Padam</button>
+    </div>
+
+    <!-- ===== CARTA ORGANISASI ===== -->
+    <div class="page" id="page-carta">
+      <div class="card">
+        <div class="card-header">
+          <h3>Carta Organisasi Sekolah</h3>
+          <button class="btn btn-primary" onclick="openCartaModal()">&#43; Tambah Jawatan</button>
+        </div>
+        <div class="card-body" style="padding:24px;">
+          <div class="org-tree" id="cartaTree"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== UPLOAD ===== -->
+    <div class="page" id="page-upload">
+      <div class="info-banner">
+        <span class="info-icon">&#8505;&#65039;</span>
+        <div>
+          <h4>Muat Naik Fail</h4>
+          <p>Fail akan disimpan ke Google Drive dan pautan akses akan direkodkan secara automatik.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Muat Naik Fail Baharu</h3></div>
+        <div class="card-body" style="padding:24px;">
+          <div class="form-group">
+            <label>Tajuk / Kategori Kecil <span class="req">*</span></label>
+            <input type="text" class="form-control" id="uploadTajuk" placeholder="Cth: Laporan Saringan Q1 2024">
+          </div>
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">&#128229;</div>
+            <p><strong>Klik untuk pilih fail</strong> atau drag & drop</p>
+            <p class="upload-hint">PDF, Imej, Dokumen, Excel (Max 25 MB)</p>
+          </div>
+          <input type="file" id="fileInput">
+          <div class="upload-progress" id="uploadProgress" style="display:none;">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="upload-status" id="uploadStatus">Memuat naik...</div>
+          </div>
+          <button class="btn btn-primary" id="uploadBtn" onclick="handleFileUpload()" disabled>Muat Naik Fail</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Fail Dimuat Naik</h3></div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>No</th><th>Tajuk</th><th>Nama Fail</th><th>Pautan</th><th>Jenis</th><th>Saiz</th><th>Tarikh</th><th>Tindakan</th></tr></thead>
+              <tbody id="failTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== AI CHAT ===== -->
+    <div class="page" id="page-ai">
+      <div class="info-banner">
+        <span class="info-icon">&#129504;</span>
+        <div>
+          <h4>Pembantu AI (Groq llama-3.3-70b)</h4>
+          <p>Panggilan AI diuruskan oleh proxy backend dengan auto-rotasi API Key. Tanya apa sahaja tentang data murid, saringan, atau pengurusan sekolah.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Chat dengan Pembantu AI</h3></div>
+        <div class="card-body" style="padding:24px;">
+          <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+              <div class="chat-msg ai">
+                <div class="chat-avatar">AI</div>
+                <div class="chat-bubble">
+                  <p>Salam! Saya ialah pembantu AI untuk sistem saringan murid. Apakah yang boleh saya bantu hari ini?</p>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
-      {lightbox && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" onClick={() => setLightbox(null)}>
-          <div className="relative max-w-4xl max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            <button onClick={() => setLightbox(null)} className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-600 hover:text-slate-900 z-10"><Icon name="x" size={18} /></button>
-            <img src={lightbox.base64} alt={lightbox.name} className="max-w-full max-h-[85vh] rounded-xl shadow-2xl" />
-            <p className="text-white text-sm text-center mt-2">{lightbox.name}</p>
+            </div>
+            <div class="chat-suggestions" id="chatSuggestions">
+              <div class="suggestion-chip" onclick="sendSuggestion('Berikan analisis ringkas tentang murid yang memerlukan rujukan.')">Analisis murid rujuk</div>
+              <div class="suggestion-chip" onclick="sendSuggestion('Cadangkan langkah susulan untuk saringan penglihatan.')">Langkah susulan saringan</div>
+              <div class="suggestion-chip" onclick="sendSuggestion('Buat laporan ringkas kesihatan murid 3 Bestari.')">Laporan murid 3 Bestari</div>
+              <div class="suggestion-chip" onclick="sendSuggestion('Bagaimana cara menguruskan murid dengan masalah pendengaran?')">Pengurusan murid pendengaran</div>
+            </div>
+            <div class="chat-input-row" style="margin-top:16px;">
+              <input type="text" class="chat-input" id="chatInput" placeholder="Taip soalan anda..." onkeydown="if(event.key==='Enter')sendChat()">
+              <button class="btn btn-primary" onclick="sendChat()" id="chatSendBtn">Hantar</button>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
+
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBox">
+    <div class="modal-header">
+      <h3 id="modalTitle">Modal</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ===== KONFIGURASI =====
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyPLMeW9ZuGfqeGgCsKwH5WiuyjpM1-c9f9CI7Rw_hX9sR9-kVzHJINlfw5EQlI3s7nQA/exec';
+
+var appData = { murid: [], saringan: [], guru: [], prasarana: [], carta: [], failUpload: [] };
+var selectedFile = null;
+var isOnline = navigator.onLine;
+
+// ===== UTIL =====
+function showToast(msg, type) {
+  type = type || 'info';
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  var icon = type === 'success' ? '&#10004;' : type === 'error' ? '&#10006;' : '&#8505;';
+  toast.innerHTML = '<span>' + icon + '</span><span>' + msg + '</span>';
+  container.appendChild(toast);
+  setTimeout(function() {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(40px)';
+    setTimeout(function() { toast.remove(); }, 300);
+  }, 3500);
+}
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function formatDate(d) {
+  if (!d) return '-';
+  var dt = new Date(d);
+  if (isNaN(dt)) return String(d);
+  return dt.toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// ===== API CALLS =====
+async function apiGet(action) {
+  var url = WEB_APP_URL + '?action=' + action;
+  var resp = await fetch(url, { method: 'GET' });
+  return resp.json();
+}
+
+async function apiPost(body) {
+  var resp = await fetch(WEB_APP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  });
+  return resp.json();
+}
+
+// ===== DATA LOAD =====
+async function loadAllData() {
+  try {
+    var data = await apiGet('all');
+    if (data.status === 'ok') {
+      appData.murid = data.murid || [];
+      appData.saringan = data.saringan || [];
+      appData.guru = data.guru || [];
+      appData.prasarana = data.prasarana || [];
+      appData.carta = data.carta || [];
+      appData.failUpload = data.failUpload || [];
+      renderAll();
+    }
+    loadApiKeyCount();
+  } catch (err) {
+    showToast('Gagal memuatkan data. Semak sambungan internet.', 'error');
+  }
+}
+
+async function loadApiKeyCount() {
+  try {
+    var data = await apiGet('apikey_count');
+    if (data.status === 'ok') {
+      document.getElementById('keyCountText').textContent = data.count;
+    }
+  } catch (e) {
+    document.getElementById('keyCountText').textContent = '--';
+  }
+}
+
+// ===== RENDER =====
+function renderAll() {
+  renderDashboard();
+  renderMurid();
+  renderSaringan();
+  renderGuru();
+  renderPrasarana();
+  renderCarta();
+  renderFailUpload();
+}
+
+function renderDashboard() {
+  document.getElementById('statMurid').textContent = appData.murid.length;
+  document.getElementById('statSaringan').textContent = appData.saringan.length;
+  document.getElementById('statGuru').textContent = appData.guru.length;
+  document.getElementById('statPrasarana').textContent = appData.prasarana.length;
+
+  var saringanBody = document.getElementById('dashSaringanBody');
+  var recent = appData.saringan.slice(-5).reverse();
+  if (recent.length === 0) {
+    saringanBody.innerHTML = '<tr><td colspan="6" class="empty-state">Tiada data saringan</td></tr>';
+  } else {
+    saringanBody.innerHTML = recent.map(function(s) {
+      var badge = s['Hasil'] === 'Lulus' ? 'badge-success' : s['Hasil'] === 'Rujuk' ? 'badge-danger' : 'badge-info';
+      return '<tr><td>' + escapeHtml(s['No']) + '</td><td>' + escapeHtml(s['Nama Murid']) + '</td><td>' +
+        escapeHtml(s['Kelas']) + '</td><td>' + formatDate(s['Tarikh Saringan']) + '</td><td>' +
+        escapeHtml(s['Jenis Saringan']) + '</td><td><span class="badge ' + badge + '">' + escapeHtml(s['Hasil']) + '</span></td></tr>';
+    }).join('');
+  }
+
+  var dashCarta = document.getElementById('dashCarta');
+  if (appData.carta.length === 0) {
+    dashCarta.innerHTML = '<div class="empty-state">Tiada data carta organisasi</div>';
+  } else {
+    dashCarta.innerHTML = appData.carta.map(function(c) {
+      return '<div class="org-node"><div class="org-jawatan">' + escapeHtml(c['Jawatan']) + '</div>' +
+        '<div class="org-nama">' + escapeHtml(c['Nama']) + '</div>' +
+        '<div class="org-gred">' + escapeHtml(c['Gred']) + '</div></div>';
+    }).join('');
+  }
+}
+
+function renderMurid() {
+  var body = document.getElementById('muridTableBody');
+  if (appData.murid.length === 0) {
+    body.innerHTML = '<tr><td colspan="8" class="empty-state">Tiada murid. Klik "Tambah Murid" untuk mula.</td></tr>';
+    return;
+  }
+  body.innerHTML = appData.murid.map(function(m) {
+    var badge = m['Status Saringan'] === 'Lulus' ? 'badge-success' : m['Status Saringan'] === 'Rujuk' ? 'badge-danger' : 'badge-info';
+    return '<tr><td>' + m['No'] + '</td><td>' + escapeHtml(m['Nama']) + '</td><td>' + escapeHtml(m['Kelas']) +
+      '</td><td>' + escapeHtml(m['Jantina']) + '</td><td>' + formatDate(m['Tarikh Saringan']) +
+      '</td><td><span class="badge ' + badge + '">' + escapeHtml(m['Status Saringan']) + '</span></td>' +
+      '<td>' + escapeHtml(m['Catatan']) + '</td>' +
+      '<td class="table-actions"><button class="btn btn-secondary btn-sm" onclick="openMuridModal(' + m['No'] + ')">Edit</button>' +
+      '<button class="btn btn-danger btn-sm" onclick="padamMurid(' + m['No'] + ')">Padam</button></td></tr>';
+  }).join('');
+}
+
+function renderSaringan() {
+  var body = document.getElementById('saringanTableBody');
+  if (appData.saringan.length === 0) {
+    body.innerHTML = '<tr><td colspan="9" class="empty-state">Tiada saringan. Klik "Tambah Saringan" untuk mula.</td></tr>';
+    return;
+  }
+  body.innerHTML = appData.saringan.map(function(s) {
+    var badge = s['Hasil'] === 'Lulus' ? 'badge-success' : s['Hasil'] === 'Rujuk' ? 'badge-danger' : 'badge-info';
+    return '<tr><td>' + s['No'] + '</td><td>' + escapeHtml(s['Nama Murid']) + '</td><td>' + escapeHtml(s['Kelas']) +
+      '</td><td>' + formatDate(s['Tarikh Saringan']) + '</td><td>' + escapeHtml(s['Jenis Saringan']) +
+      '</td><td><span class="badge ' + badge + '">' + escapeHtml(s['Hasil']) + '</span></td>' +
+      '<td>' + escapeHtml(s['Saring Oleh']) + '</td><td>' + escapeHtml(s['Catatan']) + '</td>' +
+      '<td class="table-actions"><button class="btn btn-secondary btn-sm" onclick="openSaringanModal(' + s['No'] + ')">Edit</button>' +
+      '<button class="btn btn-danger btn-sm" onclick="padamSaringan(' + s['No'] + ')">Padam</button></td></tr>';
+  }).join('');
+}
+
+function renderGuru() {
+  var body = document.getElementById('guruTableBody');
+  if (appData.guru.length === 0) {
+    body.innerHTML = '<tr><td colspan="8" class="empty-state">Tiada guru. Klik "Tambah Guru" untuk mula.</td></tr>';
+    return;
+  }
+  body.innerHTML = appData.guru.map(function(g) {
+    return '<tr><td>' + g['No'] + '</td><td>' + escapeHtml(g['Nama']) + '</td><td>' + escapeHtml(g['No. KP']) +
+      '</td><td>' + escapeHtml(g['Jawatan']) + '</td><td>' + escapeHtml(g['Kelas']) +
+      '</td><td>' + escapeHtml(g['No. Telefon']) + '</td><td>' + escapeHtml(g['E-mel']) + '</td>' +
+      '<td class="table-actions"><button class="btn btn-secondary btn-sm" onclick="openGuruModal(' + g['No'] + ')">Edit</button>' +
+      '<button class="btn btn-danger btn-sm" onclick="padamGuru(' + g['No'] + ')">Padam</button></td></tr>';
+  }).join('');
+}
+
+function renderPrasarana() {
+  var grid = document.getElementById('prasaranaGrid');
+  if (appData.prasarana.length === 0) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">Tiada prasarana. Klik "Tambah Prasarana" untuk mula.</div>';
+    return;
+  }
+  grid.innerHTML = appData.prasarana.map(function(p, i) {
+    var badge = p['Keadaan'] === 'Baik' ? 'badge-success' : p['Keadaan'] === 'Sederhana' ? 'badge-warning' : 'badge-danger';
+    return '<div class="prasarana-card"><div class="pc-type">' + escapeHtml(p['Jenis']) + '</div>' +
+      '<div class="pc-name">' + escapeHtml(p['Nama / Lokasi']) + '</div>' +
+      '<div class="pc-meta"><span>Bil: ' + escapeHtml(p['Bilangan']) + '</span><span><span class="badge ' + badge + '">' + escapeHtml(p['Keadaan']) + '</span></span></div>' +
+      '<div class="pc-meta" style="margin-top:8px;"><span>' + escapeHtml(p['Catatan']) + '</span></div>' +
+      '<div class="table-actions" style="margin-top:12px;"><button class="btn btn-secondary btn-sm" onclick="openPrasaranaModal(' + i + ')">Edit</button>' +
+      '<button class="btn btn-danger btn-sm" onclick="padamPrasarana(' + i + ')">Padam</button></div></div>';
+  }).join('');
+}
+
+function renderCarta() {
+  var tree = document.getElementById('cartaTree');
+  if (appData.carta.length === 0) {
+    tree.innerHTML = '<div class="empty-state">Tiada carta organisasi. Klik "Tambah Jawatan" untuk mula.</div>';
+    return;
+  }
+  tree.innerHTML = appData.carta.map(function(c, i) {
+    return '<div class="org-node"><div class="org-jawatan">' + escapeHtml(c['Jawatan']) + '</div>' +
+      '<div class="org-nama">' + escapeHtml(c['Nama']) + '</div>' +
+      '<div class="org-gred">' + escapeHtml(c['Gred']) + '</div>' +
+      '<div class="org-skop">' + escapeHtml(c['Skop Tanggungjawab']) + '</div>' +
+      '<div class="table-actions" style="margin-top:12px;justify-content:center;">' +
+      '<button class="btn btn-secondary btn-sm" onclick="openCartaModal(' + i + ')">Edit</button>' +
+      '<button class="btn btn-danger btn-sm" onclick="padamCarta(' + i + ')">Padam</button></div></div>';
+  }).join('');
+}
+
+function renderFailUpload() {
+  var body = document.getElementById('failTableBody');
+  if (appData.failUpload.length === 0) {
+    body.innerHTML = '<tr><td colspan="8" class="empty-state">Tiada fail dimuat naik lagi.</td></tr>';
+    return;
+  }
+  body.innerHTML = appData.failUpload.map(function(f) {
+    return '<tr><td>' + f['No'] + '</td><td>' + escapeHtml(f['TajukKecilId']) + '</td><td>' + escapeHtml(f['Nama Fail']) +
+      '</td><td><a href="' + escapeHtml(f['URL Pautan']) + '" target="_blank" class="file-link">Buka Pautan</a></td>' +
+      '<td>' + escapeHtml(f['Mime Type']) + '</td><td>' + escapeHtml(f['Saiz (KB)']) + ' KB</td>' +
+      '<td>' + formatDate(f['Tarikh Upload']) + '</td>' +
+      '<td><button class="btn btn-danger btn-sm" onclick="padamFail(\'' + escapeHtml(f['Fail ID']) + '\')">Padam</button></td></tr>';
+  }).join('');
+}
+
+// ===== MODAL HELPERS =====
+function openModal(title, bodyHtml, footerHtml) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  document.getElementById('modalFooter').innerHTML = footerHtml;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ===== MURID MODAL =====
+function openMuridModal(no) {
+  var m = null;
+  if (no !== undefined) {
+    m = appData.murid.find(function(x) { return Number(x['No']) === Number(no); });
+  }
+  var isEdit = !!m;
+  openModal(
+    isEdit ? 'Edit Murid' : 'Tambah Murid',
+    '<div class="form-group"><label>Nama <span class="req">*</span></label><input type="text" class="form-control" id="mNama" value="' + (m ? escapeHtml(m['Nama']) : '') + '"></div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>Kelas <span class="req">*</span></label><select class="form-control" id="mKelas"><option value="3 Bestari"' + (m && m['Kelas'] === '3 Bestari' ? ' selected' : '') + '>3 Bestari</option><option value="3 Cemerlang"' + (m && m['Kelas'] === '3 Cemerlang' ? ' selected' : '') + '>3 Cemerlang</option></select></div>' +
+    '<div class="form-group"><label>Jantina <span class="req">*</span></label><select class="form-control" id="mJantina"><option value="Lelaki"' + (m && m['Jantina'] === 'Lelaki' ? ' selected' : '') + '>Lelaki</option><option value="Perempuan"' + (m && m['Jantina'] === 'Perempuan' ? ' selected' : '') + '>Perempuan</option></select></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>Tarikh Saringan</label><input type="date" class="form-control" id="mTarikh" value="' + (m ? escapeHtml(m['Tarikh Saringan']) : '') + '"></div>' +
+    '<div class="form-group"><label>Status Saringan</label><select class="form-control" id="mStatus"><option value="Lulus"' + (m && m['Status Saringan'] === 'Lulus' ? ' selected' : '') + '>Lulus</option><option value="Rujuk"' + (m && m['Status Saringan'] === 'Rujuk' ? ' selected' : '') + '>Rujuk</option><option value="Belum"' + (m && m['Status Saringan'] === 'Belum' ? ' selected' : (!m ? ' selected' : '')) + '>Belum Saring</option></select></div>' +
+    '</div>' +
+    '<div class="form-group"><label>Catatan</label><textarea class="form-control" id="mCatatan">' + (m ? escapeHtml(m['Catatan']) : '') + '</textarea></div>',
+    '<button class="btn btn-secondary" onclick="closeModal()">Batal</button><button class="btn btn-primary" onclick="submitMurid(' + (isEdit ? no : 'null') + ')">Simpan</button>'
   );
 }
 
-/* ============================================================
-   HEADER & NAVIGASI TAB
-   ============================================================ */
-const TABS = [
-  { id: 'tadbir', label: 'Tadbir Urus & Pentadbiran', icon: 'landmark', short: 'Tadbir Urus' },
-  { id: 'sumber', label: 'Sumber Manusia & Penjadualan', icon: 'users', short: 'Sumber Manusia' },
-  { id: 'profil', label: 'Profil MBK, Saringan & Minda AI', icon: 'brain', short: 'Profil MBK' },
-  { id: 'prestasi', label: 'Prestasi & Pelaporan', icon: 'bar-chart-3', short: 'Prestasi' },
-];
+async function submitMurid(no) {
+  var nama = document.getElementById('mNama').value.trim();
+  if (!nama) { showToast('Nama wajib diisi', 'error'); return; }
+  var body = {
+    action: no !== null ? 'edit_murid' : 'tambah_murid',
+    no: no,
+    nama: nama,
+    kelas: document.getElementById('mKelas').value,
+    jantina: document.getElementById('mJantina').value,
+    tarikh: document.getElementById('mTarikh').value,
+    status: document.getElementById('mStatus').value,
+    catatan: document.getElementById('mCatatan').value.trim()
+  };
+  try {
+    var res = await apiPost(body);
+    if (res.status === 'ok') {
+      showToast(res.message, 'success');
+      closeModal();
+      await refreshData('murid');
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (e) {
+    showToast('Gagal menyimpan murid', 'error');
+  }
+}
 
-function Header({ onSettings }) {
-  return (
-    <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center shadow-md">
-            <Icon name="graduation-cap" size={24} />
-          </div>
-          <div>
-            <h1 className="font-bold text-slate-900 text-base sm:text-lg leading-tight">JPKS SK Selama (K)</h1>
-            <p className="text-xs text-slate-500 hidden sm:block">Sistem Pengurusan Program Pendidikan Inklusif</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge color="green">SPI Bil. 1/2026</Badge>
-          <button onClick={onSettings} className="p-2 rounded-xl hover:bg-slate-100 text-slate-600">
-            <Icon name="settings" size={20} />
-          </button>
-        </div>
-      </div>
-    </header>
+async function padamMurid(no) {
+  if (!confirm('Padam murid ini?')) return;
+  try {
+    var res = await apiPost({ action: 'padam_murid', no: no });
+    if (res.status === 'ok') { showToast(res.message, 'success'); await refreshData('murid'); }
+    else { showToast(res.message, 'error'); }
+  } catch (e) { showToast('Gagal memadam', 'error'); }
+}
+
+// ===== SARINGAN MODAL =====
+function openSaringanModal(no) {
+  var s = null;
+  if (no !== undefined) {
+    s = appData.saringan.find(function(x) { return Number(x['No']) === Number(no); });
+  }
+  var isEdit = !!s;
+  var muridOpts = appData.murid.map(function(m) {
+    return '<option value="' + escapeHtml(m['Nama']) + '"' + (s && s['Nama Murid'] === m['Nama'] ? ' selected' : '') + '>' + escapeHtml(m['Nama']) + ' (' + escapeHtml(m['Kelas']) + ')</option>';
+  }).join('');
+  openModal(
+    isEdit ? 'Edit Saringan' : 'Tambah Saringan',
+    '<div class="form-group"><label>Nama Murid <span class="req">*</span></label><select class="form-control" id="sNama"><option value="">-- Pilih Murid --</option>' + muridOpts + '</select></div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>Kelas</label><input type="text" class="form-control" id="sKelas" value="' + (s ? escapeHtml(s['Kelas']) : '') + '"></div>' +
+    '<div class="form-group"><label>Tarikh Saringan <span class="req">*</span></label><input type="date" class="form-control" id="sTarikh" value="' + (s ? escapeHtml(s['Tarikh Saringan']) : '') + '"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>Jenis Saringan <span class="req">*</span></label><select class="form-control" id="sJenis"><option value="Penglihatan"' + (s && s['Jenis Saringan'] === 'Penglihatan' ? ' selected' : '') + '>Penglihatan</option><option value="Pendengaran"' + (s && s['Jenis Saringan'] === 'Pendengaran' ? ' selected' : '') + '>Pendengaran</option><option value="Fizikal"' + (s && s['Jenis Saringan'] === 'Fizikal' ? ' selected' : '') + '>Fizikal</option><option value="Gigi"' + (s && s['Jenis Saringan'] === 'Gigi' ? ' selected' : '') + '>Gigi</option></select></div>' +
+    '<div class="form-group"><label>Hasil <span class="req">*</span></label><select class="form-control" id="sHasil"><option value="Lulus"' + (s && s['Hasil'] === 'Lulus' ? ' selected' : '') + '>Lulus</option><option value="Rujuk"' + (s && s['Hasil'] === 'Rujuk' ? ' selected' : '') + '>Rujuk</option><option value="Ulang"' + (s && s['Hasil'] === 'Ulang' ? ' selected' : '') + '>Ulang Saring</option></select></div>' +
+    '</div>' +
+    '<div class="form-group"><label>Saring Oleh</label><input type="text" class="form-control" id="sSaringOleh" value="' + (s ? escapeHtml(s['Saring Oleh']) : '') + '"></div>' +
+    '<div class="form-group"><label>Catatan</label><textarea class="form-control" id="sCatatan">' + (s ? escapeHtml(s['Catatan']) : '') + '</textarea></div>',
+    '<button class="btn btn-secondary" onclick="closeModal()">Batal</button><button class="btn btn-primary" onclick="submitSaringan(' + (isEdit ? no : 'null') + ')">Simpan</button>'
+  );
+  // Auto-fill kelas bila pilih murid
+  document.getElementById('sNama').addEventListener('change', function() {
+    var sel = appData.murid.find(function(m) { return m['Nama'] === this.value; }, this);
+    if (sel) document.getElementById('sKelas').value = sel['Kelas'];
+  });
+}
+
+async function submitSaringan(no) {
+  var nama = document.getElementById('sNama').value;
+  if (!nama) { showToast('Pilih murid dahulu', 'error'); return; }
+  var body = {
+    action: no !== null ? 'edit_saringan' : 'tambah_saringan',
+    no: no,
+    nama: nama,
+    kelas: document.getElementById('sKelas').value,
+    tarikh: document.getElementById('sTarikh').value,
+    jenis: document.getElementById('sJenis').value,
+    hasil: document.getElementById('sHasil').value,
+    saringOleh: document.getElementById('sSaringOleh').value,
+    catatan: document.getElementById('sCatatan').value.trim()
+  };
+  try {
+    var res = await apiPost(body);
+    if (res.status === 'ok') { showToast(res.message, 'success'); closeModal(); await refreshData('saringan'); }
+    else { showToast(res.message, 'error'); }
+  } catch (e) { showToast('Gagal menyimpan', 'error'); }
+}
+
+async function padamSaringan(no) {
+  if (!confirm('Padam rekod saringan ini?')) return;
+  try {
+    var res = await apiPost({ action: 'padam_saringan', no: no });
+    if (res.status === 'ok') { showToast(res.message, 'success'); await refreshData('saringan'); }
+    else { showToast(res.message, 'error'); }
+  } catch (e) { showToast('Gagal memadam', 'error'); }
+}
+
+// ===== GURU MODAL =====
+function openGuruModal(no) {
+  var g = null;
+  if (no !== undefined) {
+    g = appData.guru.find(function(x) { return Number(x['No']) === Number(no); });
+  }
+  var isEdit = !!g;
+  openModal(
+    isEdit ? 'Edit Guru' : 'Tambah Guru',
+    '<div class="form-group"><label>Nama <span class="req">*</span></label><input type="text" class="form-control" id="gNama" value="' + (g ? escapeHtml(g['Nama']) : '') + '"></div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>No. KP</label><input type="text" class="form-control" id="gNoKp" value="' + (g ? escapeHtml(g['No. KP']) : '') + '"></div>' +
+    '<div class="form-group"><label>Jawatan <span class="req">*</span></label><input type="text" class="form-control" id="gJawatan" value="' + (g ? escapeHtml(g['Jawatan']) : '') + '"></div>' +
+    '</div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>Kelas</label><input type="text" class="form-control" id="gKelas" value="' + (g ? escapeHtml(g['Kelas']) : '-') + '"></div>' +
+    '<div class="form-group"><label>No. Telefon</label><input type="text" class="form-control" id="gTelefon" value="' + (g ? escapeHtml(g['No. Telefon']) : '') + '"></div>' +
+    '</div>' +
+    '<div class="form-group"><label>E-mel</label><input type="email" class="form-control" id="gEmel" value="' + (g ? escapeHtml(g['E-mel']) : '') + '"></div>',
+    '<button class="btn btn-secondary" onclick="closeModal()">Batal</button><button class="btn btn-primary" onclick="submitGuru(' + (isEdit ? no : 'null') + ')">Simpan</button>'
   );
 }
 
-function TabNav({ active, onChange }) {
-  return (
-    <nav className="bg-white border-b border-slate-200 sticky top-[65px] z-30">
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 flex gap-1 overflow-x-auto">
-        {TABS.map(tab => (
-          <button key={tab.id} onClick={() => onChange(tab.id)}
-            className={`flex items-center gap-2 px-3 sm:px-5 py-3.5 text-sm font-semibold whitespace-nowrap border-b-2 transition-all ${active === tab.id ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}>
-            <Icon name={tab.icon} size={18} />
-            <span className="hidden sm:inline">{tab.label}</span>
-            <span className="sm:hidden">{tab.short}</span>
-          </button>
-        ))}
-      </div>
-    </nav>
+async function submitGuru(no) {
+  var nama = document.getElementById('gNama').value.trim();
+  if (!nama) { showToast('Nama wajib diisi', 'error'); return; }
+  var body = {
+    action: no !== null ? 'edit_guru' : 'tambah_guru',
+    no: no,
+    nama: nama,
+    noKp: document.getElementById('gNoKp').value.trim(),
+    jawatan: document.getElementById('gJawatan').value.trim(),
+    kelas: document.getElementById('gKelas').value.trim(),
+    telefon: document.getElementById('gTelefon').value.trim(),
+    emel: document.getElementById('gEmel').value.trim()
+  };
+  try {
+    var res = await apiPost(body);
+    if (res.status === 'ok') { showToast(res.message, 'success'); closeModal(); await refreshData('guru'); }
+    else { showToast(res.message, 'error'); }
+  } catch (e) { showToast('Gagal menyimpan', 'error'); }
+}
+
+async function padamGuru(no) {
+  if (!confirm('Padam guru ini?')) return;
+  try {
+    var res = await apiPost({ action: 'padam_guru', no: no });
+    if (res.status === 'ok') { showToast(res.message, 'success'); await refreshData('guru'); }
+    else { showToast(res.message, 'error'); }
+  } catch (e) { showToast('Gagal memadam', 'error'); }
+}
+
+// ===== PRASARANA MODAL =====
+function openPrasaranaModal(idx) {
+  var p = null;
+  if (idx !== undefined) p = appData.prasarana[idx];
+  var isEdit = !!p;
+  openModal(
+    isEdit ? 'Edit Prasarana' : 'Tambah Prasarana',
+    '<div class="form-group"><label>Jenis <span class="req">*</span></label><select class="form-control" id="pJenis"><option value="Bilik Darjah"' + (p && p['Jenis'] === 'Bilik Darjah' ? ' selected' : '') + '>Bilik Darjah</option><option value="Makmal"' + (p && p['Jenis'] === 'Makmal' ? ' selected' : '') + '>Makmal</option><option value="Pusat Sumber"' + (p && p['Jenis'] === 'Pusat Sumber' ? ' selected' : '') + '>Pusat Sumber</option><option value="Kantin"' + (p && p['Jenis'] === 'Kantin' ? ' selected' : '') + '>Kantin</option><option value="Padang"' + (p && p['Jenis'] === 'Padang' ? ' selected' : '') + '>Padang</option><option value="Lain-lain"' + (p && p['Jenis'] === 'Lain-lain' ? ' selected' : '') + '>Lain-lain</option></select></div>' +
+    '<div class="form-group"><label>Nama / Lokasi <span class="req">*</span></label><input type="text" class="form-control" id="pNama" value="' + (p ? escapeHtml(p['Nama / Lokasi']) : '') + '"></div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>Bilangan</label><input type="number" class="form-control" id="pBilangan" value="' + (p ? escapeHtml(p['Bilangan']) : '1') + '"></div>' +
+    '<div class="form-group"><label>Keadaan</label><select class="form-control" id="pKeadaan"><option value="Baik"' + (p && p['Keadaan'] === 'Baik' ? ' selected' : '') + '>Baik</option><option value="Sederhana"' + (p && p['Keadaan'] === 'Sederhana' ? ' selected' : '') + '>Sederhana</option><option value="Rosak"' + (p && p['Keadaan'] === 'Rosak' ? ' selected' : '') + '>Rosak</option></select></div>' +
+    '</div>' +
+    '<div class="form-group"><label>Catatan</label><textarea class="form-control" id="pCatatan">' + (p ? escapeHtml(p['Catatan']) : '') + '</textarea></div>',
+    '<button class="btn btn-secondary" onclick="closeModal()">Batal</button><button class="btn btn-primary" onclick="submitPrasarana(' + (isEdit ? idx : 'null') + ')">Simpan</button>'
   );
 }
 
-/* ============================================================
-   MODAL TETAPAN API
-   ============================================================ */
-function SettingsModal({ open, onClose, onSave }) {
-  const [url, setUrl] = useState(API_URL);
-  useEffect(() => { if (open) setUrl(localStorage.getItem('jpks_api_url') || ''); }, [open]);
-  return (
-    <Modal open={open} onClose={onClose} title="Tetapan Sambungan API">
-      <div className="space-y-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-          <p className="font-semibold mb-1">Panduan:</p>
-          <p>1. Buka Google Apps Script editor dan jalankan <code className="bg-blue-100 px-1 rounded">deployWebApp</code>.</p>
-          <p>2. Salin URL Web App yang dijana.</p>
-          <p>3. Tampal URL di bawah dan simpan.</p>
-        </div>
-        <Field label="URL Web App Google Apps Script">
-          <Input type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://script.google.com/macros/s/.../exec" />
-        </Field>
-        <div className="flex gap-2 justify-end">
-          <Btn variant="white" onClick={onClose}>Batal</Btn>
-          <Btn variant="blue" onClick={() => { localStorage.setItem('jpks_api_url', url); onSave(url); }}>Simpan</Btn>
-        </div>
-      </div>
-    </Modal>
+async function submitPrasarana(idx) {
+  var nama = document.getElementById('pNama').value.trim();
+  if (!nama) { showToast('Nama/Lokasi wajib diisi', 'error'); return; }
+  var jenis = document.getElementById('pJenis').value;
+  var body = {
+    action: idx !== null ? 'edit_prasarana' : 'tambah_prasarana',
+    jenis: jenis,
+    nama: nama,
+    bilangan: document.getElementById('pBilangan').value,
+    keadaan: document.getElementById('pKeadaan').value,
+    catatan: document.getElementById('pCatatan').value.trim()
+  };
+  if (idx !== null) {
+    var old = appData.prasarana[idx];
+    body.jenisLama = old['Jenis'];
+    body.namaLama = old['Nama / Lokasi'];
+  }
+  try {
+    var res = await apiPost(body);
+    if (res.status === 'ok') { showToast(res.message, 'success'); closeModal(); await refreshData('prasarana'); }
+    else { showToast(res.message, 'error'); }
+  } catch (e) { showToast('Gagal menyimpan', 'error'); }
+}
+
+async function padamPrasarana(idx) {
+  var p = appData.prasarana[idx];
+  if (!confirm('Padam prasarana "' + p['Nama / Lokasi'] + '"?')) return;
+  try {
+    var res = await apiPost({ action: 'padam_prasarana', jenis: p['Jenis'], nama: p['Nama / Lokasi'] });
+    if (res.status === 'ok') { showToast(res.message, 'success'); await refreshData('prasarana'); }
+    else { showToast(res.message, 'error'); }
+  } catch (e) { showToast('Gagal memadam', 'error'); }
+}
+
+// ===== CARTA MODAL =====
+function openCartaModal(idx) {
+  var c = null;
+  if (idx !== undefined) c = appData.carta[idx];
+  var isEdit = !!c;
+  openModal(
+    isEdit ? 'Edit Jawatan' : 'Tambah Jawatan',
+    '<div class="form-group"><label>Jawatan <span class="req">*</span></label><input type="text" class="form-control" id="cJawatan" value="' + (c ? escapeHtml(c['Jawatan']) : '') + '"></div>' +
+    '<div class="form-group"><label>Nama <span class="req">*</span></label><input type="text" class="form-control" id="cNama" value="' + (c ? escapeHtml(c['Nama']) : '') + '"></div>' +
+    '<div class="form-row">' +
+    '<div class="form-group"><label>Gred</label><input type="text" class="form-control" id="cGred" value="' + (c ? escapeHtml(c['Gred']) : '') + '"></div>' +
+    '</div>' +
+    '<div class="form-group"><label>Skop Tanggungjawab</label><textarea class="form-control" id="cSkop">' + (c ? escapeHtml(c['Skop Tanggungjawab']) : '') + '</textarea></div>',
+    '<button class="btn btn-secondary" onclick="closeModal()">Batal</button><button class="btn btn-primary" onclick="submitCarta(' + (isEdit ? idx : 'null') + ')">Simpan</button>'
   );
 }
 
-/* ============================================================
-   DATA SEED / DEFAULT
-   ============================================================ */
-const DEFAULT_TEACHERS = [
-  { id: 't1', nama: 'En. Ahmad bin Isa', gred: 'DG44', opsyen: 'Pendidikan Khas', subjek: 'Matematik' },
-  { id: 't2', nama: 'Pn. Siti Aminah binti Ramli', gred: 'DG44', opsyen: 'Pendidikan Khas', subjek: 'Bahasa Melayu' },
-  { id: 't3', nama: 'Cik Norashikin binti Mohd Yusof', gred: 'DG41', opsyen: 'Pendidikan Khas', subjek: 'Bahasa Inggeris' },
-  { id: 't4', nama: 'En. Mohd Zaki bin Ridzuan', gred: 'DG41', opsyen: 'Pendidikan Khas', subjek: 'Sains' },
-  { id: 't5', nama: 'Pn. Faridah binti Kassim', gred: 'DG44', opsyen: 'Terapi Cara Kerja', subjek: 'Pend. Seni Visual' },
-];
-const DEFAULT_STUDENTS = [
-  { id: 's1', nama: 'Muhammad Amirul bin Roslan', mykid: '150112085341', oku: 'LD120415000084', diagnosis: 'Slow Learner', kelas: '1 Bestari', jenis: 'Inklusif Separa', guru_mentor: 'Pn. Siti Aminah', markah_saringan: 64, status: 'Layak Inklusif Separa (Bukan Akademik)' },
-  { id: 's2', nama: 'Chong Wei Han', mykid: '120520085113', oku: 'DE120520000122', diagnosis: 'Masalah Pendengaran', kelas: '4 Amanah', jenis: 'Inklusif Separa', guru_mentor: 'Cik Norashikin', markah_saringan: 76, status: 'Layak Inklusif Separa (Akademik)' },
-  { id: 's3', nama: 'Farah Shahidah binti Ahmad', mykid: '100714085442', oku: 'LD120710000213', diagnosis: 'Autisme Ringan', kelas: '6 Dedikasi', jenis: 'Inklusif Separa', guru_mentor: 'En. Mohd Zaki', markah_saringan: 84, status: 'Layak Inklusif Separa (Akademik)' },
-];
-const DEFAULT_ORGCHART = [
-  { jawatan: 'Pengerusi', nama: 'Tn. Hj. Abdul Rahman bin Hassan', jawatan_full: 'Guru Besar' },
-  { jawatan: 'Naib Pengerusi', nama: 'Pn. Hajjah Norliza binti Othman', jawatan_full: 'Penolong Kanan Pentadbiran' },
-  { jawatan: 'Penyelaras', nama: 'En. Ahmad bin Isa', jawatan_full: 'Penyelaras PPKI' },
-  { jawatan: 'Guru Pendamping', nama: 'Pn. Siti Aminah binti Ramli', jawatan_full: 'Guru PPKI' },
-  { jawatan: 'PPM', nama: 'Pn. Rosnah binti Abdullah', jawatan_full: 'Pembantu Pendidikan Murid' },
-];
-const DAYS = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
-const TIME_SLOTS = ['07:50-08:20', '08:20-09:00', '09:00-09:40', '09:40-10:20', 'Rehat', '10:50-11:30', '11:30-12:10', '12:10-12:50'];
-const DEFAULT_SCHEDULE = {};
-DAYS.forEach(d => { DEFAULT_SCHEDULE[d] = {}; TIME_SLOTS.forEach(t => { DEFAULT_SCHEDULE[d][t] = t === 'Rehat' ? 'Rehat' : ''; }); });
-const DEFAULT_PPT = [
-  { id: 'p1', nama: 'Muhammad Amirul bin Roslan', kelas: '1 Bestari', bm: 58, bi: 52, matematik: 64, sains: 60 },
-  { id: 'p2', nama: 'Chong Wei Han', kelas: '4 Amanah', bm: 72, bi: 80, matematik: 68, sains: 74 },
-  { id: 'p3', nama: 'Farah Shahidah binti Ahmad', kelas: '6 Dedikasi', bm: 82, bi: 78, matematik: 88, sains: 85 },
-];
-const DEFAULT_PRASARANA = [
-  { id: 'pr1', item: 'Tempat Letak Kerusi Roda', lokasi: 'Hadapan Blok A', status: 'Ada', catatan: '2 petak disediakan' },
-  { id: 'pr2', item: 'Ramp Tangga Lereng', lokasi: 'Pintu Utama', status: 'Ada', catatan: 'Mengikut spesifikasi KPM' },
-  { id: 'pr3', item: 'Tandas Mesra OKU', lokasi: 'Bawah & Tingkat 1', status: 'Ada', catatan: 'Grab bar & alarm kecemasan' },
-  { id: 'pr4', item: 'Laluan Taktil', lokasi: 'Koridor Utama', status: 'Tiada', catatan: 'Perlu penambahbaikan' },
-  { id: 'pr5', item: 'Papan Tanda Braille', lokasi: 'Bilik PPKI', status: 'Tiada', catatan: 'Dalam perancangan' },
-  { id: 'pr6', item: 'Ruang Selamat / Sensory Room', lokasi: 'Bilik PPKI', status: 'Ada', catatan: 'Lengkap dengan alat terapi' },
-];
+async function submitCarta(idx) {
+  var jawatan = document.getElementById('cJawatan').value.trim();
+  var nama = document.getElementById('cNama').value.trim();
+  if (!jawatan || !nama) { showToast('Jawatan dan nama wajib diisi', 'error'); return; }
+  var body = {
+    action: idx !== null ? 'edit_carta' : 'tambah_carta',
+    jawatan: jawatan,
+    nama: nama,
+    gred: document.getElementById('cGred').value.trim(),
+    skop: document.getElementById('cSkop').value.trim()
+  };
+  if (idx !== null) {
+    body.jawatanLama = appData.carta[idx]['Jawatan'];
+  }
+  try {
+    var res = await apiPost(body);
+    if (res.status === 'ok') { showToast(res.message, 'success'); closeModal(); await refreshData('carta'); }
+    else { showToast(res.message, 'error'); }
+  } catch (e) { showToast('Gagal menyimpan', 'error'); }
+}
 
-/* ============================================================
-   TAB 1: TADBIR URUS & PENTADBIRAN
-   ============================================================ */
-function TabTadbirUrus({ onToast }) {
-  const [orgChart, setOrgChart] = useState(DEFAULT_ORGCHART);
-  const [editOrg, setEditOrg] = useState(null);
-  const [orgImage, setOrgImage] = useState(null);
-  const minitRef = useRef(null);
-  const [minit, setMinit] = useState({
-    bil: '1/2026', tarikh: '2026-01-15', masa: '09:30', tempat: 'Bilik Guru Besar',
-    pengerusi: 'Tn. Hj. Abdul Rahman bin Hassan', ahli: 'En. Ahmad, Pn. Siti Aminah, Cik Norashikin, En. Mohd Zaki, Pn. Faridah',
-    agenda: '1. Pengesahan minit mesyuarat lepas\n2. Penempatan murid inklusif 2026\n3. Perlantikan guru pendamping\n4. Perancangan program LDP',
-    maklumBalas: '1. Pengesahan penempatan 3 orang murid PPKI ke kelas arus perdana (separa inklusif)\n2. Pelantikan guru pendamping bagi setiap murid\n3. Kelulusuan peruntukan prasarana OKU',
-    keputusan: 'Bersetuju penempatan inklusif separa bagi 3 murid. Guru pendamping dilantik mengikut opsyen. Peruntukan prasarana dimajukan ke PIBG.',
+async function padamCarta(idx) {
+  var c = appData.carta[idx];
+  if (!confirm('Padam jawatan "' + c['Jawatan'] + '"?')) return;
+  try {
+    var res = await apiPost({ action: 'padam_carta', jawatan: c['Jawatan'] });
+    if (res.status === 'ok') { showToast(res.message, 'success'); await refreshData('carta'); }
+    else { showToast(res.message, 'error'); }
+  } catch (e) { showToast('Gagal memadam', 'error'); }
+}
+
+// ===== FILE UPLOAD =====
+function setupUploadZone() {
+  var zone = document.getElementById('uploadZone');
+  var input = document.getElementById('fileInput');
+
+  input.addEventListener('change', function() {
+    if (this.files.length > 0) {
+      selectedFile = this.files[0];
+      zone.innerHTML = '<div class="upload-icon">&#128196;</div><p><strong>' + escapeHtml(selectedFile.name) + '</strong></p><p class="upload-hint">' + Math.round(selectedFile.size / 1024) + ' KB &middot; Klik untuk tukar fail</p>';
+      document.getElementById('uploadBtn').disabled = false;
+    }
   });
 
-  function saveOrg() {
-    setOrgChart(editOrg);
-    setEditOrg(null);
-    onToast({ type: 'success', msg: 'Carta organisasi berjaya dikemas kini.' });
-  }
-  function handleImageUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => { setOrgImage(ev.target.result); onToast({ type: 'success', msg: 'Gambar carta organisasi dimuat naik.' }); };
-    reader.readAsDataURL(file);
-  }
-
-  return (
-    <div className="space-y-6 fade-in">
-      {/* Sub-Tajuk 1: Carta Organisasi */}
-      <Card className="p-6">
-        <SectionTitle icon="network" title="Carta Organisasi JPKS SK Selama (K)" desc="Struktur jawatankuasa pengurusan pendidikan inklusif" />
-        <div className="flex flex-wrap gap-3 justify-end mb-4">
-          <Btn variant="blue" onClick={() => setEditOrg(orgChart.map(r => ({...r})))}><Icon name="pencil" size={16} /> Edit Maklumat Carta</Btn>
-          <label className="cursor-pointer">
-            <span className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-800 font-bold py-2 px-4 rounded-xl border border-slate-300 border-b-2 border-b-slate-400 active:border-b-0 active:translate-y-0.5 active:shadow-inner transition-all duration-75 shadow-sm">
-              <Icon name="upload" size={16} /> Muat Naik Gambar Carta
-            </span>
-            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-          </label>
-        </div>
-
-        {/* Carta Aliran Visual */}
-        <div className="flex flex-col items-center gap-3 py-4">
-          {orgChart.map((node, i) => (
-            <React.Fragment key={i}>
-              <div className={`w-full max-w-md rounded-2xl border-2 p-4 text-center ${i === 0 ? 'bg-blue-600 border-blue-800 text-white' : i === 1 ? 'bg-blue-100 border-blue-300 text-blue-900' : 'bg-white border-slate-200 text-slate-900'} shadow-sm`}>
-                <p className="text-xs font-semibold uppercase tracking-wide opacity-70">{node.jawatan}</p>
-                <p className="font-bold text-base mt-1">{node.nama}</p>
-                <p className={`text-xs mt-0.5 ${i === 0 ? 'text-blue-100' : 'text-slate-500'}`}>{node.jawatan_full}</p>
-              </div>
-              {i < orgChart.length - 1 && <Icon name="chevron-down" size={24} className="text-slate-300" />}
-            </React.Fragment>
-          ))}
-        </div>
-
-        {orgImage && (
-          <div className="mt-6">
-            <p className="text-sm font-semibold text-slate-700 mb-2">Softcopy Gambar Carta Organisasi:</p>
-            <img src={orgImage} alt="Carta Organisasi" className="max-w-full rounded-xl border border-slate-200 shadow-sm" />
-          </div>
-        )}
-        <FileUploader sectionId="tadbir_carta_organisasi" onToast={onToast} />
-      </Card>
-
-      {/* Sub-Tajuk 2: Penjana Surat Pelantikan */}
-      <SuratPelantikan onToast={onToast} />
-
-      {/* Sub-Tajuk 3: Minit Mesyuarat */}
-      <Card className="p-6">
-        <SectionTitle icon="file-text" title="Minit Mesyuarat JPKS Bil 1/2026" desc="Draf minit mesyuarat format KPM" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <Field label="Bilangan"><Input value={minit.bil} onChange={e => setMinit({...minit, bil: e.target.value})} /></Field>
-          <Field label="Tarikh"><Input type="date" value={minit.tarikh} onChange={e => setMinit({...minit, tarikh: e.target.value})} /></Field>
-          <Field label="Masa"><Input type="time" value={minit.masa} onChange={e => setMinit({...minit, masa: e.target.value})} /></Field>
-          <Field label="Tempat"><Input value={minit.tempat} onChange={e => setMinit({...minit, tempat: e.target.value})} /></Field>
-          <Field label="Pengerusi"><Input value={minit.pengerusi} onChange={e => setMinit({...minit, pengerusi: e.target.value})} /></Field>
-          <Field label="Kehadiran Ahli"><Input value={minit.ahli} onChange={e => setMinit({...minit, ahli: e.target.value})} /></Field>
-        </div>
-        <Field label="Agenda"><Textarea rows={3} value={minit.agenda} onChange={e => setMinit({...minit, agenda: e.target.value})} /></Field>
-        <div className="mt-3"><Field label="Maklum Balas & Perbincangan"><Textarea rows={4} value={minit.maklumBalas} onChange={e => setMinit({...minit, maklumBalas: e.target.value})} /></Field></div>
-        <div className="mt-3"><Field label="Keputusan Mesyuarat"><Textarea rows={4} value={minit.keputusan} onChange={e => setMinit({...minit, keputusan: e.target.value})} /></Field></div>
-        <div className="flex justify-end mt-4">
-          <Btn variant="green" onClick={() => generatePDF(minitRef.current, `Minit_Mesyuarat_JPKS_Bil_${minit.bil.replace(/\//g,'_')}.pdf`, onToast, 'PDF minit mesyuarat dijana.')}><Icon name="download" size={16} /> Simpan PDF</Btn>
-        </div>
-        {/* Preview Minit untuk PDF */}
-        <div ref={minitRef} className="bg-white border border-slate-200 rounded-xl p-8 mt-4" style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#000' }}>
-          <PrintLetterhead sekolah="SK SELAMA (K)" />
-          <h3 style={{ textAlign: 'center', fontWeight: 'bold', textDecoration: 'underline', fontSize: '14px', margin: '0 0 8px' }}>MINIT MESYUARAT JAWATANKUASA PENDIDIKAN INKLUSIF (JPKS)</h3>
-          <p style={{ textAlign: 'center', fontSize: '12px', marginBottom: '16px' }}>Bil. {minit.bil}</p>
-          <table style={{ width: '100%', fontSize: '12px', marginBottom: '16px' }}><tbody>
-            <tr><td style={{ fontWeight: 'bold', width: '120px', verticalAlign: 'top' }}>Tarikh</td><td style={{ verticalAlign: 'top' }}>: {formatDate(minit.tarikh)}</td></tr>
-            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Masa</td><td style={{ verticalAlign: 'top' }}>: {minit.masa}</td></tr>
-            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Tempat</td><td style={{ verticalAlign: 'top' }}>: {minit.tempat}</td></tr>
-            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Pengerusi</td><td style={{ verticalAlign: 'top' }}>: {minit.pengerusi}</td></tr>
-            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Kehadiran</td><td style={{ verticalAlign: 'top' }}>: {minit.ahli}</td></tr>
-          </tbody></table>
-          <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}>Agenda:</p>
-          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', margin: '0 0 16px', fontFamily: 'Arial, Helvetica, sans-serif' }}>{minit.agenda}</pre>
-          <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}>Maklum Balas &amp; Perbincangan:</p>
-          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', margin: '0 0 16px', fontFamily: 'Arial, Helvetica, sans-serif' }}>{minit.maklumBalas}</pre>
-          <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}>Keputusan Mesyuarat:</p>
-          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', margin: '0 0 16px', fontFamily: 'Arial, Helvetica, sans-serif' }}>{minit.keputusan}</pre>
-          <PrintSignature name={minit.pengerusi} title="Guru Besar / Pengerusi JPKS" />
-        </div>
-        <FileUploader sectionId="tadbir_minit_mesyuarat" onToast={onToast} />
-      </Card>
-
-      {/* Sub-Tajuk 4: Dasar & Rujukan */}
-      <Card className="p-6">
-        <SectionTitle icon="book-open" title="Dasar & Rujukan Inklusif KPM" desc="Ringkasan Pekeliling SPI Bil. 1/2026" />
-        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <Badge color="blue">SPI Bil. 1/2026</Badge>
-            <h4 className="font-bold text-slate-900">Pelaksanaan Program Pendidikan Inklusif</h4>
-          </div>
-          <ul className="text-sm text-slate-700 space-y-2 list-disc pl-5">
-            <li>Setiap murid berkeperluan khas (MBK) berhak mendapat pendidikan dalam persekitaran arus perdana yang inklusif.</li>
-            <li>Guru pendamping dilantik untuk menyokong pembelajaran murid inklusif separa di kelas arus perdana.</li>
-            <li>Penempatan murid ditentukan melalui saringan oleh pasukan pelbagai disiplin (PMD) dan diluluskan oleh JPKS.</li>
-            <li>Prasarana mesra OKU perlu disediakan mengikut garis panduan KPM dan JKR.</li>
-            <li>Laporan pelaksanaan PPI disediakan secara tahunan untuk pemantauan JPN dan KPM.</li>
-          </ul>
-          <div className="pt-2 border-t border-blue-100">
-            <p className="text-xs text-slate-500">Rujukan rasmi: Surat Pekeliling Indera Negeri Bil. 1/2026, Kementerian Pendidikan Malaysia.</p>
-          </div>
-        </div>
-        <FileUploader sectionId="tadbir_dasar_rujukan" onToast={onToast} />
-      </Card>
-
-      {/* Modal Edit Carta Organisasi */}
-      <Modal open={!!editOrg} onClose={() => setEditOrg(null)} title="Edit Maklumat Carta Organisasi" wide>
-        {editOrg && (
-          <div className="space-y-4">
-            {editOrg.map((row, i) => (
-              <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-xl">
-                <Field label="Jawatan"><Input value={row.jawatan} onChange={e => { const c=[...editOrg]; c[i]={...c[i], jawatan:e.target.value}; setEditOrg(c); }} /></Field>
-                <Field label="Nama Ahli"><Input value={row.nama} onChange={e => { const c=[...editOrg]; c[i]={...c[i], nama:e.target.value}; setEditOrg(c); }} /></Field>
-                <Field label="Jawatan Penuh"><Input value={row.jawatan_full} onChange={e => { const c=[...editOrg]; c[i]={...c[i], jawatan_full:e.target.value}; setEditOrg(c); }} /></Field>
-              </div>
-            ))}
-            <div className="flex gap-2 justify-end">
-              <Btn variant="white" onClick={() => setEditOrg(null)}>Batal</Btn>
-              <Btn variant="blue" onClick={saveOrg}><Icon name="save" size={16} /> Simpan</Btn>
-            </div>
-          </div>
-        )}
-      </Modal>
-    </div>
-  );
+  zone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
+  zone.addEventListener('dragleave', function(e) { this.classList.remove('dragover'); });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+      input.files = e.dataTransfer.files;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
 }
 
-/* --- Surat Pelantikan --- */
-function SuratPelantikan({ onToast }) {
-  const [form, setForm] = useState({ nama: '', jawatan: '', tarikh: '', sekolah: 'SK Selama (K)', guruBesar: 'Tn. Hj. Abdul Rahman bin Hassan' });
-  const suratRef = useRef(null);
-  function handleSuratPDF() {
-    if (!form.nama || !form.jawatan) { onToast({ type: 'error', msg: 'Sila isi nama dan jawatan dahulu.' }); return; }
-    generatePDF(suratRef.current, `Surat_Pelantikan_${form.nama.replace(/\s/g,'_')}.pdf`, onToast, 'PDF surat pelantikan dijana.');
-  }
-  return (
-    <Card className="p-6">
-      <SectionTitle icon="file-signature" title="Penjana Surat Pelantikan Jawatankuasa" desc="Jana surat rasmi KPM berkepala surat sekolah" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <Field label="Nama Guru"><Input value={form.nama} onChange={e => setForm({...form, nama: e.target.value})} placeholder="Cth: En. Ahmad bin Isa" /></Field>
-        <Field label="Jawatan"><Input value={form.jawatan} onChange={e => setForm({...form, jawatan: e.target.value})} placeholder="Cth: Guru Pendamping PPKI" /></Field>
-        <Field label="Tarikh Pelantikan"><Input type="date" value={form.tarikh} onChange={e => setForm({...form, tarikh: e.target.value})} /></Field>
-        <Field label="Guru Besar"><Input value={form.guruBesar} onChange={e => setForm({...form, guruBesar: e.target.value})} /></Field>
-      </div>
-      <div className="flex justify-end mb-4">
-        <Btn variant="green" onClick={handleSuratPDF}><Icon name="download" size={16} /> Simpan PDF</Btn>
-      </div>
-      {/* Preview Surat */}
-      <div ref={suratRef} className="bg-white border border-slate-200 rounded-xl p-8 text-slate-900" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
-        <div style={{ textAlign: 'center', borderBottom: '3px solid #000', paddingBottom: '8px', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '28px' }}>🎓</span>
-            <div>
-              <h2 style={{ fontSize: '16px', fontWeight: 'bold', textTransform: 'uppercase', margin: 0 }}>{form.sekolah}</h2>
-              <p style={{ fontSize: '11px', margin: '2px 0' }}>Kementerian Pendidikan Malaysia</p>
-              <p style={{ fontSize: '11px', margin: '2px 0' }}>Jabatan Pendidikan Negeri Perak Darul Ridzuan</p>
-              <p style={{ fontSize: '11px', margin: '2px 0' }}>Pejabat Pendidikan Daerah Selama</p>
-            </div>
-          </div>
-        </div>
-        <div className="text-right mb-6 text-sm">
-          <p>Rujukan: JPKS/SKSA/2026/01</p>
-          <p>Tarikh: {form.tarikh ? new Date(form.tarikh).toLocaleDateString('ms-MY', { day: '2-digit', month: 'long', year: 'numeric' }) : '____'}</p>
-        </div>
-        <div className="text-center mb-6">
-          <h3 className="font-bold text-base underline">SURAT PELANTIKAN JAWATANKUASA</h3>
-          <p className="text-sm">PROGRAM PENDIDIKAN INKLUSIF (PPI) 2026</p>
-        </div>
-        <div className="text-sm space-y-3 leading-relaxed">
-          <p>Dengan hormatnya, dengan ini {form.guruBesar}, Guru Besar {form.sekolah}, dengan kuasa yang diberikan oleh Kementerian Pendidikan Malaysia, melantik:</p>
-          <div className="text-center py-3">
-            <p className="font-bold text-base">{form.nama || '________________________'}</p>
-            <p className="text-sm">sebagai</p>
-            <p className="font-bold text-base">{form.jawatan || '________________________'}</p>
-          </div>
-          <p>Jawatankuasa ini berkuat kuasa mulai tarikh pelantikan sehingga 31 Disember 2026. Ahli jawatankuasa dikehendaki melaksanakan tugas dan tanggungjawab seperti yang termaktub dalam Pekeliling SPI Bil. 1/2026.</p>
-          <p>Kerjasama dan komitmen anda dalam menjayakan Program Pendidikan Inklusif amat dihargai dan dijangka.</p>
-        </div>
-        <div style={{ textAlign: 'right', marginTop: '40px' }}>
-          <p style={{ fontSize: '12px', marginBottom: '4px' }}>Saya yang menurut perintah,</p>
-          <div style={{ display: 'inline-block', textAlign: 'center' }}>
-            <div style={{ width: '160px', height: '60px', borderBottom: '1px solid #000', marginBottom: '4px' }}></div>
-            <p style={{ fontWeight: 'bold', fontSize: '12px', margin: 0 }}>{form.guruBesar}</p>
-            <p style={{ fontSize: '11px', margin: 0 }}>Guru Besar {form.sekolah}</p>
-          </div>
-        </div>
-      </div>
-      <FileUploader sectionId="tadbir_surat_pelantikan" onToast={onToast} />
-    </Card>
-  );
-}
+async function handleFileUpload() {
+  if (!selectedFile) { showToast('Pilih fail dahulu', 'error'); return; }
+  var tajuk = document.getElementById('uploadTajuk').value.trim();
+  if (!tajuk) { showToast('Tajuk/Kategori wajib diisi', 'error'); return; }
 
-/* ============================================================
-   TAB 2: SUMBER MANUSIA & PENJADUALAN
-   ============================================================ */
-function TabSumberManusia({ onToast }) {
-  const [teachers, setTeachers] = useState(DEFAULT_TEACHERS);
-  const [editing, setEditing] = useState(null);
-  const [schedule, setSchedule] = useState(DEFAULT_SCHEDULE);
-  const [editSlot, setEditSlot] = useState(null);
-  const scheduleRef = useRef(null);
-  const ldpRef = useRef(null);
-  const [ldp, setLdp] = useState({ nama: '', tarikh: '', tajuk: '', pencerap: '', objektif: '', catatan: '', tindakan: '' });
-
-  function saveTeacher(t) {
-    if (t.id) {
-      setTeachers(teachers.map(x => x.id === t.id ? t : x));
-      onToast({ type: 'success', msg: 'Profil guru dikemas kini.' });
-    } else {
-      setTeachers([...teachers, { ...t, id: 't' + Date.now() }]);
-      onToast({ type: 'success', msg: 'Profil guru baharu ditambah.' });
-    }
-    setEditing(null);
-  }
-  function deleteTeacher(id) {
-    setTeachers(teachers.filter(t => t.id !== id));
-    onToast({ type: 'success', msg: 'Profil guru dipadam.' });
-  }
-  function saveSlot(day, time, value) {
-    setSchedule(prev => ({ ...prev, [day]: { ...prev[day], [time]: value } }));
-    setEditSlot(null);
-    onToast({ type: 'success', msg: `Slot ${day} ${time} dikemas kini.` });
+  if (selectedFile.size > 25 * 1024 * 1024) {
+    showToast('Fail terlalu besar (max 25 MB)', 'error');
+    return;
   }
 
-  return (
-    <div className="space-y-6 fade-in">
-      {/* Sub-Tajuk 1: Profil Guru PPKI */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <SectionTitle icon="users" title="Profil Guru PPKI" desc="Senarai guru Program Pendidikan Khas Integrasi" />
-          <Btn variant="blue" onClick={() => setEditing({ id: '', nama: '', gred: '', opsyen: '', subjek: '' })}><Icon name="plus" size={16} /> Tambah Guru</Btn>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 text-left text-slate-500">
-                <th className="py-3 px-4 font-semibold">Nama</th>
-                <th className="py-3 px-4 font-semibold">Gred</th>
-                <th className="py-3 px-4 font-semibold">Opsyen</th>
-                <th className="py-3 px-4 font-semibold">Subjek</th>
-                <th className="py-3 px-4 font-semibold text-right">Tindakan</th>
-              </tr>
-            </thead>
-            <tbody>
-              {teachers.map(t => (
-                <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3 px-4 font-semibold text-slate-900">{t.nama}</td>
-                  <td className="py-3 px-4"><Badge color="blue">{t.gred}</Badge></td>
-                  <td className="py-3 px-4 text-slate-600">{t.opsyen}</td>
-                  <td className="py-3 px-4 text-slate-600">{t.subjek}</td>
-                  <td className="py-3 px-4">
-                    <div className="flex gap-2 justify-end">
-                      <button onClick={() => setEditing({...t})} className="p-2 rounded-lg hover:bg-blue-50 text-blue-600"><Icon name="pencil" size={16} /></button>
-                      <button onClick={() => deleteTeacher(t.id)} className="p-2 rounded-lg hover:bg-rose-50 text-rose-600"><Icon name="trash-2" size={16} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <FileUploader sectionId="sumber_profil_guru" onToast={onToast} />
-      </Card>
+  document.getElementById('uploadBtn').disabled = true;
+  document.getElementById('uploadProgress').style.display = 'block';
+  document.getElementById('progressFill').style.width = '30%';
+  document.getElementById('uploadStatus').textContent = 'Membaca fail...';
 
-      {/* Sub-Tajuk 2: Jadual Waktu Bimbingan Anjal */}
-      <Card className="p-6">
-        <SectionTitle icon="calendar" title="Jadual Waktu Bimbingan Anjal" desc="Klik slot untuk tukar subjek/kelas. Matriks Isnin-Jumaat." />
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr>
-                <th className="border border-slate-200 bg-slate-50 py-2 px-3 text-slate-600 font-semibold text-left">Masa</th>
-                {DAYS.map(d => <th key={d} className="border border-slate-200 bg-slate-50 py-2 px-3 text-slate-600 font-semibold text-center min-w-[120px]">{d}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {TIME_SLOTS.map(time => (
-                <tr key={time}>
-                  <td className="border border-slate-200 bg-slate-50 py-2 px-3 text-slate-500 font-medium text-xs whitespace-nowrap">{time}</td>
-                  {DAYS.map(day => {
-                    const val = schedule[day]?.[time] || '';
-                    const isRehat = time === 'Rehat';
-                    return (
-                      <td key={day} className={`border border-slate-200 py-2 px-2 text-center cursor-pointer transition-all ${isRehat ? 'bg-amber-50 cursor-default' : 'hover:bg-blue-50'}`}
-                        onClick={() => !isRehat && setEditSlot({ day, time, value: val })}>
-                        {isRehat ? <span className="text-amber-600 text-xs font-semibold">REHAT</span> :
-                          val ? <span className="text-blue-700 font-medium text-xs">{val}</span> : <span className="text-slate-300 text-xs">+ Slot</span>}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Btn variant="green" onClick={() => generatePDF(scheduleRef.current, 'Jadual_Waktu_Bimbingan_Anjal_2026.pdf', onToast, 'PDF jadual waktu dijana.')}><Icon name="download" size={16} /> Simpan PDF</Btn>
-        </div>
-        {/* Preview Jadual untuk PDF */}
-        <div ref={scheduleRef} className="bg-white border border-slate-200 rounded-xl p-8 mt-4" style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#000' }}>
-          <PrintLetterhead sekolah="SK SELAMA (K)" />
-          <h3 style={{ textAlign: 'center', fontWeight: 'bold', textDecoration: 'underline', fontSize: '14px', margin: '0 0 16px' }}>JADUAL WAKTU BIMBINGAN ANJAL PPKI 2026</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
-            <thead><tr>
-              <th style={{ border: '1px solid #000', padding: '4px', background: '#e0e0e0', fontWeight: 'bold' }}>MASA</th>
-              {DAYS.map(d => <th key={d} style={{ border: '1px solid #000', padding: '4px', background: '#e0e0e0', fontWeight: 'bold' }}>{d}</th>)}
-            </tr></thead>
-            <tbody>
-              {TIME_SLOTS.map(time => (
-                <tr key={time}>
-                  <td style={{ border: '1px solid #000', padding: '4px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{time}</td>
-                  {DAYS.map(day => <td key={day} style={{ border: '1px solid #000', padding: '4px', textAlign: 'center' }}>{schedule[day]?.[time] || '-'}</td>)}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <FileUploader sectionId="sumber_jadual_waktu" onToast={onToast} />
-      </Card>
+  try {
+    var reader = new FileReader();
+    reader.onload = async function(e) {
+      var base64 = e.target.result.split(',')[1];
+      document.getElementById('progressFill').style.width = '60%';
+      document.getElementById('uploadStatus').textContent = 'Memuat naik ke server...';
 
-      {/* Sub-Tajuk 3: Laporan LDP & Pencerapan PdP */}
-      <Card className="p-6">
-        <SectionTitle icon="clipboard-list" title="Laporan LDP & Pencerapan PdP" desc="Draf laporan aktiviti latihan dalam perkhidmatan KPM" />
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Nama Guru"><Input value={ldp.nama} onChange={e => setLdp({...ldp, nama: e.target.value})} placeholder="Cth: En. Ahmad bin Isa" /></Field>
-            <Field label="Tarikh Pencerapan"><Input type="date" value={ldp.tarikh} onChange={e => setLdp({...ldp, tarikh: e.target.value})} /></Field>
-            <Field label="Tajuk LDP"><Input value={ldp.tajuk} onChange={e => setLdp({...ldp, tajuk: e.target.value})} placeholder="Cth: Pedagogi Inklusif Berbeza" /></Field>
-            <Field label="Pencerap"><Input value={ldp.pencerap} onChange={e => setLdp({...ldp, pencerap: e.target.value})} placeholder="Cth: Penyelaras PPKI" /></Field>
-          </div>
-          <Field label="Objektif Pencerapan"><Textarea rows={2} value={ldp.objektif} onChange={e => setLdp({...ldp, objektif: e.target.value})} placeholder="Menilai pelaksanaan PdP mesra inklusif..." /></Field>
-          <Field label="Catatan Pencerapan"><Textarea rows={4} value={ldp.catatan} onChange={e => setLdp({...ldp, catatan: e.target.value})} placeholder="Kelebihan, kekurangan dan cadangan penambahbaikan..." /></Field>
-          <Field label="Cadangan Tindakan Susulan"><Textarea rows={3} value={ldp.tindakan} onChange={e => setLdp({...ldp, tindakan: e.target.value})} placeholder="Program pemerkasaan, bimbingan, kursus..." /></Field>
-          <div className="flex justify-end gap-2">
-            <Btn variant="blue"><Icon name="save" size={16} /> Simpan Laporan</Btn>
-            <Btn variant="green" onClick={() => generatePDF(ldpRef.current, `Laporan_LDP_${(ldp.nama || 'JPKS').replace(/\s/g,'_')}.pdf`, onToast, 'PDF laporan LDP dijana.')}><Icon name="download" size={16} /> Simpan PDF</Btn>
-          </div>
-        </div>
-        {/* Preview Laporan untuk PDF */}
-        <div ref={ldpRef} className="bg-white border border-slate-200 rounded-xl p-8 mt-4" style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#000' }}>
-          <PrintLetterhead sekolah="SK SELAMA (K)" />
-          <h3 style={{ textAlign: 'center', fontWeight: 'bold', textDecoration: 'underline', fontSize: '14px', margin: '0 0 16px' }}>LAPORAN LATIHAN DALAM PERKHIDMATAN &amp; PENCERAPAN PdP</h3>
-          <table style={{ width: '100%', fontSize: '12px', marginBottom: '16px' }}><tbody>
-            <tr><td style={{ fontWeight: 'bold', width: '120px', verticalAlign: 'top' }}>Nama Guru</td><td style={{ verticalAlign: 'top' }}>: {ldp.nama || '________________'}</td></tr>
-            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Tarikh</td><td style={{ verticalAlign: 'top' }}>: {formatDate(ldp.tarikh)}</td></tr>
-            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Tajuk LDP</td><td style={{ verticalAlign: 'top' }}>: {ldp.tajuk || '________________'}</td></tr>
-            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Pencerap</td><td style={{ verticalAlign: 'top' }}>: {ldp.pencerap || '________________'}</td></tr>
-          </tbody></table>
-          <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}>Objektif Pencerapan:</p>
-          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', margin: '0 0 12px', fontFamily: 'Arial, Helvetica, sans-serif' }}>{ldp.objektif || '________________'}</pre>
-          <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}>Catatan Pencerapan:</p>
-          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', margin: '0 0 12px', fontFamily: 'Arial, Helvetica, sans-serif' }}>{ldp.catatan || '________________'}</pre>
-          <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}>Cadangan Tindakan Susulan:</p>
-          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', margin: '0 0 16px', fontFamily: 'Arial, Helvetica, sans-serif' }}>{ldp.tindakan || '________________'}</pre>
-          <PrintSignature name={ldp.pencerap} title="Pencerap / Penyelaras PPKI" />
-        </div>
-        <FileUploader sectionId="sumber_laporan_ldp" onToast={onToast} />
-      </Card>
+      try {
+        var res = await apiPost({
+          action: 'upload_file',
+          base64Data: base64,
+          fileName: selectedFile.name,
+          tajukKecilId: tajuk
+        });
 
-      {/* Modal Edit Guru */}
-      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? 'Edit Profil Guru' : 'Tambah Guru PPKI'}>
-        {editing && (
-          <div className="space-y-4">
-            <Field label="Nama Guru"><Input value={editing.nama} onChange={e => setEditing({...editing, nama: e.target.value})} /></Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Gred"><Select value={editing.gred} onChange={e => setEditing({...editing, gred: e.target.value})}>
-                <option value="">Pilih...</option><option>DG41</option><option>DG44</option><option>DG48</option><option>N17</option>
-              </Select></Field>
-              <Field label="Opsyen"><Input value={editing.opsyen} onChange={e => setEditing({...editing, opsyen: e.target.value})} /></Field>
-            </div>
-            <Field label="Subjek"><Input value={editing.subjek} onChange={e => setEditing({...editing, subjek: e.target.value})} /></Field>
-            <div className="flex gap-2 justify-end">
-              <Btn variant="white" onClick={() => setEditing(null)}>Batal</Btn>
-              <Btn variant="blue" onClick={() => saveTeacher(editing)}><Icon name="save" size={16} /> Simpan</Btn>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* Modal Edit Slot */}
-      <Modal open={!!editSlot} onClose={() => setEditSlot(null)} title={`Edit Slot: ${editSlot?.day} ${editSlot?.time}`}>
-        {editSlot && (
-          <div className="space-y-4">
-            <Field label="Subjek / Kelas">
-              <Input value={editSlot.value} onChange={e => setEditSlot({...editSlot, value: e.target.value})} placeholder="Cth: Matematik / 1 Bestari" />
-            </Field>
-            <div className="flex gap-2 justify-end">
-              <Btn variant="white" onClick={() => setEditSlot(null)}>Batal</Btn>
-              <Btn variant="blue" onClick={() => saveSlot(editSlot.day, editSlot.time, editSlot.value)}><Icon name="save" size={16} /> Simpan</Btn>
-            </div>
-          </div>
-        )}
-      </Modal>
-    </div>
-  );
-}
-
-/* ============================================================
-   TAB 3: PROFIL MBK, SARINGAN & MINDA AI
-   ============================================================ */
-/* ============================================================
-   INSTRUMEN SARINGAN KESEDIAAN INKLUSIF SEPARA (SSKI-IS)
-   25 Item Rasmi Buku Panduan PPKI KPM — 5 Domain
-   ============================================================ */
-const SSKI_IS_ITEMS = [
-  { domain: 'Kognitif & Pembelajaran', icon: 'brain', items: [
-    { code: 'D1.1', text: 'Murid boleh memahami dan mematuhi arahan mudah guru (arahan 1 hingga 2 langkah).' },
-    { code: 'D1.2', text: 'Murid mempunyai keupayaan membaca suku kata terbuka dan tertutup / membaca perkataan mudah.' },
-    { code: 'D1.3', text: 'Murid boleh menyalin nota dari papan putih ke dalam buku tulis secara teratur.' },
-    { code: 'D1.4', text: 'Murid mampu menumpukan perhatian kepada tugasan/aktiviti PdP selama sekurang-kurangnya 15-20 minit.' },
-    { code: 'D1.5', text: 'Murid menunjukkan minat dan kesediaan asas untuk belajar dalam kelompok bilik darjah biasa.' },
-  ]},
-  { domain: 'Bahasa & Komunikasi', icon: 'message-square', items: [
-    { code: 'D2.1', text: 'Murid boleh bertutur secara lisan menggunakan ayat mudah untuk menyampaikan kehendak diri.' },
-    { code: 'D2.2', text: 'Murid berupaya menjawab soalan mudah yang ditanyakan oleh guru atau rakan sebaya.' },
-    { code: 'D2.3', text: 'Murid boleh menggunakan isyarat badan, kad visual atau kaedah alternatif (BIM) jika bermasalah pendengaran/pertuturan.' },
-    { code: 'D2.4', text: 'Murid boleh mendengar dengan baik dan bertindak balas secara positif terhadap panggilan nama diri.' },
-    { code: 'D2.5', text: 'Murid boleh menyatakan persetujuan (\"Ya\") atau penolakan (\"Tidak\") secara lisan atau bahasa isyarat yang jelas.' },
-  ]},
-  { domain: 'Sosioemosi & Interaksi', icon: 'heart', items: [
-    { code: 'D3.1', text: 'Murid menunjukkan emosi yang stabil dan tidak mudah menangis atau marah tanpa sebab yang munasabah.' },
-    { code: 'D3.2', text: 'Murid boleh bertoleransi, berkongsi alatan, dan bekerjasama dalam aktiviti berkumpulan.' },
-    { code: 'D3.3', text: 'Murid menunjukkan rasa hormat terhadap guru dan rakan dengan memberi salam atau ucapan terima kasih.' },
-    { code: 'D3.4', text: 'Murid mempunyai keyakinan diri yang munasabah semasa berada di persekitaran yang asing.' },
-    { code: 'D3.5', text: 'Murid bertindak balas secara mesra dan berupaya membentuk interaksi sosial asas dengan rakan arus perdana.' },
-  ]},
-  { domain: 'Pengurusan Tingkah Laku', icon: 'shield-check', items: [
-    { code: 'D4.1', text: 'Murid tidak menunjukkan tingkah laku agresif yang membahayakan diri sendiri atau rakan lain.' },
-    { code: 'D4.2', text: 'Murid boleh mengawal emosi/tantrum sekiranya berlaku perubahan rutin atau kegagalan tugasan.' },
-    { code: 'D4.3', text: 'Murid mematuhi peraturan bilik darjah biasa (duduk di kerusi, beratur, menjaga ketenteraman).' },
-    { code: 'D4.4', text: 'Murid boleh mengurus kebersihan diri dan ke tandas secara berdikari tanpa perlu dipimpin sepanjang masa.' },
-    { code: 'D4.5', text: 'Murid bertindak balas secara patuh terhadap isyarat arahan menghentikan tingkah laku yang kurang sesuai.' },
-  ]},
-  { domain: 'Psikomotor & Mobiliti', icon: 'activity', items: [
-    { code: 'D5.1', text: 'Murid mempunyai koordinasi motor halus yang baik untuk memegang pensel, menulis, dan menggunting.' },
-    { code: 'D5.2', text: 'Murid mempunyai kekuatan fizikal untuk membawa beg sekolah dan alatan pembelajaran sendiri.' },
-    { code: 'D5.3', text: 'Murid mampu bergerak (berjalan/mobiliti) dari kelas PPKI ke kelas arus perdana secara berdikari/selamat.' },
-    { code: 'D5.4', text: 'Murid berupaya menyertai aktiviti psikomotor kasar (berlari, melompat, menangkap bola) di kelas Pendidikan Jasmani.' },
-    { code: 'D5.5', text: 'Murid menunjukkan koordinasi fizikal dan kestabilan tubuh yang baik semasa menjalankan aktiviti fizikal.' },
-  ]},
-];
-
-function SaringanSSKI({ onToast, students }) {
-  const [selectedStudent, setSelectedStudent] = useState('');
-  const [responses, setResponses] = useState({});
-  const [showBorang, setShowBorang] = useState(null);
-  const borangRef = useRef(null);
-  const [borangData, setBorangData] = useState({ namaIbuBapa: '', kadPengenalan: '', alamat: '', tarikh: '', tandaTangan: '' });
-  const [rpiItems, setRpiItems] = useState([]);
-
-  const allItems = useMemo(() => SSKI_IS_ITEMS.flatMap(d => d.items.map(i => ({ ...i, domain: d.domain }))), []);
-  const yaCount = useMemo(() => allItems.filter(i => responses[i.code] === 'YA').length, [responses, allItems]);
-  const answeredCount = useMemo(() => allItems.filter(i => responses[i.code]).length, [responses, allItems]);
-  const percentage = useMemo(() => Math.round((yaCount / 25) * 100), [yaCount]);
-  const isComplete = answeredCount === 25;
-
-  const qualification = useMemo(() => {
-    if (!isComplete) return null;
-    if (percentage >= 70) return { label: 'Layak Inklusif Akademik', color: 'green', desc: 'Murid layak mengikuti program inklusif separa untuk subjek akademik di kelas arus perdana.', borang: 'akuan' };
-    if (percentage >= 50) return { label: 'Layak Inklusif Bukan Akademik', color: 'amber', desc: 'Murid layak inklusif separa untuk subjek bukan akademik (Pendidikan Seni, Jasmani, Muzik) dengan sokongan rakan pendamping (Buddy System) atau PPM.', borang: null };
-    return { label: 'Belum Bersedia (Kekal di PPKI)', color: 'rose', desc: 'Murid belum bersedia untuk inklusif. Kekal di program PPKI untuk intervensen lanjutan.', borang: 'rpi' };
-  }, [percentage, isComplete]);
-
-  function setResponse(code, val) {
-    setResponses(prev => ({ ...prev, [code]: val }));
-    setShowBorang(null);
-  }
-  function resetSaringan() {
-    setResponses({});
-    setShowBorang(null);
-    setBorangData({ namaIbuBapa: '', kadPengenalan: '', alamat: '', tarikh: '', tandaTangan: '' });
-    setRpiItems([]);
-  }
-  function generateBorang() {
-    if (qualification?.borang === 'rpi') {
-      const tidaks = allItems.filter(i => responses[i.code] === 'TIDAK');
-      setRpiItems(tidaks);
-    }
-    setShowBorang(qualification.borang);
-  }
-  function saveBorangPDF() {
-    const studentName = students.find(s => s.id === selectedStudent)?.nama || 'Murid';
-    if (showBorang === 'akuan') {
-      generatePDF(borangRef.current, `Borang_Akuan_Persetujuan_Ibu_Bapa_${studentName.replace(/\s/g,'_')}.pdf`, onToast, 'PDF Borang Akuan Persetujuan Ibu Bapa dijana.');
-    } else {
-      generatePDF(borangRef.current, `Borang_RPI_${studentName.replace(/\s/g,'_')}.pdf`, onToast, 'PDF Borang Cadangan Pelan Intervensi (RPI) dijana.');
-    }
-  }
-  const student = students.find(s => s.id === selectedStudent);
-
-  return (
-    <Card className="p-6">
-      <SectionTitle icon="clipboard-check" title="Instrumen Saringan Kesediaan Inklusif Separa (SSKI-IS)" desc="25 item rasmi Buku Panduan PPKI KPM — 5 Domain Utama" />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Field label="Pilih Murid untuk Saringan">
-          <Select value={selectedStudent} onChange={e => { setSelectedStudent(e.target.value); resetSaringan(); }}>
-            <option value="">-- Pilih Murid --</option>
-            {students.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
-          </Select>
-        </Field>
-        <div className="md:col-span-2 flex items-end gap-3">
-          {student && <div className="text-sm text-slate-600 bg-slate-50 rounded-xl px-4 py-2 flex-1"><span className="font-semibold">Murid:</span> {student.nama} | <span className="font-semibold">Kelas:</span> {student.kelas} | <span className="font-semibold">Diagnosis:</span> {student.diagnosis}</div>}
-        </div>
-      </div>
-
-      {selectedStudent && (
-        <>
-          {/* Progress Bar */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-sm font-semibold text-slate-600">Kemajuan Saringan: {answeredCount}/25 item</span>
-              {isComplete && <span className="text-sm font-bold text-blue-700">Selesai!</span>}
-            </div>
-            <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-              <div className="h-full bg-blue-600 rounded-full transition-all duration-300" style={{ width: `${(answeredCount / 25) * 100}%` }} />
-            </div>
-          </div>
-
-          {/* 5 Domain Checklist */}
-          <div className="space-y-5">
-            {SSKI_IS_ITEMS.map((dom, di) => (
-              <div key={di} className="border border-slate-200 rounded-2xl overflow-hidden">
-                <div className="bg-slate-50 px-4 py-3 flex items-center gap-2 border-b border-slate-200">
-                  <Icon name={dom.icon} size={18} className="text-blue-600" />
-                  <h4 className="font-bold text-slate-800 text-sm">{dom.domain}</h4>
-                  <span className="ml-auto text-xs text-slate-400">5 item</span>
-                </div>
-                <div className="divide-y divide-slate-100">
-                  {dom.items.map((item, ii) => {
-                    const val = responses[item.code];
-                    return (
-                      <div key={ii} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50/50 transition-colors">
-                        <div className="flex-shrink-0 w-12">
-                          <Badge color="slate">{item.code}</Badge>
-                        </div>
-                        <p className="flex-1 text-sm text-slate-700">{item.text}</p>
-                        <div className="flex gap-1.5 flex-shrink-0">
-                          <button onClick={() => setResponse(item.code, 'YA')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border-b-2 active:border-b-0 active:translate-y-0.5 ${val === 'YA' ? 'bg-emerald-600 text-white border-emerald-800' : 'bg-white text-slate-500 border-slate-300 hover:bg-emerald-50'}`}>YA</button>
-                          <button onClick={() => setResponse(item.code, 'TIDAK')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border-b-2 active:border-b-0 active:translate-y-0.5 ${val === 'TIDAK' ? 'bg-rose-600 text-white border-rose-800' : 'bg-white text-slate-500 border-slate-300 hover:bg-rose-50'}`}>TIDAK</button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Hasil Saringan & Kelayakan */}
-          {isComplete && (
-            <div className="mt-6 slide-up">
-              <div className={`rounded-2xl border-2 p-5 ${qualification.color === 'green' ? 'border-emerald-200 bg-emerald-50' : qualification.color === 'amber' ? 'border-amber-200 bg-amber-50' : 'border-rose-200 bg-rose-50'}`}>
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-600 mb-1">Keputusan Saringan SSKI-IS</p>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-3xl font-extrabold ${qualification.color === 'green' ? 'text-emerald-700' : qualification.color === 'amber' ? 'text-amber-700' : 'text-rose-700'}`}>{percentage}%</span>
-                      <span className="text-sm text-slate-500">({yaCount} YA / {25 - yaCount} TIDAK)</span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge color={qualification.color}>{qualification.label}</Badge>
-                    <p className="text-xs text-slate-500 mt-1 max-w-xs">{qualification.desc}</p>
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-4 flex-wrap">
-                  <Btn variant="white" onClick={resetSaringan}><Icon name="rotate-ccw" size={16} /> Reset Saringan</Btn>
-                  {qualification.borang && (
-                    <Btn variant="green" onClick={generateBorang}>
-                      <Icon name="file-text" size={16} />
-                      {qualification.borang === 'akuan' ? 'Buka Borang Akuan Persetujuan Ibu Bapa' : 'Buka Borang Cadangan RPI'}
-                    </Btn>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Borang Akuan Persetujuan Ibu Bapa (>= 70%) */}
-          {showBorang === 'akuan' && (
-            <div className="mt-6 slide-up">
-              <div className="flex items-center gap-2 mb-3"><Icon name="file-signature" size={18} className="text-emerald-600" /><h4 className="font-bold text-slate-800">Borang Akuan Persetujuan Ibu Bapa / Penjaga</h4></div>
-              <p className="text-xs text-slate-500 mb-4">Lampiran Buku Panduan PPKI KPM 2015 — Sila lengkapkan maklumat dan simpan sebagai PDF.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <Field label="Nama Ibu Bapa / Penjaga"><Input value={borangData.namaIbuBapa} onChange={e => setBorangData({...borangData, namaIbuBapa: e.target.value})} /></Field>
-                <Field label="No. Kad Pengenalan"><Input value={borangData.kadPengenalan} onChange={e => setBorangData({...borangData, kadPengenalan: e.target.value})} /></Field>
-                <Field label="Alamat"><Input value={borangData.alamat} onChange={e => setBorangData({...borangData, alamat: e.target.value})} /></Field>
-                <Field label="Tarikh"><Input type="date" value={borangData.tarikh} onChange={e => setBorangData({...borangData, tarikh: e.target.value})} /></Field>
-              </div>
-              <div className="flex justify-end mb-4"><Btn variant="green" onClick={saveBorangPDF}><Icon name="download" size={16} /> Simpan PDF</Btn></div>
-              {/* Preview PDF */}
-              <div ref={borangRef} className="bg-white border border-slate-200 rounded-xl p-8" style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#000' }}>
-                <PrintLetterhead sekolah="SK SELAMA (K)" />
-                <h3 style={{ textAlign: 'center', fontWeight: 'bold', textDecoration: 'underline', fontSize: '14px', margin: '0 0 4px' }}>BORANG AKUAN PERSETUJUAN IBU BAPA / PENJAGA</h3>
-                <p style={{ textAlign: 'center', fontSize: '11px', marginBottom: '16px' }}>PROGRAM PENDIDIKAN INKLUSIF SEPARA (PPKI) — Lampiran Buku Panduan PPKI KPM 2015</p>
-                <table style={{ width: '100%', fontSize: '12px', marginBottom: '16px' }}><tbody>
-                  <tr><td style={{ fontWeight: 'bold', width: '140px', verticalAlign: 'top' }}>Nama Murid</td><td style={{ verticalAlign: 'top' }}>: {student?.nama || '________________'}</td></tr>
-                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>No. MyKid</td><td style={{ verticalAlign: 'top' }}>: {student?.mykid || '________________'}</td></tr>
-                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Kelas</td><td style={{ verticalAlign: 'top' }}>: {student?.kelas || '________________'}</td></tr>
-                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Diagnosis</td><td style={{ verticalAlign: 'top' }}>: {student?.diagnosis || '________________'}</td></tr>
-                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Skor Saringan</td><td style={{ verticalAlign: 'top' }}>: {percentage}% ({yaCount}/25 YA) — Layak Inklusif Akademik</td></tr>
-                </tbody></table>
-                <p style={{ fontSize: '12px', lineHeight: '1.6', marginBottom: '12px' }}>Saya nama yang tertera di bawah, selaku ibu bapa / penjaga kepada murid tersebut di atas, dengan ini <b>BERSETUJU</b> dan memberi kebenaran untuk anak jaga saya mengikuti Program Pendidikan Inklusif Separa (PPKI) di Sekolah Kebangsaan Selama (K) bagi sesi persekolahan 2026.</p>
-                <p style={{ fontSize: '12px', lineHeight: '1.6', marginBottom: '12px' }}>Saya faham bahawa anak jaga saya akan ditempatkan di kelas arus perdana untuk subjek akademik tertentu dengan sokongan guru pendamping dan PPM mengikut keperluan.</p>
-                <p style={{ fontSize: '12px', lineHeight: '1.6', marginBottom: '20px' }}>Saya bersetuju untuk bekerjasama dengan pihak sekolah dalam memantau perkembangan dan kemajuan anak jaga saya sepanjang pelaksanaan program ini.</p>
-                <table style={{ width: '100%', fontSize: '12px' }}><tbody>
-                  <tr>
-                    <td style={{ verticalAlign: 'top', width: '50%' }}>
-                      <p style={{ fontWeight: 'bold', marginBottom: '4px' }}>Maklumat Ibu Bapa / Penjaga:</p>
-                      <p>Nama: {borangData.namaIbuBapa || '________________'}</p>
-                      <p>No. KP: {borangData.kadPengenalan || '________________'}</p>
-                      <p>Alamat: {borangData.alamat || '________________'}</p>
-                    </td>
-                    <td style={{ verticalAlign: 'top', width: '50%', textAlign: 'right' }}>
-                      <p style={{ marginBottom: '4px' }}>Tarikh: {formatDate(borangData.tarikh)}</p>
-                      <p style={{ marginBottom: '40px' }}>Tandatangan:</p>
-                      <p style={{ fontWeight: 'bold', borderTop: '1px solid #000', paddingTop: '4px', display: 'inline-block', minWidth: '160px' }}>{borangData.namaIbuBapa || '________________'}</p>
-                      <p style={{ fontSize: '11px' }}>Ibu Bapa / Penjaga</p>
-                    </td>
-                  </tr>
-                </tbody></table>
-                <div style={{ marginTop: '24px', borderTop: '1px solid #000', paddingTop: '8px' }}>
-                  <p style={{ fontSize: '11px', fontWeight: 'bold' }}>Pengesahan Sekolah:</p>
-                  <PrintSignature name="Tn. Hj. Abdul Rahman bin Hassan" title="Guru Besar / Pengerusi JPKS" />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Borang Cadangan Pelan Intervensi RPI (< 50%) */}
-          {showBorang === 'rpi' && (
-            <div className="mt-6 slide-up">
-              <div className="flex items-center gap-2 mb-3"><Icon name="file-warning" size={18} className="text-rose-600" /><h4 className="font-bold text-slate-800">Borang Cadangan Pelan Intervensi (RPI)</h4></div>
-              <p className="text-xs text-slate-500 mb-4">Murid belum mencapai tahap kesediaan inklusif. Item bertanda "TIDAK" disenaraikan untuk tindakan guru PPKI.</p>
-              <div className="flex justify-end mb-4"><Btn variant="green" onClick={saveBorangPDF}><Icon name="download" size={16} /> Simpan PDF</Btn></div>
-              {/* Preview PDF */}
-              <div ref={borangRef} className="bg-white border border-slate-200 rounded-xl p-8" style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#000' }}>
-                <PrintLetterhead sekolah="SK SELAMA (K)" />
-                <h3 style={{ textAlign: 'center', fontWeight: 'bold', textDecoration: 'underline', fontSize: '14px', margin: '0 0 4px' }}>BORANG CADANGAN PELAN INTERVENSI (RPI)</h3>
-                <p style={{ textAlign: 'center', fontSize: '11px', marginBottom: '16px' }}>PROGRAM PENDIDIKAN KHAS INTEGRASI (PPKI) — Untuk Murid Belum Bersedia Inklusif</p>
-                <table style={{ width: '100%', fontSize: '12px', marginBottom: '16px' }}><tbody>
-                  <tr><td style={{ fontWeight: 'bold', width: '140px', verticalAlign: 'top' }}>Nama Murid</td><td style={{ verticalAlign: 'top' }}>: {student?.nama || '________________'}</td></tr>
-                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>No. MyKid</td><td style={{ verticalAlign: 'top' }}>: {student?.mykid || '________________'}</td></tr>
-                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Kelas</td><td style={{ verticalAlign: 'top' }}>: {student?.kelas || '________________'}</td></tr>
-                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Diagnosis</td><td style={{ verticalAlign: 'top' }}>: {student?.diagnosis || '________________'}</td></tr>
-                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Skor Saringan</td><td style={{ verticalAlign: 'top' }}>: {percentage}% ({yaCount}/25 YA) — Belum Bersedia (Kekal di PPKI)</td></tr>
-                </tbody></table>
-                <p style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Item Saringan Bertanda "TIDAK" (Memerlukan Intervensi):</p>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', marginBottom: '16px' }}><thead>
-                  <tr style={{ background: '#f0f0f0' }}>
-                    <th style={{ border: '1px solid #000', padding: '4px', textAlign: 'left', width: '50px' }}>Kod</th>
-                    <th style={{ border: '1px solid #000', padding: '4px', textAlign: 'left' }}>Item Keperluan Intervensi</th>
-                    <th style={{ border: '1px solid #000', padding: '4px', textAlign: 'left', width: '180px' }}>Cadangan Intervensi</th>
-                  </tr>
-                </thead><tbody>
-                  {rpiItems.map((item, idx) => (
-                    <tr key={idx}>
-                      <td style={{ border: '1px solid #000', padding: '4px', fontWeight: 'bold' }}>{item.code}</td>
-                      <td style={{ border: '1px solid #000', padding: '4px' }}>{item.text}</td>
-                      <td style={{ border: '1px solid #000', padding: '4px' }}>________________________</td>
-                    </tr>
-                  ))}
-                </tbody></table>
-                <p style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Pelan Intervensi Keseluruhan:</p>
-                <div style={{ border: '1px solid #000', padding: '8px', minHeight: '60px', fontSize: '12px', marginBottom: '16px' }}>________________________</div>
-                <p style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Tarikh Semakan Semula:</p>
-                <div style={{ border: '1px solid #000', padding: '8px', minHeight: '24px', fontSize: '12px', marginBottom: '16px' }}>________________________</div>
-                <PrintSignature name="En. Ahmad bin Isa" title="Penyelaras PPKI / Guru PPKI" />
-              </div>
-            </div>
-          )}
-
-          <FileUploader sectionId="profil_saringan_sski" onToast={onToast} />
-        </>
-      )}
-      {!selectedStudent && (
-        <div className="text-center py-8 text-slate-400">
-          <Icon name="clipboard-check" size={36} className="mx-auto mb-3 opacity-40" />
-          <p className="text-sm">Sila pilih murid untuk memulakan saringan SSKI-IS.</p>
-        </div>
-      )}
-    </Card>
-  );
-}
-
-function TabProfilMBK({ onToast }) {
-  const [students, setStudents] = useState(DEFAULT_STUDENTS);
-  const [editing, setEditing] = useState(null);
-  const [aiInput, setAiInput] = useState('');
-  const [aiResult, setAiResult] = useState(null);
-  const [aiLoading, setAiLoading] = useState(false);
-
-  function saveStudent(s) {
-    if (s.id) {
-      setStudents(students.map(x => x.id === s.id ? s : x));
-      onToast({ type: 'success', msg: 'Profil murid dikemas kini.' });
-    } else {
-      setStudents([...students, { ...s, id: 's' + Date.now() }]);
-      onToast({ type: 'success', msg: 'Profil murid baharu ditambah.' });
-    }
-    setEditing(null);
-  }
-  function deleteStudent(id) {
-    setStudents(students.filter(s => s.id !== id));
-    onToast({ type: 'success', msg: 'Profil murid dipadam.' });
-  }
-  function getMarkahColor(m) {
-    if (m >= 80) return 'green';
-    if (m >= 60) return 'blue';
-    if (m >= 40) return 'amber';
-    return 'rose';
-  }
-  function runAI() {
-    if (!aiInput.trim()) { onToast({ type: 'error', msg: 'Sila masukkan soalan atau data murid.' }); return; }
-    setAiLoading(true);
-    setTimeout(() => {
-      const input = aiInput.toLowerCase();
-      let result = '';
-      if (input.includes('amirul')) {
-        result = `Analisis Minda AI untuk Muhammad Amirul bin Roslan:\n\n• Diagnosis: Slow Learner (Markah Saringan: 64)\n• Status: Layak Inklusif Separa (Bukan Akademik)\n\nCadangan Intervensi:\n1. Penggunaan bahan bantu mengajar visual dan kinestetik\n2. Masa tugasan dipendekkan dengan rehat lebih kerap\n3. Penempatan di barisan hadapan untuk tumpuan optimum\n4. Bimbingan sosial untuk kemahiran interaksi rakan\n5. Penilaian formatif berterusan setiap 2 minggu`;
-      } else if (input.includes('wei han') || input.includes('chong')) {
-        result = `Analisis Minda AI untuk Chong Wei Han:\n\n• Diagnosis: Masalah Pendengaran (Markah Saringan: 76)\n• Status: Layak Inklusif Separa (Akademik)\n\nCadangan Intervensi:\n1. Penggunaan FM System / gelung pendengaran dalam kelas\n2. Arahan visual dan penambahan teks pada papan tulis\n3. Tempat duduk menghadap guru untuk pembacaan bibir\n4. Rakan pendamping (peer tutoring) untuk nota tambahan\n5. Penilaian lisan digantikan dengan bertulis/visual`;
-      } else if (input.includes('farah')) {
-        result = `Analisis Minda AI untuk Farah Shahidah binti Ahmad:\n\n• Diagnosis: Autisme Ringan (Markah Saringan: 84)\n• Status: Layak Inklusif Separa (Akademik)\n\nCadangan Intervensi:\n1. Struktur rutin harian yang jelas dan boleh ramal\n2. Visual schedule untuk pengurusan transisi aktiviti\n3. Ruang tenang (quiet corner) jika berlaku sensory overload\n4. Sosial cerita (social stories) untuk interaksi rakan\n5. Pengukuhan positif untuk pencapaian akademik`;
-      } else {
-        result = `Analisis Minda AI:\n\nBerdasarkan input yang diberikan, sistem mengesyorkan:\n1. Jalankan saringan PMD untuk pengesahan diagnosis\n2. Tetapkan jenis inklusif (separa/penuh) berdasarkan markah saringan\n3. Lampirkan guru pendamping mengikut keperluan\n4. Sediakan pelan intervensen individu (IEP) untuk setiap murid\n5. Pemantauan dan penilaian berkala oleh JPKS\n\nTip: Taip nama murid (Amirul, Wei Han, atau Farah) untuk analisis spesifik.`;
+        if (res.status === 'ok') {
+          document.getElementById('progressFill').style.width = '100%';
+          document.getElementById('uploadStatus').textContent = 'Berjaya dimuat naik!';
+          showToast('Fail berjaya dimuat naik', 'success');
+          setTimeout(function() {
+            document.getElementById('uploadProgress').style.display = 'none';
+            document.getElementById('uploadBtn').disabled = false;
+            document.getElementById('uploadTajuk').value = '';
+            document.getElementById('uploadZone').innerHTML = '<div class="upload-icon">&#128229;</div><p><strong>Klik untuk pilih fail</strong> atau drag &amp; drop</p><p class="upload-hint">PDF, Imej, Dokumen, Excel (Max 25 MB)</p>';
+            selectedFile = null;
+            document.getElementById('fileInput').value = '';
+            refreshData('failUpload');
+          }, 1500);
+        } else {
+          throw new Error(res.message);
+        }
+      } catch (err) {
+        document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('uploadBtn').disabled = false;
+        showToast('Gagal memuat naik: ' + err.message, 'error');
       }
-      setAiResult(result);
-      setAiLoading(false);
-    }, 1200);
+    };
+    reader.onerror = function() {
+      showToast('Gagal membaca fail', 'error');
+      document.getElementById('uploadProgress').style.display = 'none';
+      document.getElementById('uploadBtn').disabled = false;
+    };
+    reader.readAsDataURL(selectedFile);
+  } catch (e) {
+    showToast('Gagal memuat naik fail', 'error');
+    document.getElementById('uploadProgress').style.display = 'none';
+    document.getElementById('uploadBtn').disabled = false;
   }
-
-  return (
-    <div className="space-y-6 fade-in">
-      {/* Sub-Tajuk 1: Pangkalan Data Murid Inklusif */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <SectionTitle icon="database" title="Pangkalan Data Murid Inklusif" desc="Profil murid PPKI dengan saringan dan status penempatan" />
-          <Btn variant="blue" onClick={() => setEditing({ id: '', nama: '', mykid: '', oku: '', diagnosis: '', kelas: '', jenis: 'Inklusif Separa', guru_mentor: '', markah_saringan: 0, status: '' })}><Icon name="plus" size={16} /> Tambah Murid</Btn>
-        </div>
-        <div className="space-y-4">
-          {students.map(s => (
-            <div key={s.id} className="border border-slate-200 rounded-2xl p-4 hover:shadow-md transition-shadow">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex-1 min-w-[200px]">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-bold text-slate-900">{s.nama}</h4>
-                    <Badge color={getMarkahColor(s.markah_saringan)}>Saringan: {s.markah_saringan}</Badge>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-sm">
-                    <p className="text-slate-500">MyKid: <span className="font-medium text-slate-700">{s.mykid}</span></p>
-                    <p className="text-slate-500">OKU: <span className="font-medium text-slate-700">{s.oku}</span></p>
-                    <p className="text-slate-500">Diagnosis: <span className="font-medium text-slate-700">{s.diagnosis}</span></p>
-                    <p className="text-slate-500">Kelas: <span className="font-medium text-slate-700">{s.kelas}</span></p>
-                    <p className="text-slate-500">Jenis: <span className="font-medium text-slate-700">{s.jenis}</span></p>
-                    <p className="text-slate-500">Mentor: <span className="font-medium text-slate-700">{s.guru_mentor}</span></p>
-                  </div>
-                  <div className="mt-2"><Badge color={s.status.includes('Akademik') ? 'green' : 'amber'}>{s.status}</Badge></div>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => setEditing({...s})} className="p-2 rounded-lg hover:bg-blue-50 text-blue-600"><Icon name="pencil" size={16} /></button>
-                  <button onClick={() => deleteStudent(s.id)} className="p-2 rounded-lg hover:bg-rose-50 text-rose-600"><Icon name="trash-2" size={16} /></button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <FileUploader sectionId="profil_pangkalan_murid" onToast={onToast} />
-      </Card>
-
-      {/* Minda AI */}
-      <Card className="p-6">
-        <SectionTitle icon="brain" title="Minda AI — Analisis Intervensi Inklusif" desc="Masukkan nama murid untuk cadangan intervensen AI" />
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <Input value={aiInput} onChange={e => setAiInput(e.target.value)} placeholder="Cth: Analisis Amirul / Cadangan untuk Wei Han" onKeyDown={e => e.key === 'Enter' && runAI()} />
-            <Btn variant="blue" onClick={runAI} disabled={aiLoading}><Icon name="sparkles" size={16} /> {aiLoading ? 'Menganalisis...' : 'Analisis'}</Btn>
-          </div>
-          {aiLoading && <Loading msg="Minda AI sedang menganalisis..." />}
-          {aiResult && !aiLoading && (
-            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 slide-up">
-              <pre className="text-sm text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">{aiResult}</pre>
-            </div>
-          )}
-        </div>
-        <FileUploader sectionId="profil_minda_ai" onToast={onToast} />
-      </Card>
-
-      {/* Sub-Tajuk: Instrumen Saringan SSKI-IS */}
-      <SaringanSSKI onToast={onToast} students={students} />
-
-      {/* Modal Edit Murid */}
-      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? 'Edit Profil Murid' : 'Tambah Murid Inklusif'} wide>
-        {editing && (
-          <div className="space-y-4">
-            <Field label="Nama Murid"><Input value={editing.nama} onChange={e => setEditing({...editing, nama: e.target.value})} /></Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="No. MyKid"><Input value={editing.mykid} onChange={e => setEditing({...editing, mykid: e.target.value})} /></Field>
-              <Field label="No. OKU"><Input value={editing.oku} onChange={e => setEditing({...editing, oku: e.target.value})} /></Field>
-              <Field label="Diagnosis"><Input value={editing.diagnosis} onChange={e => setEditing({...editing, diagnosis: e.target.value})} /></Field>
-              <Field label="Kelas"><Input value={editing.kelas} onChange={e => setEditing({...editing, kelas: e.target.value})} /></Field>
-              <Field label="Jenis Inklusif"><Select value={editing.jenis} onChange={e => setEditing({...editing, jenis: e.target.value})}>
-                <option>Inklusif Separa</option><option>Inklusif Penuh</option>
-              </Select></Field>
-              <Field label="Guru Mentor"><Input value={editing.guru_mentor} onChange={e => setEditing({...editing, guru_mentor: e.target.value})} /></Field>
-              <Field label="Markah Saringan"><Input type="number" value={editing.markah_saringan} onChange={e => setEditing({...editing, markah_saringan: parseInt(e.target.value) || 0})} /></Field>
-              <Field label="Status"><Input value={editing.status} onChange={e => setEditing({...editing, status: e.target.value})} /></Field>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Btn variant="white" onClick={() => setEditing(null)}>Batal</Btn>
-              <Btn variant="blue" onClick={() => saveStudent(editing)}><Icon name="save" size={16} /> Simpan</Btn>
-            </div>
-          </div>
-        )}
-      </Modal>
-    </div>
-  );
 }
 
-/* ============================================================
-   TAB 4: PRESTASI & PELAPORAN
-   ============================================================ */
-function TabPrestasi({ onToast }) {
-  const [ppt, setPpt] = useState(DEFAULT_PPT);
-  const [editingPpt, setEditingPpt] = useState(null);
-  const [prasarana, setPrasarana] = useState(DEFAULT_PRASARANA);
-  const [editPras, setEditPras] = useState(null);
-  const [swot, setSwot] = useState({ kekuatan: '', kelemahan: '', peluang: '', ancaman: '', tahun: '2026' });
-  const swotRef = useRef(null);
-
-  function savePpt(p) {
-    if (p.id) { setPpt(ppt.map(x => x.id === p.id ? p : x)); onToast({ type: 'success', msg: 'Keputusan PPT dikemas kini.' }); }
-    else { setPpt([...ppt, { ...p, id: 'p' + Date.now() }]); onToast({ type: 'success', msg: 'Rekod PPT ditambah.' }); }
-    setEditingPpt(null);
-  }
-  function deletePpt(id) { setPpt(ppt.filter(p => p.id !== id)); onToast({ type: 'success', msg: 'Rekod PPT dipadam.' }); }
-  function savePras(p) {
-    if (p.id) { setPrasarana(prasarana.map(x => x.id === p.id ? p : x)); onToast({ type: 'success', msg: 'Inventori dikemas kini.' }); }
-    else { setPrasarana([...prasarana, { ...p, id: 'pr' + Date.now() }]); onToast({ type: 'success', msg: 'Item prasarana ditambah.' }); }
-    setEditPras(null);
-  }
-  function deletePras(id) { setPrasarana(prasarana.filter(p => p.id !== id)); onToast({ type: 'success', msg: 'Item prasarana dipadam.' }); }
-  function getGrade(m) { if (m >= 80) return 'A'; if (m >= 70) return 'B'; if (m >= 60) return 'C'; if (m >= 50) return 'D'; return 'E'; }
-  function getGradeColor(g) { if (g === 'A') return 'green'; if (g === 'B') return 'blue'; if (g === 'C') return 'amber'; return 'rose'; }
-
-  return (
-    <div className="space-y-6 fade-in">
-      {/* Sub-Tajuk 1: Rekod Prestasi PPT 2026 */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <SectionTitle icon="bar-chart-3" title="Rekod Prestasi PPT 2026" desc="Keputusan peperiksaan subjek teras murid inklusif" />
-          <Btn variant="blue" onClick={() => setEditingPpt({ id: '', nama: '', kelas: '', bm: 0, bi: 0, matematik: 0, sains: 0 })}><Icon name="plus" size={16} /> Tambah Rekod</Btn>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 text-left text-slate-500">
-                <th className="py-3 px-4 font-semibold">Nama</th>
-                <th className="py-3 px-4 font-semibold">Kelas</th>
-                <th className="py-3 px-4 font-semibold text-center">BM</th>
-                <th className="py-3 px-4 font-semibold text-center">BI</th>
-                <th className="py-3 px-4 font-semibold text-center">Matematik</th>
-                <th className="py-3 px-4 font-semibold text-center">Sains</th>
-                <th className="py-3 px-4 font-semibold text-center">Gred</th>
-                <th className="py-3 px-4 font-semibold text-right">Tindakan</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ppt.map(p => {
-                const avg = Math.round((p.bm + p.bi + p.matematik + p.sains) / 4);
-                const grade = getGrade(avg);
-                return (
-                  <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50/50">
-                    <td className="py-3 px-4 font-semibold text-slate-900">{p.nama}</td>
-                    <td className="py-3 px-4 text-slate-600">{p.kelas}</td>
-                    <td className="py-3 px-4 text-center font-medium">{p.bm}</td>
-                    <td className="py-3 px-4 text-center font-medium">{p.bi}</td>
-                    <td className="py-3 px-4 text-center font-medium">{p.matematik}</td>
-                    <td className="py-3 px-4 text-center font-medium">{p.sains}</td>
-                    <td className="py-3 px-4 text-center"><Badge color={getGradeColor(grade)}>{grade} ({avg})</Badge></td>
-                    <td className="py-3 px-4">
-                      <div className="flex gap-2 justify-end">
-                        <button onClick={() => setEditingPpt({...p})} className="p-2 rounded-lg hover:bg-blue-50 text-blue-600"><Icon name="pencil" size={16} /></button>
-                        <button onClick={() => deletePpt(p.id)} className="p-2 rounded-lg hover:bg-rose-50 text-rose-600"><Icon name="trash-2" size={16} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <FileUploader sectionId="prestasi_rekod_ppt" onToast={onToast} />
-      </Card>
-
-      {/* Sub-Tajuk 2: Inventori Prasarana OKU */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <SectionTitle icon="accessibility" title="Inventori Prasarana OKU" desc="Checklist kemudahan fizikal mesra OKU" />
-          <Btn variant="blue" onClick={() => setEditPras({ id: '', item: '', lokasi: '', status: 'Ada', catatan: '' })}><Icon name="plus" size={16} /> Tambah Item</Btn>
-        </div>
-        <div className="space-y-3">
-          {prasarana.map(p => (
-            <div key={p.id} className="flex items-center justify-between gap-3 border border-slate-200 rounded-xl p-4 hover:shadow-sm transition-shadow">
-              <div className="flex items-center gap-3 flex-1">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${p.status === 'Ada' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                  <Icon name={p.status === 'Ada' ? 'check' : 'x'} size={20} />
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900">{p.item}</p>
-                  <p className="text-xs text-slate-500">{p.lokasi} — {p.catatan}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge color={p.status === 'Ada' ? 'green' : 'rose'}>{p.status}</Badge>
-                <button onClick={() => setEditPras({...p})} className="p-2 rounded-lg hover:bg-blue-50 text-blue-600"><Icon name="pencil" size={16} /></button>
-                <button onClick={() => deletePras(p.id)} className="p-2 rounded-lg hover:bg-rose-50 text-rose-600"><Icon name="trash-2" size={16} /></button>
-              </div>
-            </div>
-          ))}
-        </div>
-        <FileUploader sectionId="prestasi_prasarana" onToast={onToast} />
-      </Card>
-
-      {/* Sub-Tajuk 3: Analisis SWOT */}
-      <Card className="p-6">
-        <SectionTitle icon="grid-2x2" title="Analisis SWOT Tahunan PPI" desc="Borang analisis kekuatan, kelemahan, peluang, ancaman" />
-        <div className="mb-4"><Field label="Tahun"><Input value={swot.tahun} onChange={e => setSwot({...swot, tahun: e.target.value})} className="max-w-[120px]" /></Field></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2"><Icon name="trending-up" size={18} className="text-emerald-600" /><h4 className="font-bold text-emerald-800">Kekuatan (Strengths)</h4></div>
-            <Textarea rows={4} value={swot.kekuatan} onChange={e => setSwot({...swot, kekuatan: e.target.value})} placeholder="Cth: Guru PPKI berkelayakan, prasarana asas lengkap..." />
-          </div>
-          <div className="bg-rose-50 border border-rose-200 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2"><Icon name="trending-down" size={18} className="text-rose-600" /><h4 className="font-bold text-rose-800">Kelemahan (Weaknesses)</h4></div>
-            <Textarea rows={4} value={swot.kelemahan} onChange={e => setSwot({...swot, kelemahan: e.target.value})} placeholder="Cth: Kekurangan alat bantu pendengaran, laluan taktil tidak lengkap..." />
-          </div>
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2"><Icon name="target" size={18} className="text-blue-600" /><h4 className="font-bold text-blue-800">Peluang (Opportunities)</h4></div>
-            <Textarea rows={4} value={swot.peluang} onChange={e => setSwot({...swot, peluang: e.target.value})} placeholder="Cth: Sokongan PIBG, peruntukan KPM, kursus LDP..." />
-          </div>
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2"><Icon name="alert-triangle" size={18} className="text-amber-600" /><h4 className="font-bold text-amber-800">Ancaman (Threats)</h4></div>
-            <Textarea rows={4} value={swot.ancaman} onChange={e => setSwot({...swot, ancaman: e.target.value})} placeholder="Cth: Pemindahan guru, kekurangan dana, perubahan dasar..." />
-          </div>
-        </div>
-        <div className="flex justify-end mt-4 gap-2">
-          <Btn variant="blue" onClick={() => onToast({ type: 'success', msg: 'Analisis SWOT disimpan.' })}><Icon name="save" size={16} /> Simpan SWOT</Btn>
-          <Btn variant="green" onClick={() => generatePDF(swotRef.current, `Analisis_SWOT_PPI_${swot.tahun}.pdf`, onToast, 'PDF analisis SWOT dijana.')}><Icon name="download" size={16} /> Simpan PDF</Btn>
-        </div>
-        {/* Preview SWOT untuk PDF */}
-        <div ref={swotRef} className="bg-white border border-slate-200 rounded-xl p-8 mt-4" style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#000' }}>
-          <PrintLetterhead sekolah="SK SELAMA (K)" />
-          <h3 style={{ textAlign: 'center', fontWeight: 'bold', textDecoration: 'underline', fontSize: '14px', margin: '0 0 16px' }}>ANALISIS SWOT TAHUNAN PROGRAM PENDIDIKAN INKLUSIF {swot.tahun}</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}><tbody>
-            <tr>
-              <td style={{ border: '1px solid #000', padding: '8px', fontWeight: 'bold', background: '#d4edda', width: '50%', textAlign: 'center' }}>KEKUATAN (STRENGTHS)</td>
-              <td style={{ border: '1px solid #000', padding: '8px', fontWeight: 'bold', background: '#f8d7da', width: '50%', textAlign: 'center' }}>KELEMAHAN (WEAKNESSES)</td>
-            </tr>
-            <tr>
-              <td style={{ border: '1px solid #000', padding: '8px', verticalAlign: 'top' }}><pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Arial, Helvetica, sans-serif' }}>{swot.kekuatan || '________________'}</pre></td>
-              <td style={{ border: '1px solid #000', padding: '8px', verticalAlign: 'top' }}><pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Arial, Helvetica, sans-serif' }}>{swot.kelemahan || '________________'}</pre></td>
-            </tr>
-            <tr>
-              <td style={{ border: '1px solid #000', padding: '8px', fontWeight: 'bold', background: '#d1ecf1', textAlign: 'center' }}>PELUANG (OPPORTUNITIES)</td>
-              <td style={{ border: '1px solid #000', padding: '8px', fontWeight: 'bold', background: '#fff3cd', textAlign: 'center' }}>ANCAMAN (THREATS)</td>
-            </tr>
-            <tr>
-              <td style={{ border: '1px solid #000', padding: '8px', verticalAlign: 'top' }}><pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Arial, Helvetica, sans-serif' }}>{swot.peluang || '________________'}</pre></td>
-              <td style={{ border: '1px solid #000', padding: '8px', verticalAlign: 'top' }}><pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Arial, Helvetica, sans-serif' }}>{swot.ancaman || '________________'}</pre></td>
-            </tr>
-          </tbody></table>
-          <PrintSignature name="Tn. Hj. Abdul Rahman bin Hassan" title="Guru Besar / Pengerusi JPKS" />
-        </div>
-        <FileUploader sectionId="prestasi_swot" onToast={onToast} />
-      </Card>
-
-      {/* Modal Edit PPT */}
-      <Modal open={!!editingPpt} onClose={() => setEditingPpt(null)} title={editingPpt?.id ? 'Edit Rekod PPT' : 'Tambah Rekod PPT'}>
-        {editingPpt && (
-          <div className="space-y-4">
-            <Field label="Nama Murid"><Input value={editingPpt.nama} onChange={e => setEditingPpt({...editingPpt, nama: e.target.value})} /></Field>
-            <Field label="Kelas"><Input value={editingPpt.kelas} onChange={e => setEditingPpt({...editingPpt, kelas: e.target.value})} /></Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="BM"><Input type="number" value={editingPpt.bm} onChange={e => setEditingPpt({...editingPpt, bm: parseInt(e.target.value)||0})} /></Field>
-              <Field label="BI"><Input type="number" value={editingPpt.bi} onChange={e => setEditingPpt({...editingPpt, bi: parseInt(e.target.value)||0})} /></Field>
-              <Field label="Matematik"><Input type="number" value={editingPpt.matematik} onChange={e => setEditingPpt({...editingPpt, matematik: parseInt(e.target.value)||0})} /></Field>
-              <Field label="Sains"><Input type="number" value={editingPpt.sains} onChange={e => setEditingPpt({...editingPpt, sains: parseInt(e.target.value)||0})} /></Field>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Btn variant="white" onClick={() => setEditingPpt(null)}>Batal</Btn>
-              <Btn variant="blue" onClick={() => savePpt(editingPpt)}><Icon name="save" size={16} /> Simpan</Btn>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* Modal Edit Prasarana */}
-      <Modal open={!!editPras} onClose={() => setEditPras(null)} title={editPras?.id ? 'Edit Item Prasarana' : 'Tambah Item Prasarana'}>
-        {editPras && (
-          <div className="space-y-4">
-            <Field label="Item"><Input value={editPras.item} onChange={e => setEditPras({...editPras, item: e.target.value})} /></Field>
-            <Field label="Lokasi"><Input value={editPras.lokasi} onChange={e => setEditPras({...editPras, lokasi: e.target.value})} /></Field>
-            <Field label="Status"><Select value={editPras.status} onChange={e => setEditPras({...editPras, status: e.target.value})}>
-              <option>Ada</option><option>Tiada</option><option>Dalam Penambahbaikan</option>
-            </Select></Field>
-            <Field label="Catatan"><Textarea rows={2} value={editPras.catatan} onChange={e => setEditPras({...editPras, catatan: e.target.value})} /></Field>
-            <div className="flex gap-2 justify-end">
-              <Btn variant="white" onClick={() => setEditPras(null)}>Batal</Btn>
-              <Btn variant="blue" onClick={() => savePras(editPras)}><Icon name="save" size={16} /> Simpan</Btn>
-            </div>
-          </div>
-        )}
-      </Modal>
-    </div>
-  );
+async function padamFail(fileId) {
+  if (!confirm('Padam fail ini? Fail akan dipadam dari Google Drive.')) return;
+  try {
+    var res = await apiPost({ action: 'padam_fail', fileId: fileId });
+    if (res.status === 'ok') { showToast(res.message, 'success'); refreshData('failUpload'); }
+    else { showToast(res.message, 'error'); }
+  } catch (e) { showToast('Gagal memadam', 'error'); }
 }
 
-/* ============================================================
-   APP UTAMA
-   ============================================================ */
-function App() {
-  const [activeTab, setActiveTab] = useState('tadbir');
-  const [toast, setToast] = useState(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-
-  const onToast = useCallback((t) => setToast(t), []);
-  const closeToast = useCallback(() => setToast(null), []);
-
-  return (
-    <div className="min-h-screen bg-blue-50/30">
-      <Header onSettings={() => setSettingsOpen(true)} />
-      <TabNav active={activeTab} onChange={setActiveTab} />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {activeTab === 'tadbir' && <TabTadbirUrus onToast={onToast} />}
-        {activeTab === 'sumber' && <TabSumberManusia onToast={onToast} />}
-        {activeTab === 'profil' && <TabProfilMBK onToast={onToast} />}
-        {activeTab === 'prestasi' && <TabPrestasi onToast={onToast} />}
-      </main>
-      <footer className="max-w-7xl mx-auto px-4 sm:px-6 py-6 text-center text-xs text-slate-400">
-        <p>Sistem Pengurusan JPKS SK Selama (K) &middot; Program Pendidikan Inklusif 2026 &middot; Pekeliling SPI Bil. 1/2026</p>
-      </footer>
-      <Toast toast={toast} onClose={closeToast} />
-      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} onSave={() => { setSettingsOpen(false); onToast({ type: 'success', msg: 'URL API disimpan.' }); }} />
-    </div>
-  );
+// ===== AI CHAT =====
+function appendChatMsg(role, text) {
+  var container = document.getElementById('chatMessages');
+  var msg = document.createElement('div');
+  msg.className = 'chat-msg ' + role;
+  var avatar = role === 'user' ? 'Anda' : 'AI';
+  var formatted = formatAiResponse(text);
+  msg.innerHTML = '<div class="chat-avatar">' + avatar + '</div><div class="chat-bubble">' + formatted + '</div>';
+  container.appendChild(msg);
+  container.scrollTop = container.scrollHeight;
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+function formatAiResponse(text) {
+  var html = escapeHtml(text);
+  // Bold
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Line breaks
+  html = html.replace(/\n/g, '<br>');
+  // Bullet points
+  html = html.replace(/^[-•] (.+)$/gm, '<li>$1</li>');
+  html = html.replace(/(<li>.*<\/li>)/s, function(match) { return '<ul>' + match + '</ul>'; });
+  // Numbered
+  html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+  return html;
+}
+
+function showTyping() {
+  var container = document.getElementById('chatMessages');
+  var msg = document.createElement('div');
+  msg.className = 'chat-msg ai';
+  msg.id = 'typingMsg';
+  msg.innerHTML = '<div class="chat-avatar">AI</div><div class="chat-bubble"><span class="typing-indicator"><span></span><span></span><span></span></span></div>';
+  container.appendChild(msg);
+  container.scrollTop = container.scrollHeight;
+}
+
+function removeTyping() {
+  var t = document.getElementById('typingMsg');
+  if (t) t.remove();
+}
+
+async function sendChat() {
+  var input = document.getElementById('chatInput');
+  var prompt = input.value.trim();
+  if (!prompt) return;
+  input.value = '';
+  appendChatMsg('user', prompt);
+  document.getElementById('chatSendBtn').disabled = true;
+  showTyping();
+
+  try {
+    var res = await apiPost({ action: 'call_ai', prompt: prompt });
+    removeTyping();
+    if (res.status === 'ok') {
+      appendChatMsg('ai', res.response);
+    } else {
+      appendChatMsg('ai', 'Maaf, berlaku ralat: ' + res.message);
+    }
+  } catch (e) {
+    removeTyping();
+    appendChatMsg('ai', 'Maaf, gagal menghubungi pelayan AI. Sila cuba lagi.');
+  }
+  document.getElementById('chatSendBtn').disabled = false;
+}
+
+function sendSuggestion(text) {
+  document.getElementById('chatInput').value = text;
+  sendChat();
+}
+
+// ===== DATA REFRESH =====
+async function refreshData(section) {
+  try {
+    if (section === 'murid') {
+      var d = await apiGet('murid');
+      if (d.status === 'ok') { appData.murid = d.data; renderMurid(); renderDashboard(); }
+    } else if (section === 'saringan') {
+      var d = await apiGet('saringan');
+      if (d.status === 'ok') { appData.saringan = d.data; renderSaringan(); renderDashboard(); }
+    } else if (section === 'guru') {
+      var d = await apiGet('guru');
+      if (d.status === 'ok') { appData.guru = d.data; renderGuru(); renderDashboard(); }
+    } else if (section === 'prasarana') {
+      var d = await apiGet('prasarana');
+      if (d.status === 'ok') { appData.prasarana = d.data; renderPrasarana(); renderDashboard(); }
+    } else if (section === 'carta') {
+      var d = await apiGet('carta');
+      if (d.status === 'ok') { appData.carta = d.data; renderCarta(); renderDashboard(); }
+    } else if (section === 'failUpload') {
+      var d = await apiGet('fail_upload');
+      if (d.status === 'ok') { appData.failUpload = d.data; renderFailUpload(); }
+    }
+  } catch (e) {
+    // silently ignore refresh errors
+  }
+}
+
+// ===== NAVIGATION =====
+var pageTitles = {
+  dashboard: 'Papan Pemuka', murid: 'Pengurusan Murid', saringan: 'Saringan Murid',
+  guru: 'Pengurusan Guru', prasarana: 'Prasarana Sekolah', carta: 'Carta Organisasi',
+  upload: 'Muat Naik Fail', ai: 'Pembantu AI'
+};
+
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  document.querySelector('.nav-item[data-page="' + page + '"]').classList.add('active');
+  document.getElementById('pageTitle').textContent = pageTitles[page] || '';
+  // Close sidebar on mobile
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlayBg').classList.remove('active');
+}
+
+document.querySelectorAll('.nav-item').forEach(function(item) {
+  item.addEventListener('click', function(e) {
+    e.preventDefault();
+    switchPage(this.dataset.page);
+  });
+});
+
+// ===== SIDEBAR TOGGLE =====
+document.getElementById('menuToggle').addEventListener('click', function() {
+  var sb = document.getElementById('sidebar');
+  var ob = document.getElementById('overlayBg');
+  sb.classList.toggle('open');
+  ob.classList.toggle('active');
+});
+
+document.getElementById('overlayBg').addEventListener('click', function() {
+  document.getElementById('sidebar').classList.remove('open');
+  this.classList.remove('active');
+});
+
+// ===== ONLINE/OFFLINE STATUS =====
+function updateOnlineStatus() {
+  var dot = document.getElementById('statusDot');
+  var text = document.getElementById('statusText');
+  if (navigator.onLine) {
+    dot.classList.remove('offline');
+    text.textContent = 'Talian sambung';
+  } else {
+    dot.classList.add('offline');
+    text.textContent = 'Luar talian';
+  }
+}
+
+window.addEventListener('online', function() {
+  updateOnlineStatus();
+  showToast('Sambungan internet kembali aktif', 'success');
+  loadAllData();
+});
+
+window.addEventListener('offline', function() {
+  updateOnlineStatus();
+  showToast('Tiada sambungan internet - mod luar talian', 'error');
+});
+
+// ===== SERVICE WORKER =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').catch(function(e) {
+      console.log('SW registration failed:', e);
+    });
+  });
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', function() {
+  setupUploadZone();
+  updateOnlineStatus();
+  loadAllData();
+});
 </script>
 </body>
 </html>
