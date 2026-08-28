@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -196,6 +196,131 @@ function Loading({ msg = 'Memuatkan...' }) {
 }
 
 /* ============================================================
+   UTILITI PDF & TARikh
+   ============================================================ */
+function generatePDF(element, filename, onToast, toastMsg) {
+  if (!window.html2pdf) { if (onToast) onToast({ type: 'error', msg: 'Pustaka PDF tidak dimuatkan.' }); return; }
+  const opt = { margin: 10, filename: filename, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+  window.html2pdf().set(opt).from(element).save();
+  if (onToast) onToast({ type: 'success', msg: toastMsg || 'PDF dijana.' });
+}
+function formatDate(d) {
+  if (!d) return '________________';
+  try { return new Date(d).toLocaleDateString('ms-MY', { day: '2-digit', month: 'long', year: 'numeric' }); } catch { return d; }
+}
+
+/* ============================================================
+   KOMPONEN CETAK FORMAL (untuk PDF)
+   ============================================================ */
+function PrintLetterhead({ sekolah }) {
+  return (
+    <div style={{ textAlign: 'center', borderBottom: '3px solid #000', paddingBottom: '8px', marginBottom: '20px', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+        <span style={{ fontSize: '28px' }}>🎓</span>
+        <div>
+          <h2 style={{ fontSize: '16px', fontWeight: 'bold', textTransform: 'uppercase', margin: 0 }}>{sekolah || 'SK SELAMA (K)'}</h2>
+          <p style={{ fontSize: '11px', margin: '2px 0' }}>Kementerian Pendidikan Malaysia</p>
+          <p style={{ fontSize: '11px', margin: '2px 0' }}>Jabatan Pendidikan Negeri Perak Darul Ridzuan</p>
+          <p style={{ fontSize: '11px', margin: '2px 0' }}>Pejabat Pendidikan Daerah Selama</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+function PrintSignature({ name, title }) {
+  return (
+    <div style={{ textAlign: 'right', marginTop: '32px', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+      <p style={{ fontSize: '12px', marginBottom: '4px' }}>Saya yang menurut perintah,</p>
+      <div style={{ display: 'inline-block', textAlign: 'center' }}>
+        <div style={{ width: '160px', height: '60px', borderBottom: '1px solid #000', marginBottom: '4px' }}></div>
+        <p style={{ fontWeight: 'bold', fontSize: '12px', margin: 0 }}>{name || '________________'}</p>
+        <p style={{ fontSize: '11px', margin: 0 }}>{title || ''}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   UNIVERSAL INLINE FILE UPLOADER
+   ============================================================ */
+function FileUploader({ sectionId, onToast }) {
+  const [files, setFiles] = useState([]);
+  const [dragOver, setDragOver] = useState(false);
+  const [lightbox, setLightbox] = useState(null);
+  const inputRef = useRef(null);
+
+  function handleFiles(fileList) {
+    const arr = Array.from(fileList);
+    let loaded = 0;
+    arr.forEach(file => {
+      if (file.size > 10 * 1024 * 1024) { onToast({ type: 'error', msg: file.name + ' melebihi 10MB.' }); return; }
+      const reader = new FileReader();
+      reader.onload = ev => {
+        setFiles(prev => [...prev, { id: 'f' + Date.now() + Math.random().toString(36).slice(2), name: file.name, type: file.type, size: file.size, base64: ev.target.result, isImage: file.type.startsWith('image/') }]);
+        loaded++;
+        if (loaded === arr.length) onToast({ type: 'success', msg: arr.length + ' fail dimuat naik sebagai Base64.' });
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  function deleteFile(id) { setFiles(files.filter(f => f.id !== id)); onToast({ type: 'success', msg: 'Fail dipadam.' }); }
+  function openFile(file) { const w = window.open(file.base64, '_blank'); if (!w) onToast({ type: 'error', msg: 'Sekatan pop-up aktif. Sila benarkan pop-up.' }); }
+  function getFileMeta(file) {
+    const n = file.name.toLowerCase();
+    if (file.isImage) return { icon: 'image', color: 'text-blue-600', bg: 'bg-blue-100', label: 'IMG' };
+    if (n.endsWith('.pdf')) return { icon: 'file-text', color: 'text-rose-600', bg: 'bg-rose-100', label: 'PDF' };
+    if (n.endsWith('.doc') || n.endsWith('.docx')) return { icon: 'file-text', color: 'text-blue-600', bg: 'bg-blue-100', label: 'DOC' };
+    if (n.endsWith('.xls') || n.endsWith('.xlsx')) return { icon: 'file-spreadsheet', color: 'text-emerald-600', bg: 'bg-emerald-100', label: 'XLS' };
+    if (n.endsWith('.ppt') || n.endsWith('.pptx')) return { icon: 'presentation', color: 'text-amber-600', bg: 'bg-amber-100', label: 'PPT' };
+    return { icon: 'file', color: 'text-slate-600', bg: 'bg-slate-100', label: 'FILE' };
+  }
+  function fmtSize(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b / 1024).toFixed(1) + ' KB'; return (b / 1048576).toFixed(1) + ' MB'; }
+
+  return (
+    <div className="mt-4 border-t border-slate-100 pt-4">
+      <p className="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-1.5"><Icon name="paperclip" size={15} /> Fail Lampiran</p>
+      <div className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${dragOver ? 'border-blue-500 bg-blue-50' : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50'}`} onClick={() => inputRef.current?.click()} onDragOver={e => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={e => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); }}>
+        <input ref={inputRef} type="file" multiple className="hidden" onChange={e => { if (e.target.files.length) handleFiles(e.target.files); e.target.value = ''; }} />
+        <Icon name="upload-cloud" size={28} className="mx-auto mb-2 text-slate-400" />
+        <p className="text-sm text-slate-500 font-medium">Seret fail ke sini atau klik untuk muat naik</p>
+        <p className="text-xs text-slate-400 mt-1">Gambar, PDF, Word, Excel, PowerPoint (max 10MB)</p>
+      </div>
+      {files.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
+          {files.map(f => {
+            const fm = getFileMeta(f);
+            return (
+              <div key={f.id} className="border border-slate-200 rounded-xl p-3 hover:shadow-md transition-shadow">
+                {f.isImage ? (
+                  <div className="cursor-pointer" onClick={() => setLightbox(f)}><img src={f.base64} alt={f.name} className="w-full h-24 object-cover rounded-lg mb-2" /></div>
+                ) : (
+                  <div className={`w-full h-24 ${fm.bg} rounded-lg mb-2 flex flex-col items-center justify-center`}><Icon name={fm.icon} size={28} className={fm.color} /><span className={`text-xs font-bold mt-1 ${fm.color}`}>{fm.label}</span></div>
+                )}
+                <p className="text-xs font-medium text-slate-700 truncate" title={f.name}>{f.name}</p>
+                <p className="text-xs text-slate-400">{fmtSize(f.size)}</p>
+                <div className="flex gap-1 mt-2">
+                  <button onClick={() => openFile(f)} className="flex-1 text-xs py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium flex items-center justify-center gap-1"><Icon name="external-link" size={12} /> Buka</button>
+                  <button onClick={() => deleteFile(f.id)} className="flex-1 text-xs py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 font-medium flex items-center justify-center gap-1"><Icon name="trash-2" size={12} /> Padam</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {lightbox && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" onClick={() => setLightbox(null)}>
+          <div className="relative max-w-4xl max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setLightbox(null)} className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-600 hover:text-slate-900 z-10"><Icon name="x" size={18} /></button>
+            <img src={lightbox.base64} alt={lightbox.name} className="max-w-full max-h-[85vh] rounded-xl shadow-2xl" />
+            <p className="text-white text-sm text-center mt-2">{lightbox.name}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
    HEADER & NAVIGASI TAB
    ============================================================ */
 const TABS = [
@@ -320,6 +445,7 @@ function TabTadbirUrus({ onToast }) {
   const [orgChart, setOrgChart] = useState(DEFAULT_ORGCHART);
   const [editOrg, setEditOrg] = useState(null);
   const [orgImage, setOrgImage] = useState(null);
+  const minitRef = useRef(null);
   const [minit, setMinit] = useState({
     bil: '1/2026', tarikh: '2026-01-15', masa: '09:30', tempat: 'Bilik Guru Besar',
     pengerusi: 'Tn. Hj. Abdul Rahman bin Hassan', ahli: 'En. Ahmad, Pn. Siti Aminah, Cik Norashikin, En. Mohd Zaki, Pn. Faridah',
@@ -376,6 +502,7 @@ function TabTadbirUrus({ onToast }) {
             <img src={orgImage} alt="Carta Organisasi" className="max-w-full rounded-xl border border-slate-200 shadow-sm" />
           </div>
         )}
+        <FileUploader sectionId="tadbir_carta_organisasi" onToast={onToast} />
       </Card>
 
       {/* Sub-Tajuk 2: Penjana Surat Pelantikan */}
@@ -395,6 +522,30 @@ function TabTadbirUrus({ onToast }) {
         <Field label="Agenda"><Textarea rows={3} value={minit.agenda} onChange={e => setMinit({...minit, agenda: e.target.value})} /></Field>
         <div className="mt-3"><Field label="Maklum Balas & Perbincangan"><Textarea rows={4} value={minit.maklumBalas} onChange={e => setMinit({...minit, maklumBalas: e.target.value})} /></Field></div>
         <div className="mt-3"><Field label="Keputusan Mesyuarat"><Textarea rows={4} value={minit.keputusan} onChange={e => setMinit({...minit, keputusan: e.target.value})} /></Field></div>
+        <div className="flex justify-end mt-4">
+          <Btn variant="green" onClick={() => generatePDF(minitRef.current, `Minit_Mesyuarat_JPKS_Bil_${minit.bil.replace(/\//g,'_')}.pdf`, onToast, 'PDF minit mesyuarat dijana.')}><Icon name="download" size={16} /> Simpan PDF</Btn>
+        </div>
+        {/* Preview Minit untuk PDF */}
+        <div ref={minitRef} className="bg-white border border-slate-200 rounded-xl p-8 mt-4" style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#000' }}>
+          <PrintLetterhead sekolah="SK SELAMA (K)" />
+          <h3 style={{ textAlign: 'center', fontWeight: 'bold', textDecoration: 'underline', fontSize: '14px', margin: '0 0 8px' }}>MINIT MESYUARAT JAWATANKUASA PENDIDIKAN INKLUSIF (JPKS)</h3>
+          <p style={{ textAlign: 'center', fontSize: '12px', marginBottom: '16px' }}>Bil. {minit.bil}</p>
+          <table style={{ width: '100%', fontSize: '12px', marginBottom: '16px' }}><tbody>
+            <tr><td style={{ fontWeight: 'bold', width: '120px', verticalAlign: 'top' }}>Tarikh</td><td style={{ verticalAlign: 'top' }}>: {formatDate(minit.tarikh)}</td></tr>
+            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Masa</td><td style={{ verticalAlign: 'top' }}>: {minit.masa}</td></tr>
+            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Tempat</td><td style={{ verticalAlign: 'top' }}>: {minit.tempat}</td></tr>
+            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Pengerusi</td><td style={{ verticalAlign: 'top' }}>: {minit.pengerusi}</td></tr>
+            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Kehadiran</td><td style={{ verticalAlign: 'top' }}>: {minit.ahli}</td></tr>
+          </tbody></table>
+          <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}>Agenda:</p>
+          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', margin: '0 0 16px', fontFamily: 'Arial, Helvetica, sans-serif' }}>{minit.agenda}</pre>
+          <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}>Maklum Balas &amp; Perbincangan:</p>
+          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', margin: '0 0 16px', fontFamily: 'Arial, Helvetica, sans-serif' }}>{minit.maklumBalas}</pre>
+          <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}>Keputusan Mesyuarat:</p>
+          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', margin: '0 0 16px', fontFamily: 'Arial, Helvetica, sans-serif' }}>{minit.keputusan}</pre>
+          <PrintSignature name={minit.pengerusi} title="Guru Besar / Pengerusi JPKS" />
+        </div>
+        <FileUploader sectionId="tadbir_minit_mesyuarat" onToast={onToast} />
       </Card>
 
       {/* Sub-Tajuk 4: Dasar & Rujukan */}
@@ -416,6 +567,7 @@ function TabTadbirUrus({ onToast }) {
             <p className="text-xs text-slate-500">Rujukan rasmi: Surat Pekeliling Indera Negeri Bil. 1/2026, Kementerian Pendidikan Malaysia.</p>
           </div>
         </div>
+        <FileUploader sectionId="tadbir_dasar_rujukan" onToast={onToast} />
       </Card>
 
       {/* Modal Edit Carta Organisasi */}
@@ -444,11 +596,9 @@ function TabTadbirUrus({ onToast }) {
 function SuratPelantikan({ onToast }) {
   const [form, setForm] = useState({ nama: '', jawatan: '', tarikh: '', sekolah: 'SK Selama (K)', guruBesar: 'Tn. Hj. Abdul Rahman bin Hassan' });
   const suratRef = useRef(null);
-  function generatePDF() {
+  function handleSuratPDF() {
     if (!form.nama || !form.jawatan) { onToast({ type: 'error', msg: 'Sila isi nama dan jawatan dahulu.' }); return; }
-    const opt = { margin: 10, filename: `Surat_Pelantikan_${form.nama.replace(/\s/g,'_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-    window.html2pdf().set(opt).from(suratRef.current).save();
-    onToast({ type: 'success', msg: 'PDF surat pelantikan dijana.' });
+    generatePDF(suratRef.current, `Surat_Pelantikan_${form.nama.replace(/\s/g,'_')}.pdf`, onToast, 'PDF surat pelantikan dijana.');
   }
   return (
     <Card className="p-6">
@@ -460,17 +610,18 @@ function SuratPelantikan({ onToast }) {
         <Field label="Guru Besar"><Input value={form.guruBesar} onChange={e => setForm({...form, guruBesar: e.target.value})} /></Field>
       </div>
       <div className="flex justify-end mb-4">
-        <Btn variant="green" onClick={generatePDF}><Icon name="download" size={16} /> Simpan PDF</Btn>
+        <Btn variant="green" onClick={handleSuratPDF}><Icon name="download" size={16} /> Simpan PDF</Btn>
       </div>
       {/* Preview Surat */}
-      <div ref={suratRef} className="bg-white border border-slate-200 rounded-xl p-8 text-slate-900" style={{ fontFamily: 'Times New Roman, serif' }}>
-        <div className="text-center border-b-2 border-slate-800 pb-3 mb-6">
-          <div className="flex items-center justify-center gap-3 mb-1">
-            <span className="text-3xl">🎓</span>
+      <div ref={suratRef} className="bg-white border border-slate-200 rounded-xl p-8 text-slate-900" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+        <div style={{ textAlign: 'center', borderBottom: '3px solid #000', paddingBottom: '8px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '28px' }}>🎓</span>
             <div>
-              <h2 className="text-lg font-bold uppercase">{form.sekolah}</h2>
-              <p className="text-xs">Kementerian Pendidikan Malaysia</p>
-              <p className="text-xs">Negeri Perak Darul Ridzuan</p>
+              <h2 style={{ fontSize: '16px', fontWeight: 'bold', textTransform: 'uppercase', margin: 0 }}>{form.sekolah}</h2>
+              <p style={{ fontSize: '11px', margin: '2px 0' }}>Kementerian Pendidikan Malaysia</p>
+              <p style={{ fontSize: '11px', margin: '2px 0' }}>Jabatan Pendidikan Negeri Perak Darul Ridzuan</p>
+              <p style={{ fontSize: '11px', margin: '2px 0' }}>Pejabat Pendidikan Daerah Selama</p>
             </div>
           </div>
         </div>
@@ -492,15 +643,16 @@ function SuratPelantikan({ onToast }) {
           <p>Jawatankuasa ini berkuat kuasa mulai tarikh pelantikan sehingga 31 Disember 2026. Ahli jawatankuasa dikehendaki melaksanakan tugas dan tanggungjawab seperti yang termaktub dalam Pekeliling SPI Bil. 1/2026.</p>
           <p>Kerjasama dan komitmen anda dalam menjayakan Program Pendidikan Inklusif amat dihargai dan dijangka.</p>
         </div>
-        <div className="mt-10 text-right">
-          <p className="text-sm mb-1">Saya yang menurut perintah,</p>
-          <div className="inline-block text-center">
-            <div className="w-40 h-20 border-b border-slate-400 mb-1"></div>
-            <p className="font-bold text-sm">{form.guruBesar}</p>
-            <p className="text-xs">Guru Besar {form.sekolah}</p>
+        <div style={{ textAlign: 'right', marginTop: '40px' }}>
+          <p style={{ fontSize: '12px', marginBottom: '4px' }}>Saya yang menurut perintah,</p>
+          <div style={{ display: 'inline-block', textAlign: 'center' }}>
+            <div style={{ width: '160px', height: '60px', borderBottom: '1px solid #000', marginBottom: '4px' }}></div>
+            <p style={{ fontWeight: 'bold', fontSize: '12px', margin: 0 }}>{form.guruBesar}</p>
+            <p style={{ fontSize: '11px', margin: 0 }}>Guru Besar {form.sekolah}</p>
           </div>
         </div>
       </div>
+      <FileUploader sectionId="tadbir_surat_pelantikan" onToast={onToast} />
     </Card>
   );
 }
@@ -513,6 +665,9 @@ function TabSumberManusia({ onToast }) {
   const [editing, setEditing] = useState(null);
   const [schedule, setSchedule] = useState(DEFAULT_SCHEDULE);
   const [editSlot, setEditSlot] = useState(null);
+  const scheduleRef = useRef(null);
+  const ldpRef = useRef(null);
+  const [ldp, setLdp] = useState({ nama: '', tarikh: '', tajuk: '', pencerap: '', objektif: '', catatan: '', tindakan: '' });
 
   function saveTeacher(t) {
     if (t.id) {
@@ -571,6 +726,7 @@ function TabSumberManusia({ onToast }) {
             </tbody>
           </table>
         </div>
+        <FileUploader sectionId="sumber_profil_guru" onToast={onToast} />
       </Card>
 
       {/* Sub-Tajuk 2: Jadual Waktu Bimbingan Anjal */}
@@ -604,6 +760,29 @@ function TabSumberManusia({ onToast }) {
             </tbody>
           </table>
         </div>
+        <div className="flex justify-end mt-4">
+          <Btn variant="green" onClick={() => generatePDF(scheduleRef.current, 'Jadual_Waktu_Bimbingan_Anjal_2026.pdf', onToast, 'PDF jadual waktu dijana.')}><Icon name="download" size={16} /> Simpan PDF</Btn>
+        </div>
+        {/* Preview Jadual untuk PDF */}
+        <div ref={scheduleRef} className="bg-white border border-slate-200 rounded-xl p-8 mt-4" style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#000' }}>
+          <PrintLetterhead sekolah="SK SELAMA (K)" />
+          <h3 style={{ textAlign: 'center', fontWeight: 'bold', textDecoration: 'underline', fontSize: '14px', margin: '0 0 16px' }}>JADUAL WAKTU BIMBINGAN ANJAL PPKI 2026</h3>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+            <thead><tr>
+              <th style={{ border: '1px solid #000', padding: '4px', background: '#e0e0e0', fontWeight: 'bold' }}>MASA</th>
+              {DAYS.map(d => <th key={d} style={{ border: '1px solid #000', padding: '4px', background: '#e0e0e0', fontWeight: 'bold' }}>{d}</th>)}
+            </tr></thead>
+            <tbody>
+              {TIME_SLOTS.map(time => (
+                <tr key={time}>
+                  <td style={{ border: '1px solid #000', padding: '4px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{time}</td>
+                  {DAYS.map(day => <td key={day} style={{ border: '1px solid #000', padding: '4px', textAlign: 'center' }}>{schedule[day]?.[time] || '-'}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <FileUploader sectionId="sumber_jadual_waktu" onToast={onToast} />
       </Card>
 
       {/* Sub-Tajuk 3: Laporan LDP & Pencerapan PdP */}
@@ -611,16 +790,38 @@ function TabSumberManusia({ onToast }) {
         <SectionTitle icon="clipboard-list" title="Laporan LDP & Pencerapan PdP" desc="Draf laporan aktiviti latihan dalam perkhidmatan KPM" />
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Nama Guru"><Input placeholder="Cth: En. Ahmad bin Isa" /></Field>
-            <Field label="Tarikh Pencerapan"><Input type="date" /></Field>
-            <Field label="Tajuk LDP"><Input placeholder="Cth: Pedagogi Inklusif Berbeza" /></Field>
-            <Field label="Pencerap"><Input placeholder="Cth: Penyelaras PPKI" /></Field>
+            <Field label="Nama Guru"><Input value={ldp.nama} onChange={e => setLdp({...ldp, nama: e.target.value})} placeholder="Cth: En. Ahmad bin Isa" /></Field>
+            <Field label="Tarikh Pencerapan"><Input type="date" value={ldp.tarikh} onChange={e => setLdp({...ldp, tarikh: e.target.value})} /></Field>
+            <Field label="Tajuk LDP"><Input value={ldp.tajuk} onChange={e => setLdp({...ldp, tajuk: e.target.value})} placeholder="Cth: Pedagogi Inklusif Berbeza" /></Field>
+            <Field label="Pencerap"><Input value={ldp.pencerap} onChange={e => setLdp({...ldp, pencerap: e.target.value})} placeholder="Cth: Penyelaras PPKI" /></Field>
           </div>
-          <Field label="Objektif Pencerapan"><Textarea rows={2} placeholder="Menilai pelaksanaan PdP mesra inklusif..." /></Field>
-          <Field label="Catatan Pencerapan"><Textarea rows={4} placeholder="Kelebihan, kekurangan dan cadangan penambahbaikan..." /></Field>
-          <Field label="Cadangan Tindakan Susulan"><Textarea rows={3} placeholder="Program pemerkasaan, bimbingan, kursus..." /></Field>
-          <div className="flex justify-end"><Btn variant="blue"><Icon name="save" size={16} /> Simpan Laporan</Btn></div>
+          <Field label="Objektif Pencerapan"><Textarea rows={2} value={ldp.objektif} onChange={e => setLdp({...ldp, objektif: e.target.value})} placeholder="Menilai pelaksanaan PdP mesra inklusif..." /></Field>
+          <Field label="Catatan Pencerapan"><Textarea rows={4} value={ldp.catatan} onChange={e => setLdp({...ldp, catatan: e.target.value})} placeholder="Kelebihan, kekurangan dan cadangan penambahbaikan..." /></Field>
+          <Field label="Cadangan Tindakan Susulan"><Textarea rows={3} value={ldp.tindakan} onChange={e => setLdp({...ldp, tindakan: e.target.value})} placeholder="Program pemerkasaan, bimbingan, kursus..." /></Field>
+          <div className="flex justify-end gap-2">
+            <Btn variant="blue"><Icon name="save" size={16} /> Simpan Laporan</Btn>
+            <Btn variant="green" onClick={() => generatePDF(ldpRef.current, `Laporan_LDP_${(ldp.nama || 'JPKS').replace(/\s/g,'_')}.pdf`, onToast, 'PDF laporan LDP dijana.')}><Icon name="download" size={16} /> Simpan PDF</Btn>
+          </div>
         </div>
+        {/* Preview Laporan untuk PDF */}
+        <div ref={ldpRef} className="bg-white border border-slate-200 rounded-xl p-8 mt-4" style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#000' }}>
+          <PrintLetterhead sekolah="SK SELAMA (K)" />
+          <h3 style={{ textAlign: 'center', fontWeight: 'bold', textDecoration: 'underline', fontSize: '14px', margin: '0 0 16px' }}>LAPORAN LATIHAN DALAM PERKHIDMATAN &amp; PENCERAPAN PdP</h3>
+          <table style={{ width: '100%', fontSize: '12px', marginBottom: '16px' }}><tbody>
+            <tr><td style={{ fontWeight: 'bold', width: '120px', verticalAlign: 'top' }}>Nama Guru</td><td style={{ verticalAlign: 'top' }}>: {ldp.nama || '________________'}</td></tr>
+            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Tarikh</td><td style={{ verticalAlign: 'top' }}>: {formatDate(ldp.tarikh)}</td></tr>
+            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Tajuk LDP</td><td style={{ verticalAlign: 'top' }}>: {ldp.tajuk || '________________'}</td></tr>
+            <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Pencerap</td><td style={{ verticalAlign: 'top' }}>: {ldp.pencerap || '________________'}</td></tr>
+          </tbody></table>
+          <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}>Objektif Pencerapan:</p>
+          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', margin: '0 0 12px', fontFamily: 'Arial, Helvetica, sans-serif' }}>{ldp.objektif || '________________'}</pre>
+          <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}>Catatan Pencerapan:</p>
+          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', margin: '0 0 12px', fontFamily: 'Arial, Helvetica, sans-serif' }}>{ldp.catatan || '________________'}</pre>
+          <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '4px' }}>Cadangan Tindakan Susulan:</p>
+          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap', margin: '0 0 16px', fontFamily: 'Arial, Helvetica, sans-serif' }}>{ldp.tindakan || '________________'}</pre>
+          <PrintSignature name={ldp.pencerap} title="Pencerap / Penyelaras PPKI" />
+        </div>
+        <FileUploader sectionId="sumber_laporan_ldp" onToast={onToast} />
       </Card>
 
       {/* Modal Edit Guru */}
@@ -664,6 +865,293 @@ function TabSumberManusia({ onToast }) {
 /* ============================================================
    TAB 3: PROFIL MBK, SARINGAN & MINDA AI
    ============================================================ */
+/* ============================================================
+   INSTRUMEN SARINGAN KESEDIAAN INKLUSIF SEPARA (SSKI-IS)
+   25 Item Rasmi Buku Panduan PPKI KPM — 5 Domain
+   ============================================================ */
+const SSKI_IS_ITEMS = [
+  { domain: 'Kognitif & Pembelajaran', icon: 'brain', items: [
+    { code: 'D1.1', text: 'Murid boleh memahami dan mematuhi arahan mudah guru (arahan 1 hingga 2 langkah).' },
+    { code: 'D1.2', text: 'Murid mempunyai keupayaan membaca suku kata terbuka dan tertutup / membaca perkataan mudah.' },
+    { code: 'D1.3', text: 'Murid boleh menyalin nota dari papan putih ke dalam buku tulis secara teratur.' },
+    { code: 'D1.4', text: 'Murid mampu menumpukan perhatian kepada tugasan/aktiviti PdP selama sekurang-kurangnya 15-20 minit.' },
+    { code: 'D1.5', text: 'Murid menunjukkan minat dan kesediaan asas untuk belajar dalam kelompok bilik darjah biasa.' },
+  ]},
+  { domain: 'Bahasa & Komunikasi', icon: 'message-square', items: [
+    { code: 'D2.1', text: 'Murid boleh bertutur secara lisan menggunakan ayat mudah untuk menyampaikan kehendak diri.' },
+    { code: 'D2.2', text: 'Murid berupaya menjawab soalan mudah yang ditanyakan oleh guru atau rakan sebaya.' },
+    { code: 'D2.3', text: 'Murid boleh menggunakan isyarat badan, kad visual atau kaedah alternatif (BIM) jika bermasalah pendengaran/pertuturan.' },
+    { code: 'D2.4', text: 'Murid boleh mendengar dengan baik dan bertindak balas secara positif terhadap panggilan nama diri.' },
+    { code: 'D2.5', text: 'Murid boleh menyatakan persetujuan (\"Ya\") atau penolakan (\"Tidak\") secara lisan atau bahasa isyarat yang jelas.' },
+  ]},
+  { domain: 'Sosioemosi & Interaksi', icon: 'heart', items: [
+    { code: 'D3.1', text: 'Murid menunjukkan emosi yang stabil dan tidak mudah menangis atau marah tanpa sebab yang munasabah.' },
+    { code: 'D3.2', text: 'Murid boleh bertoleransi, berkongsi alatan, dan bekerjasama dalam aktiviti berkumpulan.' },
+    { code: 'D3.3', text: 'Murid menunjukkan rasa hormat terhadap guru dan rakan dengan memberi salam atau ucapan terima kasih.' },
+    { code: 'D3.4', text: 'Murid mempunyai keyakinan diri yang munasabah semasa berada di persekitaran yang asing.' },
+    { code: 'D3.5', text: 'Murid bertindak balas secara mesra dan berupaya membentuk interaksi sosial asas dengan rakan arus perdana.' },
+  ]},
+  { domain: 'Pengurusan Tingkah Laku', icon: 'shield-check', items: [
+    { code: 'D4.1', text: 'Murid tidak menunjukkan tingkah laku agresif yang membahayakan diri sendiri atau rakan lain.' },
+    { code: 'D4.2', text: 'Murid boleh mengawal emosi/tantrum sekiranya berlaku perubahan rutin atau kegagalan tugasan.' },
+    { code: 'D4.3', text: 'Murid mematuhi peraturan bilik darjah biasa (duduk di kerusi, beratur, menjaga ketenteraman).' },
+    { code: 'D4.4', text: 'Murid boleh mengurus kebersihan diri dan ke tandas secara berdikari tanpa perlu dipimpin sepanjang masa.' },
+    { code: 'D4.5', text: 'Murid bertindak balas secara patuh terhadap isyarat arahan menghentikan tingkah laku yang kurang sesuai.' },
+  ]},
+  { domain: 'Psikomotor & Mobiliti', icon: 'activity', items: [
+    { code: 'D5.1', text: 'Murid mempunyai koordinasi motor halus yang baik untuk memegang pensel, menulis, dan menggunting.' },
+    { code: 'D5.2', text: 'Murid mempunyai kekuatan fizikal untuk membawa beg sekolah dan alatan pembelajaran sendiri.' },
+    { code: 'D5.3', text: 'Murid mampu bergerak (berjalan/mobiliti) dari kelas PPKI ke kelas arus perdana secara berdikari/selamat.' },
+    { code: 'D5.4', text: 'Murid berupaya menyertai aktiviti psikomotor kasar (berlari, melompat, menangkap bola) di kelas Pendidikan Jasmani.' },
+    { code: 'D5.5', text: 'Murid menunjukkan koordinasi fizikal dan kestabilan tubuh yang baik semasa menjalankan aktiviti fizikal.' },
+  ]},
+];
+
+function SaringanSSKI({ onToast, students }) {
+  const [selectedStudent, setSelectedStudent] = useState('');
+  const [responses, setResponses] = useState({});
+  const [showBorang, setShowBorang] = useState(null);
+  const borangRef = useRef(null);
+  const [borangData, setBorangData] = useState({ namaIbuBapa: '', kadPengenalan: '', alamat: '', tarikh: '', tandaTangan: '' });
+  const [rpiItems, setRpiItems] = useState([]);
+
+  const allItems = useMemo(() => SSKI_IS_ITEMS.flatMap(d => d.items.map(i => ({ ...i, domain: d.domain }))), []);
+  const yaCount = useMemo(() => allItems.filter(i => responses[i.code] === 'YA').length, [responses, allItems]);
+  const answeredCount = useMemo(() => allItems.filter(i => responses[i.code]).length, [responses, allItems]);
+  const percentage = useMemo(() => Math.round((yaCount / 25) * 100), [yaCount]);
+  const isComplete = answeredCount === 25;
+
+  const qualification = useMemo(() => {
+    if (!isComplete) return null;
+    if (percentage >= 70) return { label: 'Layak Inklusif Akademik', color: 'green', desc: 'Murid layak mengikuti program inklusif separa untuk subjek akademik di kelas arus perdana.', borang: 'akuan' };
+    if (percentage >= 50) return { label: 'Layak Inklusif Bukan Akademik', color: 'amber', desc: 'Murid layak inklusif separa untuk subjek bukan akademik (Pendidikan Seni, Jasmani, Muzik) dengan sokongan rakan pendamping (Buddy System) atau PPM.', borang: null };
+    return { label: 'Belum Bersedia (Kekal di PPKI)', color: 'rose', desc: 'Murid belum bersedia untuk inklusif. Kekal di program PPKI untuk intervensen lanjutan.', borang: 'rpi' };
+  }, [percentage, isComplete]);
+
+  function setResponse(code, val) {
+    setResponses(prev => ({ ...prev, [code]: val }));
+    setShowBorang(null);
+  }
+  function resetSaringan() {
+    setResponses({});
+    setShowBorang(null);
+    setBorangData({ namaIbuBapa: '', kadPengenalan: '', alamat: '', tarikh: '', tandaTangan: '' });
+    setRpiItems([]);
+  }
+  function generateBorang() {
+    if (qualification?.borang === 'rpi') {
+      const tidaks = allItems.filter(i => responses[i.code] === 'TIDAK');
+      setRpiItems(tidaks);
+    }
+    setShowBorang(qualification.borang);
+  }
+  function saveBorangPDF() {
+    const studentName = students.find(s => s.id === selectedStudent)?.nama || 'Murid';
+    if (showBorang === 'akuan') {
+      generatePDF(borangRef.current, `Borang_Akuan_Persetujuan_Ibu_Bapa_${studentName.replace(/\s/g,'_')}.pdf`, onToast, 'PDF Borang Akuan Persetujuan Ibu Bapa dijana.');
+    } else {
+      generatePDF(borangRef.current, `Borang_RPI_${studentName.replace(/\s/g,'_')}.pdf`, onToast, 'PDF Borang Cadangan Pelan Intervensi (RPI) dijana.');
+    }
+  }
+  const student = students.find(s => s.id === selectedStudent);
+
+  return (
+    <Card className="p-6">
+      <SectionTitle icon="clipboard-check" title="Instrumen Saringan Kesediaan Inklusif Separa (SSKI-IS)" desc="25 item rasmi Buku Panduan PPKI KPM — 5 Domain Utama" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Field label="Pilih Murid untuk Saringan">
+          <Select value={selectedStudent} onChange={e => { setSelectedStudent(e.target.value); resetSaringan(); }}>
+            <option value="">-- Pilih Murid --</option>
+            {students.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
+          </Select>
+        </Field>
+        <div className="md:col-span-2 flex items-end gap-3">
+          {student && <div className="text-sm text-slate-600 bg-slate-50 rounded-xl px-4 py-2 flex-1"><span className="font-semibold">Murid:</span> {student.nama} | <span className="font-semibold">Kelas:</span> {student.kelas} | <span className="font-semibold">Diagnosis:</span> {student.diagnosis}</div>}
+        </div>
+      </div>
+
+      {selectedStudent && (
+        <>
+          {/* Progress Bar */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-sm font-semibold text-slate-600">Kemajuan Saringan: {answeredCount}/25 item</span>
+              {isComplete && <span className="text-sm font-bold text-blue-700">Selesai!</span>}
+            </div>
+            <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+              <div className="h-full bg-blue-600 rounded-full transition-all duration-300" style={{ width: `${(answeredCount / 25) * 100}%` }} />
+            </div>
+          </div>
+
+          {/* 5 Domain Checklist */}
+          <div className="space-y-5">
+            {SSKI_IS_ITEMS.map((dom, di) => (
+              <div key={di} className="border border-slate-200 rounded-2xl overflow-hidden">
+                <div className="bg-slate-50 px-4 py-3 flex items-center gap-2 border-b border-slate-200">
+                  <Icon name={dom.icon} size={18} className="text-blue-600" />
+                  <h4 className="font-bold text-slate-800 text-sm">{dom.domain}</h4>
+                  <span className="ml-auto text-xs text-slate-400">5 item</span>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {dom.items.map((item, ii) => {
+                    const val = responses[item.code];
+                    return (
+                      <div key={ii} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50/50 transition-colors">
+                        <div className="flex-shrink-0 w-12">
+                          <Badge color="slate">{item.code}</Badge>
+                        </div>
+                        <p className="flex-1 text-sm text-slate-700">{item.text}</p>
+                        <div className="flex gap-1.5 flex-shrink-0">
+                          <button onClick={() => setResponse(item.code, 'YA')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border-b-2 active:border-b-0 active:translate-y-0.5 ${val === 'YA' ? 'bg-emerald-600 text-white border-emerald-800' : 'bg-white text-slate-500 border-slate-300 hover:bg-emerald-50'}`}>YA</button>
+                          <button onClick={() => setResponse(item.code, 'TIDAK')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border-b-2 active:border-b-0 active:translate-y-0.5 ${val === 'TIDAK' ? 'bg-rose-600 text-white border-rose-800' : 'bg-white text-slate-500 border-slate-300 hover:bg-rose-50'}`}>TIDAK</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Hasil Saringan & Kelayakan */}
+          {isComplete && (
+            <div className="mt-6 slide-up">
+              <div className={`rounded-2xl border-2 p-5 ${qualification.color === 'green' ? 'border-emerald-200 bg-emerald-50' : qualification.color === 'amber' ? 'border-amber-200 bg-amber-50' : 'border-rose-200 bg-rose-50'}`}>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-600 mb-1">Keputusan Saringan SSKI-IS</p>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-3xl font-extrabold ${qualification.color === 'green' ? 'text-emerald-700' : qualification.color === 'amber' ? 'text-amber-700' : 'text-rose-700'}`}>{percentage}%</span>
+                      <span className="text-sm text-slate-500">({yaCount} YA / {25 - yaCount} TIDAK)</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge color={qualification.color}>{qualification.label}</Badge>
+                    <p className="text-xs text-slate-500 mt-1 max-w-xs">{qualification.desc}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4 flex-wrap">
+                  <Btn variant="white" onClick={resetSaringan}><Icon name="rotate-ccw" size={16} /> Reset Saringan</Btn>
+                  {qualification.borang && (
+                    <Btn variant="green" onClick={generateBorang}>
+                      <Icon name="file-text" size={16} />
+                      {qualification.borang === 'akuan' ? 'Buka Borang Akuan Persetujuan Ibu Bapa' : 'Buka Borang Cadangan RPI'}
+                    </Btn>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Borang Akuan Persetujuan Ibu Bapa (>= 70%) */}
+          {showBorang === 'akuan' && (
+            <div className="mt-6 slide-up">
+              <div className="flex items-center gap-2 mb-3"><Icon name="file-signature" size={18} className="text-emerald-600" /><h4 className="font-bold text-slate-800">Borang Akuan Persetujuan Ibu Bapa / Penjaga</h4></div>
+              <p className="text-xs text-slate-500 mb-4">Lampiran Buku Panduan PPKI KPM 2015 — Sila lengkapkan maklumat dan simpan sebagai PDF.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <Field label="Nama Ibu Bapa / Penjaga"><Input value={borangData.namaIbuBapa} onChange={e => setBorangData({...borangData, namaIbuBapa: e.target.value})} /></Field>
+                <Field label="No. Kad Pengenalan"><Input value={borangData.kadPengenalan} onChange={e => setBorangData({...borangData, kadPengenalan: e.target.value})} /></Field>
+                <Field label="Alamat"><Input value={borangData.alamat} onChange={e => setBorangData({...borangData, alamat: e.target.value})} /></Field>
+                <Field label="Tarikh"><Input type="date" value={borangData.tarikh} onChange={e => setBorangData({...borangData, tarikh: e.target.value})} /></Field>
+              </div>
+              <div className="flex justify-end mb-4"><Btn variant="green" onClick={saveBorangPDF}><Icon name="download" size={16} /> Simpan PDF</Btn></div>
+              {/* Preview PDF */}
+              <div ref={borangRef} className="bg-white border border-slate-200 rounded-xl p-8" style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#000' }}>
+                <PrintLetterhead sekolah="SK SELAMA (K)" />
+                <h3 style={{ textAlign: 'center', fontWeight: 'bold', textDecoration: 'underline', fontSize: '14px', margin: '0 0 4px' }}>BORANG AKUAN PERSETUJUAN IBU BAPA / PENJAGA</h3>
+                <p style={{ textAlign: 'center', fontSize: '11px', marginBottom: '16px' }}>PROGRAM PENDIDIKAN INKLUSIF SEPARA (PPKI) — Lampiran Buku Panduan PPKI KPM 2015</p>
+                <table style={{ width: '100%', fontSize: '12px', marginBottom: '16px' }}><tbody>
+                  <tr><td style={{ fontWeight: 'bold', width: '140px', verticalAlign: 'top' }}>Nama Murid</td><td style={{ verticalAlign: 'top' }}>: {student?.nama || '________________'}</td></tr>
+                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>No. MyKid</td><td style={{ verticalAlign: 'top' }}>: {student?.mykid || '________________'}</td></tr>
+                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Kelas</td><td style={{ verticalAlign: 'top' }}>: {student?.kelas || '________________'}</td></tr>
+                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Diagnosis</td><td style={{ verticalAlign: 'top' }}>: {student?.diagnosis || '________________'}</td></tr>
+                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Skor Saringan</td><td style={{ verticalAlign: 'top' }}>: {percentage}% ({yaCount}/25 YA) — Layak Inklusif Akademik</td></tr>
+                </tbody></table>
+                <p style={{ fontSize: '12px', lineHeight: '1.6', marginBottom: '12px' }}>Saya nama yang tertera di bawah, selaku ibu bapa / penjaga kepada murid tersebut di atas, dengan ini <b>BERSETUJU</b> dan memberi kebenaran untuk anak jaga saya mengikuti Program Pendidikan Inklusif Separa (PPKI) di Sekolah Kebangsaan Selama (K) bagi sesi persekolahan 2026.</p>
+                <p style={{ fontSize: '12px', lineHeight: '1.6', marginBottom: '12px' }}>Saya faham bahawa anak jaga saya akan ditempatkan di kelas arus perdana untuk subjek akademik tertentu dengan sokongan guru pendamping dan PPM mengikut keperluan.</p>
+                <p style={{ fontSize: '12px', lineHeight: '1.6', marginBottom: '20px' }}>Saya bersetuju untuk bekerjasama dengan pihak sekolah dalam memantau perkembangan dan kemajuan anak jaga saya sepanjang pelaksanaan program ini.</p>
+                <table style={{ width: '100%', fontSize: '12px' }}><tbody>
+                  <tr>
+                    <td style={{ verticalAlign: 'top', width: '50%' }}>
+                      <p style={{ fontWeight: 'bold', marginBottom: '4px' }}>Maklumat Ibu Bapa / Penjaga:</p>
+                      <p>Nama: {borangData.namaIbuBapa || '________________'}</p>
+                      <p>No. KP: {borangData.kadPengenalan || '________________'}</p>
+                      <p>Alamat: {borangData.alamat || '________________'}</p>
+                    </td>
+                    <td style={{ verticalAlign: 'top', width: '50%', textAlign: 'right' }}>
+                      <p style={{ marginBottom: '4px' }}>Tarikh: {formatDate(borangData.tarikh)}</p>
+                      <p style={{ marginBottom: '40px' }}>Tandatangan:</p>
+                      <p style={{ fontWeight: 'bold', borderTop: '1px solid #000', paddingTop: '4px', display: 'inline-block', minWidth: '160px' }}>{borangData.namaIbuBapa || '________________'}</p>
+                      <p style={{ fontSize: '11px' }}>Ibu Bapa / Penjaga</p>
+                    </td>
+                  </tr>
+                </tbody></table>
+                <div style={{ marginTop: '24px', borderTop: '1px solid #000', paddingTop: '8px' }}>
+                  <p style={{ fontSize: '11px', fontWeight: 'bold' }}>Pengesahan Sekolah:</p>
+                  <PrintSignature name="Tn. Hj. Abdul Rahman bin Hassan" title="Guru Besar / Pengerusi JPKS" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Borang Cadangan Pelan Intervensi RPI (< 50%) */}
+          {showBorang === 'rpi' && (
+            <div className="mt-6 slide-up">
+              <div className="flex items-center gap-2 mb-3"><Icon name="file-warning" size={18} className="text-rose-600" /><h4 className="font-bold text-slate-800">Borang Cadangan Pelan Intervensi (RPI)</h4></div>
+              <p className="text-xs text-slate-500 mb-4">Murid belum mencapai tahap kesediaan inklusif. Item bertanda "TIDAK" disenaraikan untuk tindakan guru PPKI.</p>
+              <div className="flex justify-end mb-4"><Btn variant="green" onClick={saveBorangPDF}><Icon name="download" size={16} /> Simpan PDF</Btn></div>
+              {/* Preview PDF */}
+              <div ref={borangRef} className="bg-white border border-slate-200 rounded-xl p-8" style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#000' }}>
+                <PrintLetterhead sekolah="SK SELAMA (K)" />
+                <h3 style={{ textAlign: 'center', fontWeight: 'bold', textDecoration: 'underline', fontSize: '14px', margin: '0 0 4px' }}>BORANG CADANGAN PELAN INTERVENSI (RPI)</h3>
+                <p style={{ textAlign: 'center', fontSize: '11px', marginBottom: '16px' }}>PROGRAM PENDIDIKAN KHAS INTEGRASI (PPKI) — Untuk Murid Belum Bersedia Inklusif</p>
+                <table style={{ width: '100%', fontSize: '12px', marginBottom: '16px' }}><tbody>
+                  <tr><td style={{ fontWeight: 'bold', width: '140px', verticalAlign: 'top' }}>Nama Murid</td><td style={{ verticalAlign: 'top' }}>: {student?.nama || '________________'}</td></tr>
+                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>No. MyKid</td><td style={{ verticalAlign: 'top' }}>: {student?.mykid || '________________'}</td></tr>
+                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Kelas</td><td style={{ verticalAlign: 'top' }}>: {student?.kelas || '________________'}</td></tr>
+                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Diagnosis</td><td style={{ verticalAlign: 'top' }}>: {student?.diagnosis || '________________'}</td></tr>
+                  <tr><td style={{ fontWeight: 'bold', verticalAlign: 'top' }}>Skor Saringan</td><td style={{ verticalAlign: 'top' }}>: {percentage}% ({yaCount}/25 YA) — Belum Bersedia (Kekal di PPKI)</td></tr>
+                </tbody></table>
+                <p style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Item Saringan Bertanda "TIDAK" (Memerlukan Intervensi):</p>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', marginBottom: '16px' }}><thead>
+                  <tr style={{ background: '#f0f0f0' }}>
+                    <th style={{ border: '1px solid #000', padding: '4px', textAlign: 'left', width: '50px' }}>Kod</th>
+                    <th style={{ border: '1px solid #000', padding: '4px', textAlign: 'left' }}>Item Keperluan Intervensi</th>
+                    <th style={{ border: '1px solid #000', padding: '4px', textAlign: 'left', width: '180px' }}>Cadangan Intervensi</th>
+                  </tr>
+                </thead><tbody>
+                  {rpiItems.map((item, idx) => (
+                    <tr key={idx}>
+                      <td style={{ border: '1px solid #000', padding: '4px', fontWeight: 'bold' }}>{item.code}</td>
+                      <td style={{ border: '1px solid #000', padding: '4px' }}>{item.text}</td>
+                      <td style={{ border: '1px solid #000', padding: '4px' }}>________________________</td>
+                    </tr>
+                  ))}
+                </tbody></table>
+                <p style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Pelan Intervensi Keseluruhan:</p>
+                <div style={{ border: '1px solid #000', padding: '8px', minHeight: '60px', fontSize: '12px', marginBottom: '16px' }}>________________________</div>
+                <p style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px' }}>Tarikh Semakan Semula:</p>
+                <div style={{ border: '1px solid #000', padding: '8px', minHeight: '24px', fontSize: '12px', marginBottom: '16px' }}>________________________</div>
+                <PrintSignature name="En. Ahmad bin Isa" title="Penyelaras PPKI / Guru PPKI" />
+              </div>
+            </div>
+          )}
+
+          <FileUploader sectionId="profil_saringan_sski" onToast={onToast} />
+        </>
+      )}
+      {!selectedStudent && (
+        <div className="text-center py-8 text-slate-400">
+          <Icon name="clipboard-check" size={36} className="mx-auto mb-3 opacity-40" />
+          <p className="text-sm">Sila pilih murid untuk memulakan saringan SSKI-IS.</p>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function TabProfilMBK({ onToast }) {
   const [students, setStudents] = useState(DEFAULT_STUDENTS);
   const [editing, setEditing] = useState(null);
@@ -746,6 +1234,7 @@ function TabProfilMBK({ onToast }) {
             </div>
           ))}
         </div>
+        <FileUploader sectionId="profil_pangkalan_murid" onToast={onToast} />
       </Card>
 
       {/* Minda AI */}
@@ -763,7 +1252,11 @@ function TabProfilMBK({ onToast }) {
             </div>
           )}
         </div>
+        <FileUploader sectionId="profil_minda_ai" onToast={onToast} />
       </Card>
+
+      {/* Sub-Tajuk: Instrumen Saringan SSKI-IS */}
+      <SaringanSSKI onToast={onToast} students={students} />
 
       {/* Modal Edit Murid */}
       <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? 'Edit Profil Murid' : 'Tambah Murid Inklusif'} wide>
@@ -802,6 +1295,7 @@ function TabPrestasi({ onToast }) {
   const [prasarana, setPrasarana] = useState(DEFAULT_PRASARANA);
   const [editPras, setEditPras] = useState(null);
   const [swot, setSwot] = useState({ kekuatan: '', kelemahan: '', peluang: '', ancaman: '', tahun: '2026' });
+  const swotRef = useRef(null);
 
   function savePpt(p) {
     if (p.id) { setPpt(ppt.map(x => x.id === p.id ? p : x)); onToast({ type: 'success', msg: 'Keputusan PPT dikemas kini.' }); }
@@ -865,6 +1359,7 @@ function TabPrestasi({ onToast }) {
             </tbody>
           </table>
         </div>
+        <FileUploader sectionId="prestasi_rekod_ppt" onToast={onToast} />
       </Card>
 
       {/* Sub-Tajuk 2: Inventori Prasarana OKU */}
@@ -893,6 +1388,7 @@ function TabPrestasi({ onToast }) {
             </div>
           ))}
         </div>
+        <FileUploader sectionId="prestasi_prasarana" onToast={onToast} />
       </Card>
 
       {/* Sub-Tajuk 3: Analisis SWOT */}
@@ -917,7 +1413,35 @@ function TabPrestasi({ onToast }) {
             <Textarea rows={4} value={swot.ancaman} onChange={e => setSwot({...swot, ancaman: e.target.value})} placeholder="Cth: Pemindahan guru, kekurangan dana, perubahan dasar..." />
           </div>
         </div>
-        <div className="flex justify-end mt-4"><Btn variant="blue" onClick={() => onToast({ type: 'success', msg: 'Analisis SWOT disimpan.' })}><Icon name="save" size={16} /> Simpan SWOT</Btn></div>
+        <div className="flex justify-end mt-4 gap-2">
+          <Btn variant="blue" onClick={() => onToast({ type: 'success', msg: 'Analisis SWOT disimpan.' })}><Icon name="save" size={16} /> Simpan SWOT</Btn>
+          <Btn variant="green" onClick={() => generatePDF(swotRef.current, `Analisis_SWOT_PPI_${swot.tahun}.pdf`, onToast, 'PDF analisis SWOT dijana.')}><Icon name="download" size={16} /> Simpan PDF</Btn>
+        </div>
+        {/* Preview SWOT untuk PDF */}
+        <div ref={swotRef} className="bg-white border border-slate-200 rounded-xl p-8 mt-4" style={{ fontFamily: 'Arial, Helvetica, sans-serif', color: '#000' }}>
+          <PrintLetterhead sekolah="SK SELAMA (K)" />
+          <h3 style={{ textAlign: 'center', fontWeight: 'bold', textDecoration: 'underline', fontSize: '14px', margin: '0 0 16px' }}>ANALISIS SWOT TAHUNAN PROGRAM PENDIDIKAN INKLUSIF {swot.tahun}</h3>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}><tbody>
+            <tr>
+              <td style={{ border: '1px solid #000', padding: '8px', fontWeight: 'bold', background: '#d4edda', width: '50%', textAlign: 'center' }}>KEKUATAN (STRENGTHS)</td>
+              <td style={{ border: '1px solid #000', padding: '8px', fontWeight: 'bold', background: '#f8d7da', width: '50%', textAlign: 'center' }}>KELEMAHAN (WEAKNESSES)</td>
+            </tr>
+            <tr>
+              <td style={{ border: '1px solid #000', padding: '8px', verticalAlign: 'top' }}><pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Arial, Helvetica, sans-serif' }}>{swot.kekuatan || '________________'}</pre></td>
+              <td style={{ border: '1px solid #000', padding: '8px', verticalAlign: 'top' }}><pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Arial, Helvetica, sans-serif' }}>{swot.kelemahan || '________________'}</pre></td>
+            </tr>
+            <tr>
+              <td style={{ border: '1px solid #000', padding: '8px', fontWeight: 'bold', background: '#d1ecf1', textAlign: 'center' }}>PELUANG (OPPORTUNITIES)</td>
+              <td style={{ border: '1px solid #000', padding: '8px', fontWeight: 'bold', background: '#fff3cd', textAlign: 'center' }}>ANCAMAN (THREATS)</td>
+            </tr>
+            <tr>
+              <td style={{ border: '1px solid #000', padding: '8px', verticalAlign: 'top' }}><pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Arial, Helvetica, sans-serif' }}>{swot.peluang || '________________'}</pre></td>
+              <td style={{ border: '1px solid #000', padding: '8px', verticalAlign: 'top' }}><pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'Arial, Helvetica, sans-serif' }}>{swot.ancaman || '________________'}</pre></td>
+            </tr>
+          </tbody></table>
+          <PrintSignature name="Tn. Hj. Abdul Rahman bin Hassan" title="Guru Besar / Pengerusi JPKS" />
+        </div>
+        <FileUploader sectionId="prestasi_swot" onToast={onToast} />
       </Card>
 
       {/* Modal Edit PPT */}
