@@ -1,28 +1,50 @@
 {
-  "name": "SPIB-Pintar PPKI SK Selama (K)",
-  "short_name": "SPIB-Pintar",
-  "description": "Sistem Pengurusan Inklusif Bersepadu Pintar untuk PPKI SK Selama (K)",
+  "name": "JPKS SK Selama (K) — Sistem Pengurusan Inklusif",
+  "short_name": "JPKS SK Selama",
+  "description": "Sistem Pengurusan Program Pendidikan Inklusif SK Selama (K) — Tadbir Urus, Sumber Manusia, Profil MBK, dan Pelaporan.",
   "start_url": "./index.html",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#0f172a",
-  "theme_color": "#059669",
   "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eff6ff",
+  "theme_color": "#2563eb",
   "lang": "ms",
   "dir": "ltr",
-  "categories": ["education", "productivity"],
+  "categories": ["education", "productivity", "utilities"],
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%230f172a'/%3E%3Cpath d='M256 96 L96 176 L96 304 Q96 384 256 448 Q416 384 416 304 L416 176 Z' fill='none' stroke='%2310b981' stroke-width='24' stroke-linejoin='round'/%3E%3Cpath d='M176 256 L232 312 L336 208' fill='none' stroke='%2310b981' stroke-width='28' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ctext x='256' y='160' font-family='Arial,sans-serif' font-size='56' font-weight='bold' fill='%2310b981' text-anchor='middle'%3ESPIB%3C/text%3E%3C/svg%3E",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%232563eb'/%3E%3Cg fill='none' stroke='white' stroke-width='24' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M256 128 L400 192 L256 256 L112 192 Z'/%3E%3Cpath d='M176 224 L176 320 Q256 360 336 320 L336 224'/%3E%3Cline x1='400' y1='192' x2='400' y2='288'/%3E%3C/g%3E%3C/svg%3E",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%230f172a'/%3E%3Cpath d='M256 96 L96 176 L96 304 Q96 384 256 448 Q416 384 416 304 L416 176 Z' fill='none' stroke='%2310b981' stroke-width='24' stroke-linejoin='round'/%3E%3Cpath d='M176 256 L232 312 L336 208' fill='none' stroke='%2310b981' stroke-width='28' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ctext x='256' y='160' font-family='Arial,sans-serif' font-size='56' font-weight='bold' fill='%2310b981' text-anchor='middle'%3ESPIB%3C/text%3E%3C/svg%3E",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%232563eb'/%3E%3Cg fill='none' stroke='white' stroke-width='24' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M256 128 L400 192 L256 256 L112 192 Z'/%3E%3Cpath d='M176 224 L176 320 Q256 360 336 320 L336 224'/%3E%3Cline x1='400' y1='192' x2='400' y2='288'/%3E%3C/g%3E%3C/svg%3E",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tadbir Urus",
+      "short_name": "Tadbir",
+      "url": "./index.html#tadbir"
+    },
+    {
+      "name": "Sumber Manusia",
+      "short_name": "Guru",
+      "url": "./index.html#sumber"
+    },
+    {
+      "name": "Profil MBK",
+      "short_name": "Murid",
+      "url": "./index.html#profil"
+    },
+    {
+      "name": "Prestasi",
+      "short_name": "Laporan",
+      "url": "./index.html#prestasi"
     }
   ]
 }

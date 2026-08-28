@@ -1,1633 +1,997 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-  <meta name="theme-color" content="#059669" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="SPIB-Pintar" />
-  <title>SPIB-Pintar PPKI SK Selama (K)</title>
-  <link rel="manifest" href="./manifest.json" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%230f172a'/%3E%3Cpath d='M256 96 L96 176 L96 304 Q96 384 256 448 Q416 384 416 304 L416 176 Z' fill='none' stroke='%2310b981' stroke-width='24' stroke-linejoin='round'/%3E%3Cpath d='M176 256 L232 312 L336 208' fill='none' stroke='%2310b981' stroke-width='28' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace']
-          },
-          animation: {
-            'fade-in': 'fadeIn 0.3s ease-out',
-            'slide-up': 'slideUp 0.4s ease-out',
-            'pop': 'pop 0.2s ease-out'
-          },
-          keyframes: {
-            fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
-            slideUp: { '0%': { opacity: 0, transform: 'translateY(20px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
-            pop: { '0%': { transform: 'scale(0.95)' }, '100%': { transform: 'scale(1)' } }
-          }
-        }
-      }
-    };
-  </script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
-    body { -webkit-tap-highlight-color: transparent; }
-    .print-container { display: none; }
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: #1e293b; }
-    ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
-    @media print {
-      .no-print { display: none !important; }
-      .print-container { display: block !important; }
-    }
-    .tab-active { animation: fadeIn 0.3s ease-out; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#2563eb" />
+<link rel="manifest" href="manifest.json" />
+<title>JPKS SK Selama (K) — Sistem Pengurusan Inklusif</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+        },
+      },
+    },
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: #f1f5f9; }
+  .fade-in { animation: fadeIn 0.3s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .slide-up { animation: slideUp 0.25s ease-out; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
   <meta property="og:image" content="https://bolt.new/static/og_default.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
-  <div id="root"></div>
+<body class="bg-blue-50/30 text-slate-900">
+<div id="root"></div>
 
-  <script type="text/babel">
-    const { useState, useEffect, useRef, useCallback, useMemo } = React;
-    const L = window.lucide || { createIcons: () => {} };
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
-    // ============================================================
-    // DATA AWAL SANDARAN (sepadan dengan code.gs)
-    // ============================================================
-    const FALLBACK_MURID = [
-      { id: 'M01', nama: 'Ahmad Zikri bin Hassan', mykid: '180101-14-0123', diagnosis: 'Disleksia', kelas: 'Pemulihan Khas 1', skorSaringan: 68, failDrive: '', jantina: 'Lelaki', tarikhLahir: '2018-01-01', ibubapa: 'Hassan bin Ali', telefon: '012-3456789' },
-      { id: 'M02', nama: 'Nur Aishah binti Roslan', mykid: '170305-08-0456', diagnosis: 'Autisme Ringan', kelas: 'Pemulihan Khas 1', skorSaringan: 56, failDrive: '', jantina: 'Perempuan', tarikhLahir: '2017-03-05', ibubapa: 'Roslan bin Karim', telefon: '012-9876543' },
-      { id: 'M03', nama: 'Muhammad Faiz bin Abdullah', mykid: '180612-14-0789', diagnosis: 'ADHD', kelas: 'Pemulihan Khas 2', skorSaringan: 72, failDrive: '', jantina: 'Lelaki', tarikhLahir: '2018-06-12', ibubapa: 'Abdullah bin Samad', telefon: '013-1112222' },
-      { id: 'M04', nama: 'Siti Khadijah binti Yusof', mykid: '170820-08-0234', diagnosis: 'Disgrafia', kelas: 'Pemulihan Khas 2', skorSaringan: 60, failDrive: '', jantina: 'Perempuan', tarikhLahir: '2017-08-20', ibubapa: 'Yusof bin Hassan', telefon: '014-3334444' },
-      { id: 'M05', nama: 'Arif Hakimi bin Razali', mykid: '190105-14-0567', diagnosis: 'Disleksia', kelas: 'Pemulihan Khas 1', skorSaringan: 44, failDrive: '', jantina: 'Lelaki', tarikhLahir: '2019-01-05', ibubapa: 'Razali bin Othman', telefon: '015-5556666' },
-      { id: 'M06', nama: 'Nurul Husna binti Zahari', mykid: '170210-08-0890', diagnosis: 'Lambat Belajar', kelas: 'Pemulihan Khas 2', skorSaringan: 80, failDrive: '', jantina: 'Perempuan', tarikhLahir: '2017-02-10', ibubapa: 'Zahari bin Idris', telefon: '016-7778888' },
-      { id: 'M07', nama: 'Danish Iman bin Fauzi', mykid: '180915-14-0123', diagnosis: 'Autisme Ringan', kelas: 'Pemulihan Khas 1', skorSaringan: 52, failDrive: '', jantina: 'Lelaki', tarikhLahir: '2018-09-15', ibubapa: 'Fauzi bin Man', telefon: '017-9990000' },
-      { id: 'M08', nama: 'Aisyah Damia binti Kamal', mykid: '170401-08-0456', diagnosis: 'Disleksia', kelas: 'Pemulihan Khas 2', skorSaringan: 76, failDrive: '', jantina: 'Perempuan', tarikhLahir: '2017-04-01', ibubapa: 'Kamal bin Isa', telefon: '018-1212121' },
-      { id: 'M09', nama: 'Luqman Hakim bin Suhaimi', mykid: '180722-14-0789', diagnosis: 'ADHD', kelas: 'Pemulihan Khas 1', skorSaringan: 48, failDrive: '', jantina: 'Lelaki', tarikhLahir: '2018-07-22', ibubapa: 'Suhaimi bin Lazim', telefon: '019-3434343' },
-      { id: 'M10', nama: 'Hawa Zulaikha binti Anuar', mykid: '170610-08-0234', diagnosis: 'Lambat Belajar', kelas: 'Pemulihan Khas 2', skorSaringan: 64, failDrive: '', jantina: 'Perempuan', tarikhLahir: '2017-06-10', ibubapa: 'Anuar bin Salleh', telefon: '011-5656565' }
-    ];
+/* ============================================================
+   KONFIGURASI API — Tukar URL Web App Google Apps Script di sini
+   ============================================================ */
+const API_URL = localStorage.getItem('jpks_api_url') || '';
+const SHEET_TEACHERS = 'Guru_PPKI';
+const SHEET_STUDENTS = 'Murid_PPPI';
+const SHEET_ORGCHART = 'Carta_Organisasi';
+const SHEET_SCHEDULE = 'Jadual_Bimbingan';
+const SHEET_MINIT = 'Minit_Mesyuarat';
+const SHEET_PPT = 'Prestasi_PPT';
+const SHEET_PRASARANA = 'Prasarana_OKU';
+const SHEET_SWOT = 'SWOT_Tahunan';
+const SHEET_SURAT = 'Surat_Pelantikan';
 
-    const FALLBACK_GURU = [
-      { id: 'G01', nama: 'Pn. Noraini binti Mahmud', opsyen: 'Pendidikan Khas', subjekTeras: 'Bahasa Melayu', peranan: 'Ketua PPKI / Penyelaras', telefon: '012-1111111', email: 'noraini@skpm.gov.my' },
-      { id: 'G02', nama: 'En. Khairul Anuar bin Zakaria', opsyen: 'Pendidikan Khas', subjekTeras: 'Matematik', peranan: 'Guru PPKI', telefon: '012-2222222', email: 'khairul@skpm.gov.my' },
-      { id: 'G03', nama: 'Pn. Salmah binti Othman', opsyen: 'Pendidikan Khas Integrasi', subjekTeras: 'Bahasa Inggeris', peranan: 'Guru PPKI', telefon: '012-3333333', email: 'salmah@skpm.gov.my' },
-      { id: 'G04', nama: 'En. Mohd Faizal bin Ismail', opsyen: 'Pendidikan Khas', subjekTeras: 'Sains', peranan: 'Guru PPKI', telefon: '012-4444444', email: 'faizal@skpm.gov.my' },
-      { id: 'G05', nama: 'Pn. Rozita binti Abd Rahman', opsyen: 'Pendidikan Khas Integrasi', subjekTeras: 'Pendidikan Jasmani', peranan: 'Guru PPKI / Kaunselor', telefon: '012-5555555', email: 'rozita@skpm.gov.my' }
-    ];
+async function apiCall(action, payload = {}) {
+  if (!API_URL) return { ok: false, error: 'URL API belum ditetapkan. Buka Tetapan untuk masukkan URL Web App.' };
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, ...payload }),
+    });
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch { return { ok: false, error: 'Respon API tidak sah: ' + text.slice(0, 200) }; }
+    return data;
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
 
-    const FALLBACK_PRASARANA = [
-      { id: 'P01', item: 'Tandas OKU (Lelaki)', lokasi: 'Blok A', status: 'Memuaskan', catatan: 'Skrin pintu rosak', tarikhPemantauan: '2026-01-15' },
-      { id: 'P02', item: 'Tandas OKU (Perempuan)', lokasi: 'Blok A', status: 'Baik', catatan: 'Lengkap dengan bar pegang', tarikhPemantauan: '2026-01-15' },
-      { id: 'P03', item: 'Ramp Kerusi Roda', lokasi: 'Pintu Utama', status: 'Baik', catatan: 'Kecerunan mematuhi piawai', tarikhPemantauan: '2026-01-15' },
-      { id: 'P04', item: 'Susur Tuan Taktik', lokasi: 'Tingkat 1 Blok A', status: 'Memuaskan', catatan: 'Perlu tambah braille', tarikhPemantauan: '2026-01-15' },
-      { id: 'P05', item: 'Laluan OKU', lokasi: 'Koridor Utama', status: 'Baik', catatan: 'Tiada halangan', tarikhPemantauan: '2026-01-15' }
-    ];
-
-    // 25 Item Saringan SSKI-IS (5 Domain x 5 Item)
-    const SARINGAN_ITEMS = [
-      { domain: 'Kognitif', items: ['Mengenal huruf A-Z', 'Mengenal nombor 1-20', 'Mengeja nama sendiri', 'Mengikut arahan 2-langkah', 'Menyelesaikan teka-teki mudah'] },
-      { domain: 'Bahasa & Komunikasi', items: ['Bercakap dalam ayat lengkap', 'Menyebut bunyi huruf dengan betul', 'Menjawab soalan mudah', 'Menceritakan pengalaman', 'Memahami arahan lisan'] },
-      { domain: 'Sosio-Emosi', items: ['Bergaul dengan rakan sebaya', 'Mengawal emosi dengan baik', 'Mengikut peraturan kelas', 'Bersabar menunggu giliran', 'Menunjukkan keyakinan diri'] },
-      { domain: 'Motorik', items: ['Memegang pensil dengan betul', 'Menggunting mengikut garisan', 'Menulis huruf dengan jelas', 'Mengikat tali kasut', 'Melompat dan mengekalkan imbangan'] },
-      { domain: 'Penjagaan Diri', items: ['Mengurus kebersihan diri', 'Memakai pakaian sendiri', 'Mengurus barang peribadi', 'Makan tanpa bantuan', 'Menggunakan tandas secara bebas'] }
-    ];
-
-    const HARI = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
-    const WAKTU = ['07:45-08:15', '08:15-09:15', '09:15-10:15', '10:15-11:15', '11:15-12:15', '12:45-01:45', '01:45-02:45'];
-
-    // ============================================================
-    // KELAS CSS BUTANG 3D (sepadan spesifikasi)
-    // ============================================================
-    const BTN_GREEN = 'bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-5 rounded-xl border-b-4 border-emerald-800 hover:border-emerald-700 active:border-b-0 active:translate-y-1 active:shadow-inner transition-all duration-75 shadow-md flex items-center justify-center gap-2';
-    const BTN_BLUE = 'bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-5 rounded-xl border-b-4 border-blue-800 hover:border-blue-700 active:border-b-0 active:translate-y-1 active:shadow-inner transition-all duration-75 shadow-md flex items-center justify-center gap-2';
-    const BTN_ROSE = 'bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-5 rounded-xl border-b-4 border-rose-800 hover:border-rose-700 active:border-b-0 active:translate-y-1 active:shadow-inner transition-all duration-75 shadow-md flex items-center justify-center gap-2';
-    const BTN_AMBER = 'bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-2.5 px-5 rounded-xl border-b-4 border-amber-700 hover:border-amber-600 active:border-b-0 active:translate-y-1 active:shadow-inner transition-all duration-75 shadow-md flex items-center justify-center gap-2';
-    const CARD = 'bg-slate-800 border-2 border-slate-800 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] rounded-2xl';
-    const CARD_EMERALD = 'bg-slate-800 border-2 border-emerald-600 shadow-[6px_6px_0px_0px_rgba(5,150,105,1)] rounded-2xl';
-
-    // ============================================================
-    // UTILITI
-    // ============================================================
-    const getSettings = () => {
-      try { return JSON.parse(localStorage.getItem('spib_settings') || '{}'); }
-      catch { return {}; }
-    };
-    const saveSettings = (s) => localStorage.setItem('spib_settings', JSON.stringify(s));
-
-    const getTodayStr = () => new Date().toISOString().slice(0, 10);
-
-    const slug = (s) => (s || 'murid').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-
-    const refreshIcons = () => { try { L.createIcons(); } catch (e) {} };
-
-    // ============================================================
-    // KOMPONEN IKON
-    // ============================================================
-    function Icon({ name, size = 18, className = '' }) {
-      const ref = useRef(null);
-      useEffect(() => {
-        if (ref.current) {
-          ref.current.innerHTML = '';
-          try {
-            const iconName = name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
-            const iconData = (window.lucide && window.lucide.icons && window.lucide.icons[iconName]) || (window.lucide && window.lucide.icons && window.lucide.icons.Square);
-            if (iconData) {
-              const svg = iconData.toSvg ? iconData.toSvg({ width: size, height: size }) : '';
-              ref.current.innerHTML = svg;
-            }
-          } catch (e) {}
-        }
-      }, [name, size, className]);
-      return React.createElement('span', { ref, className: 'inline-flex items-center justify-center ' + className, style: { width: size, height: size } });
+/* ============================================================
+   IKON
+   ============================================================ */
+function Icon({ name, size = 18, className = '' }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current && window.lucide) {
+      ref.current.innerHTML = '';
+      const svg = window.lucide.createElement
+        ? window.lucide.createElement(window.lucide.icons[toPascalCase(name)])
+        : null;
+      if (svg) { svg.setAttribute('width', size); svg.setAttribute('height', size); ref.current.appendChild(svg); }
+      else ref.current.setAttribute('data-lucide', name);
     }
+    if (ref.current && window.lucide && window.lucide.createIcons) window.lucide.createIcons({ attrs: { width: size, height: size }, nameAttr: 'data-lucide' });
+  }, [name, size]);
+  return <span ref={ref} data-lucide={name} className={'inline-flex items-center ' + className} style={{ width: size, height: size }} />;
+}
+function toPascalCase(s) { return s.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''); }
 
-    // ============================================================
-    // KOMPONEN MODAL
-    // ============================================================
-    function Modal({ open, onClose, title, children, maxWidth = 'max-w-2xl' }) {
-      if (!open) return null;
-      return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-          <div className={CARD_EMERALD + ' w-full ' + maxWidth + ' max-h-[90vh] overflow-y-auto animate-pop'} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 border-b-2 border-emerald-600 sticky top-0 bg-slate-800 z-10">
-              <h3 className="text-lg font-bold text-emerald-400">{title}</h3>
-              <button onClick={onClose} className="text-slate-400 hover:text-rose-400 p-1 rounded-lg hover:bg-slate-700 transition-colors">
-                <Icon name="x" size={22} />
-              </button>
-            </div>
-            <div className="p-5">{children}</div>
+/* ============================================================
+   KOMPONEN UI BERSAMA
+   ============================================================ */
+function Card({ children, className = '' }) {
+  return <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm ${className}`}>{children}</div>;
+}
+function SectionTitle({ icon, title, desc }) {
+  return (
+    <div className="flex items-start gap-3 mb-4">
+      <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+        <Icon name={icon} size={22} />
+      </div>
+      <div>
+        <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+        {desc && <p className="text-sm text-slate-500 mt-0.5">{desc}</p>}
+      </div>
+    </div>
+  );
+}
+function Btn({ variant = 'blue', children, onClick, type = 'button', className = '', disabled = false }) {
+  const styles = {
+    blue: 'bg-blue-600 hover:bg-blue-500 text-white border-blue-800',
+    white: 'bg-white hover:bg-slate-50 text-slate-800 border-slate-400 border border-slate-300',
+    rose: 'bg-rose-600 hover:bg-rose-500 text-white border-rose-800',
+    green: 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-800',
+    amber: 'bg-amber-500 hover:bg-amber-400 text-white border-amber-700',
+  };
+  return (
+    <button type={type} onClick={onClick} disabled={disabled}
+      className={`${styles[variant]} font-bold py-2 px-4 rounded-xl border-b-2 active:border-b-0 active:translate-y-0.5 active:shadow-inner transition-all duration-75 shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}>
+      {children}
+    </button>
+  );
+}
+function Modal({ open, onClose, title, children, wide = false }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" onClick={onClose}>
+      <div className={`bg-white rounded-2xl shadow-2xl border border-slate-200 w-full ${wide ? 'max-w-3xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto slide-up`} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 sticky top-0 bg-white rounded-t-2xl z-10">
+          <h3 className="font-bold text-slate-900">{title}</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100">
+            <Icon name="x" size={20} />
+          </button>
+        </div>
+        <div className="p-6">{children}</div>
+      </div>
+    </div>
+  );
+}
+function Field({ label, children, className = '' }) {
+  return (
+    <div className={className}>
+      <label className="block text-sm font-semibold text-slate-700 mb-1.5">{label}</label>
+      {children}
+    </div>
+  );
+}
+const inputCls = 'w-full rounded-xl border border-slate-300 px-3 py-2 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all';
+function Input(props) { return <input {...props} className={`${inputCls} ${props.className || ''}`} />; }
+function Select(props) { return <select {...props} className={`${inputCls} ${props.className || ''}`} />; }
+function Textarea(props) { return <textarea {...props} className={`${inputCls} ${props.className || ''}`} />; }
+function Badge({ children, color = 'blue' }) {
+  const map = { blue: 'bg-blue-100 text-blue-700', green: 'bg-emerald-100 text-emerald-700', amber: 'bg-amber-100 text-amber-700', rose: 'bg-rose-100 text-rose-700', slate: 'bg-slate-100 text-slate-700' };
+  return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${map[color]}`}>{children}</span>;
+}
+function Toast({ toast, onClose }) {
+  useEffect(() => {
+    if (toast) { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }
+  }, [toast, onClose]);
+  if (!toast) return null;
+  const colors = { success: 'bg-emerald-600', error: 'bg-rose-600', info: 'bg-blue-600' };
+  return (
+    <div className="fixed bottom-6 right-6 z-[60] slide-up">
+      <div className={`${colors[toast.type] || colors.info} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 max-w-sm`}>
+        <Icon name={toast.type === 'success' ? 'check-circle' : toast.type === 'error' ? 'alert-circle' : 'info'} size={20} />
+        <span className="text-sm font-medium">{toast.msg}</span>
+      </div>
+    </div>
+  );
+}
+function EmptyState({ icon = 'inbox', msg }) {
+  return (
+    <div className="text-center py-12 text-slate-400">
+      <Icon name={icon} size={40} className="mx-auto mb-3 opacity-50" />
+      <p className="text-sm">{msg}</p>
+    </div>
+  );
+}
+function Loading({ msg = 'Memuatkan...' }) {
+  return (
+    <div className="text-center py-12">
+      <div className="inline-block w-8 h-8 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-3"></div>
+      <p className="text-sm text-slate-500">{msg}</p>
+    </div>
+  );
+}
+
+/* ============================================================
+   HEADER & NAVIGASI TAB
+   ============================================================ */
+const TABS = [
+  { id: 'tadbir', label: 'Tadbir Urus & Pentadbiran', icon: 'landmark', short: 'Tadbir Urus' },
+  { id: 'sumber', label: 'Sumber Manusia & Penjadualan', icon: 'users', short: 'Sumber Manusia' },
+  { id: 'profil', label: 'Profil MBK, Saringan & Minda AI', icon: 'brain', short: 'Profil MBK' },
+  { id: 'prestasi', label: 'Prestasi & Pelaporan', icon: 'bar-chart-3', short: 'Prestasi' },
+];
+
+function Header({ onSettings }) {
+  return (
+    <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center shadow-md">
+            <Icon name="graduation-cap" size={24} />
+          </div>
+          <div>
+            <h1 className="font-bold text-slate-900 text-base sm:text-lg leading-tight">JPKS SK Selama (K)</h1>
+            <p className="text-xs text-slate-500 hidden sm:block">Sistem Pengurusan Program Pendidikan Inklusif</p>
           </div>
         </div>
-      );
-    }
-
-    // ============================================================
-    // KOMPONEN TOAST
-    // ============================================================
-    function Toast({ msg, type = 'success' }) {
-      if (!msg) return null;
-      const colors = { success: 'bg-emerald-600', error: 'bg-rose-600', info: 'bg-blue-600', warn: 'bg-amber-500 text-slate-900' };
-      return (
-        <div className="fixed bottom-6 right-6 z-[60] animate-slide-up">
-          <div className={(colors[type] || colors.success) + ' text-white font-semibold px-5 py-3 rounded-xl shadow-lg border-b-4 border-slate-900 flex items-center gap-2'}>
-            <Icon name={type === 'error' ? 'alert-circle' : type === 'warn' ? 'alert-triangle' : 'check-circle'} size={20} />
-            <span className="text-sm">{msg}</span>
-          </div>
+        <div className="flex items-center gap-2">
+          <Badge color="green">SPI Bil. 1/2026</Badge>
+          <button onClick={onSettings} className="p-2 rounded-xl hover:bg-slate-100 text-slate-600">
+            <Icon name="settings" size={20} />
+          </button>
         </div>
-      );
-    }
+      </div>
+    </header>
+  );
+}
 
-    // ============================================================
-    // FUNGSI JANA PDF
-    // ============================================================
-    function generatePDF(elementId, filename) {
-      const el = document.getElementById(elementId);
-      if (!el) { alert('Elemen PDF tidak dijumpai!'); return Promise.resolve(); }
-      const opt = {
-        margin: 10,
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      el.style.display = 'block';
-      return html2pdf().set(opt).from(el).save().then(() => {
-        el.style.display = 'none';
-      }).catch(err => {
-        el.style.display = 'none';
-        alert('Ralat penjanaan PDF: ' + err.message);
-      });
-    }
+function TabNav({ active, onChange }) {
+  return (
+    <nav className="bg-white border-b border-slate-200 sticky top-[65px] z-30">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 flex gap-1 overflow-x-auto">
+        {TABS.map(tab => (
+          <button key={tab.id} onClick={() => onChange(tab.id)}
+            className={`flex items-center gap-2 px-3 sm:px-5 py-3.5 text-sm font-semibold whitespace-nowrap border-b-2 transition-all ${active === tab.id ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}>
+            <Icon name={tab.icon} size={18} />
+            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="sm:hidden">{tab.short}</span>
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+}
 
-    // ============================================================
-    // HOOK: GUNA DATA DARI APPS SCRIPT ATAU FALLBACK
-    // ============================================================
-    function useBackendData() {
-      const [murid, setMurid] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('spib_murid') || 'null') || FALLBACK_MURID; }
-        catch { return FALLBACK_MURID; }
-      });
-      const [guru, setGuru] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('spib_guru') || 'null') || FALLBACK_GURU; }
-        catch { return FALLBACK_GURU; }
-      });
-      const [prasarana, setPrasarana] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('spib_prasarana') || 'null') || FALLBACK_PRASARANA; }
-        catch { return FALLBACK_PRASARANA; }
-      });
-      const [loading, setLoading] = useState(false);
-      const settings = getSettings();
+/* ============================================================
+   MODAL TETAPAN API
+   ============================================================ */
+function SettingsModal({ open, onClose, onSave }) {
+  const [url, setUrl] = useState(API_URL);
+  useEffect(() => { if (open) setUrl(localStorage.getItem('jpks_api_url') || ''); }, [open]);
+  return (
+    <Modal open={open} onClose={onClose} title="Tetapan Sambungan API">
+      <div className="space-y-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+          <p className="font-semibold mb-1">Panduan:</p>
+          <p>1. Buka Google Apps Script editor dan jalankan <code className="bg-blue-100 px-1 rounded">deployWebApp</code>.</p>
+          <p>2. Salin URL Web App yang dijana.</p>
+          <p>3. Tampal URL di bawah dan simpan.</p>
+        </div>
+        <Field label="URL Web App Google Apps Script">
+          <Input type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://script.google.com/macros/s/.../exec" />
+        </Field>
+        <div className="flex gap-2 justify-end">
+          <Btn variant="white" onClick={onClose}>Batal</Btn>
+          <Btn variant="blue" onClick={() => { localStorage.setItem('jpks_api_url', url); onSave(url); }}>Simpan</Btn>
+        </div>
+      </div>
+    </Modal>
+  );
+}
 
-      const fetchFromServer = useCallback(async () => {
-        if (!settings.webAppUrl) return;
-        setLoading(true);
-        try {
-          const res = await fetch(settings.webAppUrl + '?action=readAll');
-          const json = await res.json();
-          if (json.success && json.data) {
-            if (json.data.murid && json.data.murid.length) { setMurid(json.data.murid); localStorage.setItem('spib_murid', JSON.stringify(json.data.murid)); }
-            if (json.data.guru && json.data.guru.length) { setGuru(json.data.guru); localStorage.setItem('spib_guru', JSON.stringify(json.data.guru)); }
-            if (json.data.prasarana && json.data.prasarana.length) { setPrasarana(json.data.prasarana); localStorage.setItem('spib_prasarana', JSON.stringify(json.data.prasarana)); }
-          }
-        } catch (e) { /* senyap - guna fallback */ }
-        finally { setLoading(false); }
-      }, [settings.webAppUrl]);
+/* ============================================================
+   DATA SEED / DEFAULT
+   ============================================================ */
+const DEFAULT_TEACHERS = [
+  { id: 't1', nama: 'En. Ahmad bin Isa', gred: 'DG44', opsyen: 'Pendidikan Khas', subjek: 'Matematik' },
+  { id: 't2', nama: 'Pn. Siti Aminah binti Ramli', gred: 'DG44', opsyen: 'Pendidikan Khas', subjek: 'Bahasa Melayu' },
+  { id: 't3', nama: 'Cik Norashikin binti Mohd Yusof', gred: 'DG41', opsyen: 'Pendidikan Khas', subjek: 'Bahasa Inggeris' },
+  { id: 't4', nama: 'En. Mohd Zaki bin Ridzuan', gred: 'DG41', opsyen: 'Pendidikan Khas', subjek: 'Sains' },
+  { id: 't5', nama: 'Pn. Faridah binti Kassim', gred: 'DG44', opsyen: 'Terapi Cara Kerja', subjek: 'Pend. Seni Visual' },
+];
+const DEFAULT_STUDENTS = [
+  { id: 's1', nama: 'Muhammad Amirul bin Roslan', mykid: '150112085341', oku: 'LD120415000084', diagnosis: 'Slow Learner', kelas: '1 Bestari', jenis: 'Inklusif Separa', guru_mentor: 'Pn. Siti Aminah', markah_saringan: 64, status: 'Layak Inklusif Separa (Bukan Akademik)' },
+  { id: 's2', nama: 'Chong Wei Han', mykid: '120520085113', oku: 'DE120520000122', diagnosis: 'Masalah Pendengaran', kelas: '4 Amanah', jenis: 'Inklusif Separa', guru_mentor: 'Cik Norashikin', markah_saringan: 76, status: 'Layak Inklusif Separa (Akademik)' },
+  { id: 's3', nama: 'Farah Shahidah binti Ahmad', mykid: '100714085442', oku: 'LD120710000213', diagnosis: 'Autisme Ringan', kelas: '6 Dedikasi', jenis: 'Inklusif Separa', guru_mentor: 'En. Mohd Zaki', markah_saringan: 84, status: 'Layak Inklusif Separa (Akademik)' },
+];
+const DEFAULT_ORGCHART = [
+  { jawatan: 'Pengerusi', nama: 'Tn. Hj. Abdul Rahman bin Hassan', jawatan_full: 'Guru Besar' },
+  { jawatan: 'Naib Pengerusi', nama: 'Pn. Hajjah Norliza binti Othman', jawatan_full: 'Penolong Kanan Pentadbiran' },
+  { jawatan: 'Penyelaras', nama: 'En. Ahmad bin Isa', jawatan_full: 'Penyelaras PPKI' },
+  { jawatan: 'Guru Pendamping', nama: 'Pn. Siti Aminah binti Ramli', jawatan_full: 'Guru PPKI' },
+  { jawatan: 'PPM', nama: 'Pn. Rosnah binti Abdullah', jawatan_full: 'Pembantu Pendidikan Murid' },
+];
+const DAYS = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
+const TIME_SLOTS = ['07:50-08:20', '08:20-09:00', '09:00-09:40', '09:40-10:20', 'Rehat', '10:50-11:30', '11:30-12:10', '12:10-12:50'];
+const DEFAULT_SCHEDULE = {};
+DAYS.forEach(d => { DEFAULT_SCHEDULE[d] = {}; TIME_SLOTS.forEach(t => { DEFAULT_SCHEDULE[d][t] = t === 'Rehat' ? 'Rehat' : ''; }); });
+const DEFAULT_PPT = [
+  { id: 'p1', nama: 'Muhammad Amirul bin Roslan', kelas: '1 Bestari', bm: 58, bi: 52, matematik: 64, sains: 60 },
+  { id: 'p2', nama: 'Chong Wei Han', kelas: '4 Amanah', bm: 72, bi: 80, matematik: 68, sains: 74 },
+  { id: 'p3', nama: 'Farah Shahidah binti Ahmad', kelas: '6 Dedikasi', bm: 82, bi: 78, matematik: 88, sains: 85 },
+];
+const DEFAULT_PRASARANA = [
+  { id: 'pr1', item: 'Tempat Letak Kerusi Roda', lokasi: 'Hadapan Blok A', status: 'Ada', catatan: '2 petak disediakan' },
+  { id: 'pr2', item: 'Ramp Tangga Lereng', lokasi: 'Pintu Utama', status: 'Ada', catatan: 'Mengikut spesifikasi KPM' },
+  { id: 'pr3', item: 'Tandas Mesra OKU', lokasi: 'Bawah & Tingkat 1', status: 'Ada', catatan: 'Grab bar & alarm kecemasan' },
+  { id: 'pr4', item: 'Laluan Taktil', lokasi: 'Koridor Utama', status: 'Tiada', catatan: 'Perlu penambahbaikan' },
+  { id: 'pr5', item: 'Papan Tanda Braille', lokasi: 'Bilik PPKI', status: 'Tiada', catatan: 'Dalam perancangan' },
+  { id: 'pr6', item: 'Ruang Selamat / Sensory Room', lokasi: 'Bilik PPKI', status: 'Ada', catatan: 'Lengkap dengan alat terapi' },
+];
 
-      useEffect(() => { fetchFromServer(); }, [fetchFromServer]);
+/* ============================================================
+   TAB 1: TADBIR URUS & PENTADBIRAN
+   ============================================================ */
+function TabTadbirUrus({ onToast }) {
+  const [orgChart, setOrgChart] = useState(DEFAULT_ORGCHART);
+  const [editOrg, setEditOrg] = useState(null);
+  const [orgImage, setOrgImage] = useState(null);
+  const [minit, setMinit] = useState({
+    bil: '1/2026', tarikh: '2026-01-15', masa: '09:30', tempat: 'Bilik Guru Besar',
+    pengerusi: 'Tn. Hj. Abdul Rahman bin Hassan', ahli: 'En. Ahmad, Pn. Siti Aminah, Cik Norashikin, En. Mohd Zaki, Pn. Faridah',
+    agenda: '1. Pengesahan minit mesyuarat lepas\n2. Penempatan murid inklusif 2026\n3. Perlantikan guru pendamping\n4. Perancangan program LDP',
+    maklumBalas: '1. Pengesahan penempatan 3 orang murid PPKI ke kelas arus perdana (separa inklusif)\n2. Pelantikan guru pendamping bagi setiap murid\n3. Kelulusuan peruntukan prasarana OKU',
+    keputusan: 'Bersetuju penempatan inklusif separa bagi 3 murid. Guru pendamping dilantik mengikut opsyen. Peruntukan prasarana dimajukan ke PIBG.',
+  });
 
-      const saveToServer = useCallback(async (action, record) => {
-        if (!settings.webAppUrl) {
-          return { success: true, message: 'Disimpan secara setempat (mod sandaran)' };
-        }
-        try {
-          const res = await fetch(settings.webAppUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'data=' + encodeURIComponent(JSON.stringify({ action, record }))
-          });
-          return await res.json();
-        } catch (e) {
-          return { success: false, error: e.message };
-        }
-      }, [settings.webAppUrl]);
+  function saveOrg() {
+    setOrgChart(editOrg);
+    setEditOrg(null);
+    onToast({ type: 'success', msg: 'Carta organisasi berjaya dikemas kini.' });
+  }
+  function handleImageUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { setOrgImage(ev.target.result); onToast({ type: 'success', msg: 'Gambar carta organisasi dimuat naik.' }); };
+    reader.readAsDataURL(file);
+  }
 
-      const deleteFromServer = useCallback(async (action, id) => {
-        if (!settings.webAppUrl) {
-          return { success: true, message: 'Dipadam secara setempat (mod sandaran)' };
-        }
-        try {
-          const res = await fetch(settings.webAppUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'data=' + encodeURIComponent(JSON.stringify({ action, id }))
-          });
-          return await res.json();
-        } catch (e) {
-          return { success: false, error: e.message };
-        }
-      }, [settings.webAppUrl]);
+  return (
+    <div className="space-y-6 fade-in">
+      {/* Sub-Tajuk 1: Carta Organisasi */}
+      <Card className="p-6">
+        <SectionTitle icon="network" title="Carta Organisasi JPKS SK Selama (K)" desc="Struktur jawatankuasa pengurusan pendidikan inklusif" />
+        <div className="flex flex-wrap gap-3 justify-end mb-4">
+          <Btn variant="blue" onClick={() => setEditOrg(orgChart.map(r => ({...r})))}><Icon name="pencil" size={16} /> Edit Maklumat Carta</Btn>
+          <label className="cursor-pointer">
+            <span className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-800 font-bold py-2 px-4 rounded-xl border border-slate-300 border-b-2 border-b-slate-400 active:border-b-0 active:translate-y-0.5 active:shadow-inner transition-all duration-75 shadow-sm">
+              <Icon name="upload" size={16} /> Muat Naik Gambar Carta
+            </span>
+            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+          </label>
+        </div>
 
-      const uploadFile = useCallback(async (base64, fileName) => {
-        if (!settings.webAppUrl) {
-          return { success: false, error: 'URL Web App Apps Script belum ditetapkan. Sila tetapkan di Papan Tetapan Utama.' };
-        }
-        try {
-          const res = await fetch(settings.webAppUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'data=' + encodeURIComponent(JSON.stringify({
-              action: 'uploadToDrive',
-              base64: base64,
-              fileName: fileName,
-              folderId: settings.driveFolderId || ''
-            }))
-          });
-          return await res.json();
-        } catch (e) {
-          return { success: false, error: e.message };
-        }
-      }, [settings.webAppUrl]);
-
-      return { murid, setMurid, guru, setGuru, prasarana, setPrasarana, loading, fetchFromServer, saveToServer, deleteFromServer, uploadFile };
-    }
-
-    // ============================================================
-    // KOMPONEN: PAPAN TETAPAN UTAMA (ADMIN SETTINGS)
-    // ============================================================
-    function AdminSettings({ onSaved }) {
-      const [open, setOpen] = useState(false);
-      const [form, setForm] = useState(getSettings());
-
-      const handleSave = () => {
-        saveSettings(form);
-        setOpen(false);
-        if (onSaved) onSaved();
-      };
-
-      return (
-        <div className={CARD + ' p-5'}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
-              <Icon name="settings" size={22} /> Papan Tetapan Utama
-            </h2>
-            <button onClick={() => setOpen(!open)} className={BTN_BLUE + ' text-sm'}>
-              <Icon name={open ? 'chevron-up' : 'chevron-down'} size={16} /> {open ? 'Tutup' : 'Buka'}
-            </button>
-          </div>
-          <p className="text-xs text-slate-400 mb-3">Simpan kunci API dan pautan backend dengan selamat di pelayar anda (localStorage).</p>
-          {open && (
-            <div className="space-y-3 animate-slide-up">
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-1">Groq API Key</label>
-                <input type="password" value={form.groqApiKey || ''} onChange={e => setForm({ ...form, groqApiKey: e.target.value })}
-                  placeholder="gsk_..." className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 outline-none" />
+        {/* Carta Aliran Visual */}
+        <div className="flex flex-col items-center gap-3 py-4">
+          {orgChart.map((node, i) => (
+            <React.Fragment key={i}>
+              <div className={`w-full max-w-md rounded-2xl border-2 p-4 text-center ${i === 0 ? 'bg-blue-600 border-blue-800 text-white' : i === 1 ? 'bg-blue-100 border-blue-300 text-blue-900' : 'bg-white border-slate-200 text-slate-900'} shadow-sm`}>
+                <p className="text-xs font-semibold uppercase tracking-wide opacity-70">{node.jawatan}</p>
+                <p className="font-bold text-base mt-1">{node.nama}</p>
+                <p className={`text-xs mt-0.5 ${i === 0 ? 'text-blue-100' : 'text-slate-500'}`}>{node.jawatan_full}</p>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-1">URL Web App Google Apps Script</label>
-                <input type="url" value={form.webAppUrl || ''} onChange={e => setForm({ ...form, webAppUrl: e.target.value })}
-                  placeholder="https://script.google.com/macros/s/.../exec" className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-1">Google Drive Folder ID</label>
-                <input type="text" value={form.driveFolderId || ''} onChange={e => setForm({ ...form, driveFolderId: e.target.value })}
-                  placeholder="1aBcDeFgHiJkLmNoPqRsTuVwXyZ" className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 outline-none" />
-              </div>
-              <button onClick={handleSave} className={BTN_GREEN + ' w-full'}>
-                <Icon name="save" size={18} /> Simpan Tetapan
-              </button>
-            </div>
-          )}
+              {i < orgChart.length - 1 && <Icon name="chevron-down" size={24} className="text-slate-300" />}
+            </React.Fragment>
+          ))}
         </div>
-      );
-    }
 
-    // ============================================================
-    // FAIL 1: TADBIR URUS & PENTADBIRAN
-    // ============================================================
-    function Fail1({ guru }) {
-      const [suratForm, setSuratForm] = useState({ nama: '', peranan: '', tarikh: getTodayStr(), noFail: '' });
-      const [minit, setMinit] = useState('MESYUARAT JAWATANKUASA PENEMPATAN KHAS (JPKS) SK SELAMA (K)\nBILANGAN 1/2026\n\nTarikh: 28 Januari 2026\nMasa: 09:00 pagi\nTempat: Bilik Guru SK Selama (K)\n\nHadiriran:\n1. Pn. Noraini binti Mahmud (Ketua PPKI)\n2. En. Khairul Anuar bin Zakaria\n3. Pn. Salmah binti Othman\n4. En. Mohd Faizal bin Ismail\n5. Pn. Rozita binti Abd Rahman\n\nAGENDA 1: PENEMPATAN 10 MURID INKLUSIF\n\nPihak JPKS bersetuju menempatkan 10 orang murid inklusif ke dalam kelas aliran biasa dengan sokongan bimbingan PPKI. Pembahagian kelas:\n- Pemulihan Khas 1: 5 murid (M01, M02, M05, M07, M09)\n- Pemulihan Khas 2: 5 murid (M03, M04, M06, M08, M10)\n\nAGENDA 2: JADUAL WAKTU BIMBINGAN ANJAL\n\nGuru PPKI akan menyediakan jadual bimbingan mingguan. Setiap murid akan menerima sekurang-kurangnya 3 sesi bimbingan seminggu.\n\nAGENDA 3: SARINGAN SSKI-IS\n\nSaringan 25-item akan dijalankan pada minggu kedua persekolahan. Keputusan saringan akan menentukan RPI setiap murid.\n\nAGENDA 4: DASAR INKLUSIF KPM\n\nPihak sekolah akan melaksanakan SPI Bil. 1/2026 sepenuhnya. Semua guru aliran biasa akan diberi pendedahan pedagogi terbeza.\n\nLULUS\n');
-
-      const jata = [
-        { jawatan: 'Pengerusi', pemegang: 'Guru Besar', nama: 'Tn. Hj. Ramli bin Said' },
-        { jawatan: 'Timbalan Pengerusi', pemegang: 'Penolong Kanan HEM', nama: 'Pn. Hajjah Faridah binti Omar' },
-        { jawatan: 'Setiausaha', pemegang: 'Ketua PPKI', nama: 'Pn. Noraini binti Mahmud' },
-        { jawatan: 'AJK 1', pemegang: 'Guru PPKI', nama: 'En. Khairul Anuar bin Zakaria' },
-        { jawatan: 'AJK 2', pemegang: 'Guru PPKI', nama: 'Pn. Salmah binti Othman' },
-        { jawatan: 'AJK 3', pemegang: 'Guru PPKI', nama: 'En. Mohd Faizal bin Ismail' },
-        { jawatan: 'AJK 4', pemegang: 'Guru PPKI / Kaunselor', nama: 'Pn. Rozita binti Abd Rahman' }
-      ];
-
-      const printSurat = () => {
-        const container = document.getElementById('print-surat');
-        if (container) container.innerHTML = renderSuratHTML(suratForm);
-        generatePDF('print-surat', 'surat-pelantikan-' + slug(suratForm.nama) + '-' + suratForm.tarikh + '.pdf');
-      };
-
-      const printMinit = () => {
-        const container = document.getElementById('print-minit');
-        if (container) container.innerHTML = renderMinitHTML(minit);
-        generatePDF('print-minit', 'minit-mesyuarat-jpks-bil1-2026.pdf');
-      };
-
-      return (
-        <div className="space-y-6">
-          {/* Carta Organisasi */}
-          <div className={CARD + ' p-5'}>
-            <h2 className="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
-              <Icon name="network" size={22} /> Carta Organisasi JPKS SK Selama (K)
-            </h2>
-            <div className="overflow-x-auto">
-              <div className="min-w-[600px]">
-                <div className="flex justify-center mb-4">
-                  <div className="bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl border-2 border-emerald-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] text-center">
-                    <p className="text-xs text-emerald-200">Pengerusi</p>
-                    <p>Tn. Hj. Ramli bin Said</p>
-                    <p className="text-xs text-emerald-200">Guru Besar</p>
-                  </div>
-                </div>
-                <div className="w-0.5 h-6 bg-emerald-600 mx-auto mb-4"></div>
-                <div className="flex justify-center mb-4">
-                  <div className="bg-blue-700 text-white font-bold px-6 py-3 rounded-xl border-2 border-blue-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] text-center">
-                    <p className="text-xs text-blue-200">Timbalan Pengerusi</p>
-                    <p>Pn. Hjh. Faridah bt Omar</p>
-                    <p className="text-xs text-blue-200">Penolong Kanan HEM</p>
-                  </div>
-                </div>
-                <div className="w-0.5 h-6 bg-emerald-600 mx-auto mb-4"></div>
-                <div className="flex flex-wrap justify-center gap-3">
-                  {jata.slice(2).map((j, i) => (
-                    <div key={i} className="bg-slate-700 text-slate-100 font-semibold px-4 py-2 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] text-center min-w-[140px]">
-                      <p className="text-xs text-emerald-400">{j.jawatan}</p>
-                      <p className="text-sm">{j.nama}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+        {orgImage && (
+          <div className="mt-6">
+            <p className="text-sm font-semibold text-slate-700 mb-2">Softcopy Gambar Carta Organisasi:</p>
+            <img src={orgImage} alt="Carta Organisasi" className="max-w-full rounded-xl border border-slate-200 shadow-sm" />
           </div>
+        )}
+      </Card>
 
-          {/* Penjana Surat Pelantikan */}
-          <div className={CARD + ' p-5'}>
-            <h2 className="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
-              <Icon name="file-text" size={22} /> Penjana Surat Pelantikan
-            </h2>
-            <div className="grid md:grid-cols-2 gap-3 mb-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-1">Nama Guru</label>
-                <input value={suratForm.nama} onChange={e => setSuratForm({ ...suratForm, nama: e.target.value })}
-                  className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" placeholder="cth: Pn. Noraini binti Mahmud" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-1">Peranan / Jawatan</label>
-                <input value={suratForm.peranan} onChange={e => setSuratForm({ ...suratForm, peranan: e.target.value })}
-                  className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" placeholder="cth: Ketua PPKI / Penyelaras" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-1">Tarikh Pelantikan</label>
-                <input type="date" value={suratForm.tarikh} onChange={e => setSuratForm({ ...suratForm, tarikh: e.target.value })}
-                  className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-1">No. Fail</label>
-                <input value={suratForm.noFail} onChange={e => setSuratForm({ ...suratForm, noFail: e.target.value })}
-                  className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" placeholder="cth: PPKI/SKSM/2026/01" />
-              </div>
-            </div>
-            <button onClick={printSurat} className={BTN_AMBER}>
-              <Icon name="printer" size={18} /> Cetak / Simpan PDF Surat
-            </button>
-          </div>
+      {/* Sub-Tajuk 2: Penjana Surat Pelantikan */}
+      <SuratPelantikan onToast={onToast} />
 
-          {/* Minit Mesyuarat */}
-          <div className={CARD + ' p-5'}>
-            <h2 className="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
-              <Icon name="clipboard-list" size={22} /> Minit Mesyuarat JPKS Bil 1/2026
-            </h2>
-            <textarea value={minit} onChange={e => setMinit(e.target.value)} rows={14}
-              className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-200 focus:border-emerald-500 outline-none resize-y" />
-            <div className="mt-3">
-              <button onClick={printMinit} className={BTN_AMBER}>
-                <Icon name="printer" size={18} /> Simpan PDF Minit
-              </button>
-            </div>
-          </div>
-
-          {/* Dasar & Rujukan KPM */}
-          <div className={CARD + ' p-5'}>
-            <h2 className="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
-              <Icon name="book-open" size={22} /> Dasar & Rujukan KPM
-            </h2>
-            <div className="bg-slate-900 border-2 border-slate-700 rounded-lg p-4 text-sm text-slate-300 leading-relaxed">
-              <h3 className="font-bold text-emerald-400 mb-2">Surat Pekeliling Ikhtisas (SPI) Bil. 1/2026</h3>
-              <p className="mb-2"><strong>Tajuk:</strong> Pelaksanaan Program Pendidikan Inklusif bagi Murid Berkeperluan Khas di Sekolah Aliran Perdana</p>
-              <p className="mb-2"><strong>1. Tujuan</strong></p>
-              <p className="mb-2">Pekeliling ini bertujuan memaklumkan pelaksanaan program pendidikan inklusif bagi murid berkeperluan khas di sekolah aliran perdana selaras dengan Dasar Pendidikan Khas KPM.</p>
-              <p className="mb-2"><strong>2. Latar Belakang</strong></p>
-              <p className="mb-2">Kementerian Pendidikan Malaysia komited menyediakan pendidikan berkualiti kepada semua murid termasuk murid berkeperluan khas. Program inklusif membolehkan murid PPKI belajar bersama rakan aliran perdana dengan sokongan guru PPKI.</p>
-              <p className="mb-2"><strong>3. Pelaksanaan</strong></p>
-              <p className="mb-2">3.1 Setiap sekolah dengan program PPKI wajib menempatkan murid inklusif di kelas aliran perdana.</p>
-              <p className="mb-2">3.2 Saringan SSKI-IS mesti dijalankan untuk semua murid inklusif.</p>
-              <p className="mb-2">3.3 RPI dihasilkan berdasarkan keputusan saringan dan analisis diagnostik.</p>
-              <p className="mb-2">3.4 Pedagogi Terbeza mesti dilaksanakan di kelas aliran perdana.</p>
-              <p><strong>4. Tindakan</strong></p>
-              <p>Guru Besar dan Jawatankuasa JPKS perlu memastikan pelaksanaan pekeliling ini dipatuhi sepenuhnya.</p>
-            </div>
-          </div>
-
-          <div id="print-surat" className="print-container" style={{ display: 'none' }}></div>
-          <div id="print-minit" className="print-container" style={{ display: 'none' }}></div>
+      {/* Sub-Tajuk 3: Minit Mesyuarat */}
+      <Card className="p-6">
+        <SectionTitle icon="file-text" title="Minit Mesyuarat JPKS Bil 1/2026" desc="Draf minit mesyuarat format KPM" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <Field label="Bilangan"><Input value={minit.bil} onChange={e => setMinit({...minit, bil: e.target.value})} /></Field>
+          <Field label="Tarikh"><Input type="date" value={minit.tarikh} onChange={e => setMinit({...minit, tarikh: e.target.value})} /></Field>
+          <Field label="Masa"><Input type="time" value={minit.masa} onChange={e => setMinit({...minit, masa: e.target.value})} /></Field>
+          <Field label="Tempat"><Input value={minit.tempat} onChange={e => setMinit({...minit, tempat: e.target.value})} /></Field>
+          <Field label="Pengerusi"><Input value={minit.pengerusi} onChange={e => setMinit({...minit, pengerusi: e.target.value})} /></Field>
+          <Field label="Kehadiran Ahli"><Input value={minit.ahli} onChange={e => setMinit({...minit, ahli: e.target.value})} /></Field>
         </div>
-      );
-    }
+        <Field label="Agenda"><Textarea rows={3} value={minit.agenda} onChange={e => setMinit({...minit, agenda: e.target.value})} /></Field>
+        <div className="mt-3"><Field label="Maklum Balas & Perbincangan"><Textarea rows={4} value={minit.maklumBalas} onChange={e => setMinit({...minit, maklumBalas: e.target.value})} /></Field></div>
+        <div className="mt-3"><Field label="Keputusan Mesyuarat"><Textarea rows={4} value={minit.keputusan} onChange={e => setMinit({...minit, keputusan: e.target.value})} /></Field></div>
+      </Card>
 
-    function renderSuratHTML(f) {
-      return `<div style="font-family: 'Times New Roman', serif; color: #1e293b; padding: 20px; background: #fff;">
-        <div style="text-align: center; margin-bottom: 20px; border-bottom: 3px double #047857; padding-bottom: 12px;">
-          <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-            <div style="width: 56px; height: 56px; border-radius: 50%; background: #047857; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; border: 2px solid #064e3b;">SK</div>
-            <div style="text-align: left;">
-              <h1 style="font-size: 20px; font-weight: bold; margin: 0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>
-              <p style="font-size: 13px; margin: 2px 0; color: #475569;">Kementerian Pendidikan Malaysia</p>
-            </div>
+      {/* Sub-Tajuk 4: Dasar & Rujukan */}
+      <Card className="p-6">
+        <SectionTitle icon="book-open" title="Dasar & Rujukan Inklusif KPM" desc="Ringkasan Pekeliling SPI Bil. 1/2026" />
+        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Badge color="blue">SPI Bil. 1/2026</Badge>
+            <h4 className="font-bold text-slate-900">Pelaksanaan Program Pendidikan Inklusif</h4>
           </div>
-          <p style="font-size: 11px; margin: 8px 0 0; color: #64748b;">Program Pendidikan Khas Integrasi (PPKI) | SK Selama (K), 39000 Selama, Perak Darul Ridzuan</p>
-        </div>
-        <div style="text-align: right; margin-bottom: 24px;">
-          <p style="font-size: 12px; margin: 0;">No. Fail: ${f.noFail || '...........................'}</p>
-          <p style="font-size: 12px; margin: 4px 0 0;">Tarikh: ${f.tarikh || '...........................'}</p>
-        </div>
-        <h2 style="text-align: center; font-size: 16px; font-weight: bold; text-transform: uppercase; margin-bottom: 20px; text-decoration: underline;">Surat Pelantikan</h2>
-        <p style="font-size: 14px; margin-bottom: 16px;">Saya dengan sukacita memaklumkan bahawa <strong>${f.nama || '...........................'}</strong> telah dilantik sebagai:</p>
-        <p style="text-align: center; font-size: 16px; font-weight: bold; margin: 20px 0; padding: 10px; border: 2px solid #047857; border-radius: 8px;">${f.peranan || '...........................'}</p>
-        <p style="font-size: 14px; margin-bottom: 16px;">dalam Jawatankuasa Penempatan Khas Sekolah (JPKS) SK Selama (K) bagi sesi 2026.</p>
-        <p style="font-size: 14px; margin-bottom: 16px;">Anda dikehendaki melaksanakan tugas dan tanggungjawab berkenaan dengan penuh dedikasi dan komitmen bagi memastikan kebajikan dan perkembangan murid berkeperluan khas terjaga dengan baik.</p>
-        <p style="font-size: 14px; margin-bottom: 32px;">Kerjasama dan sokongan anda amat dihargai dan diharapkan.</p>
-        <div style="margin-top: 40px; text-align: right;">
-          <p style="font-size: 14px; margin: 0;">Yang berusaha,</p>
-          <p style="font-size: 14px; margin: 4px 0;">.......................................</p>
-          <p style="font-size: 14px; font-weight: bold; margin: 4px 0;">Guru Besar</p>
-          <p style="font-size: 14px; margin: 4px 0;">SK Selama (K)</p>
-        </div>
-      </div>`;
-    }
-
-    function renderMinitHTML(text) {
-      return `<div style="font-family: 'Times New Roman', serif; color: #1e293b; padding: 20px; background: #fff; white-space: pre-wrap; font-size: 13px; line-height: 1.6;">
-        <div style="text-align: center; margin-bottom: 20px; border-bottom: 3px double #047857; padding-bottom: 12px;">
-          <h1 style="font-size: 20px; font-weight: bold; margin: 0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>
-          <p style="font-size: 13px; margin: 2px 0;">Kementerian Pendidikan Malaysia</p>
-          <p style="font-size: 11px; margin: 8px 0 0; color: #64748b;">PPKI | SK Selama (K), 39000 Selama, Perak</p>
-        </div>
-        ${text.replace(/\n/g, '<br>')}
-      </div>`;
-    }
-
-    // ============================================================
-    // FAIL 2: SUMBER MANUSIA & PENJADUALAN
-    // ============================================================
-    function Fail2({ guru }) {
-      const [jadual, setJadual] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('spib_jadual') || 'null') || defaultJadual(); }
-        catch { return defaultJadual(); }
-      });
-      const [editSlot, setEditSlot] = useState(null);
-
-      function defaultJadual() {
-        const j = {};
-        HARI.forEach(h => { j[h] = {}; WAKTU.forEach(w => { j[h][w] = ''; }); });
-        j['Isnin']['08:15-09:15'] = 'BM - Pn. Noraini (M01,M02)';
-        j['Isnin']['09:15-10:15'] = 'MT - En. Khairul (M03,M05)';
-        j['Selasa']['08:15-09:15'] = 'BI - Pn. Salmah (M04,M08)';
-        j['Selasa']['10:15-11:15'] = 'Sains - En. Faizal (M06,M09)';
-        j['Rabu']['09:15-10:15'] = 'BM - Pn. Noraini (M07,M10)';
-        j['Khamis']['08:15-09:15'] = 'PJK - Pn. Rozita (Semua)';
-        j['Jumaat']['11:15-12:15'] = 'Bimbingan Anjal - Semua Guru';
-        return j;
-      }
-
-      useEffect(() => { localStorage.setItem('spib_jadual', JSON.stringify(jadual)); }, [jadual]);
-
-      const saveSlot = (hari, waktu, value) => {
-        setJadual(prev => ({ ...prev, [hari]: { ...prev[hari], [waktu]: value } }));
-        setEditSlot(null);
-      };
-
-      const printJadual = () => {
-        const c = document.getElementById('print-jadual');
-        if (c) c.innerHTML = renderJadualHTML(jadual);
-        generatePDF('print-jadual', 'jadual-waktu-bimbingan-anjal-2026.pdf');
-      };
-
-      const ldpText = `LAPORAN LATIHAN DALAM PERKHIDMATAN (LDP)
-PROGRAM PEDAGOGI TERBEZA & AI DALAM PENDIDIKAN INKLUSIF
-SK SELAMA (K) | TAHUN 2026
-
-1. TAJUK: Pedagogi Terbeza & Integrasi AI (Groq Llama 3.3) untuk Pengajaran Murid Inklusif
-
-2. TARIKH: 15 Februari 2026
-   MASA: 08:00 - 13:00
-   TEMPAT: Bilik Gerakan SK Selama (K)
-   PENCERAMAH: Pn. Noraini binti Mahmud (Ketua PPKI)
-
-3. PESERTA (5 orang):
-   - Pn. Noraini binti Mahmud
-   - En. Khairul Anuar bin Zakaria
-   - Pn. Salmah binti Othman
-   - En. Mohd Faizal bin Ismail
-   - Pn. Rozita binti Abd Rahman
-
-4. OBJEKTIF:
-   - Memahami konsep Pedagogi Terbeza untuk murid berkeperluan khas
-   - Menggunakan enjin AI Groq (Llama 3.3) untuk menjana RPI diagnostik
-   - Menguasai saringan SSKI-IS 25-item KPM
-
-5. ISI KANDUNGAN:
-   5.1 Konsep Pedagogi Terbeza - 4 mod (kandungan, proses, produk, persekitaran)
-   5.2 Demo Integrasi Groq AI - jana laporan diagnostik murid
-   5.3 Saringan SSKI-IS - pentafsiran skor dan domain
-   5.4 Penyediaan RPI berfokus berdasarkan analisis AI
-
-6. HASIL/REFLEKSI:
-   Semua peserta berjaya menjana laporan diagnostik AI untuk murid masing-masing. Guru melaporkan peningkatan keyakinan dalam menyediakan RPI berkualiti.
-
-7. TINDAKAN SUSULAN:
-   - Pencerapan kelas inklusif oleh Ketua PPKI (Mac 2026)
-   - Penilaian keberkesanan RPI berasaskan AI (Jun 2026)
-
-LULUS OLEH GURU BESAR`;
-
-      const [ldp, setLdp] = useState(ldpText);
-      const printLdp = () => {
-        const c = document.getElementById('print-ldp');
-        if (c) c.innerHTML = renderLdpHTML(ldp);
-        generatePDF('print-ldp', 'laporan-ldp-pedagogi-terbeza-ai-2026.pdf');
-      };
-
-      return (
-        <div className="space-y-6">
-          {/* Profil 5 Guru */}
-          <div className={CARD + ' p-5'}>
-            <h2 className="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
-              <Icon name="users" size={22} /> Profil 5 Guru PPKI
-            </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-emerald-700 text-white">
-                    <th className="px-3 py-2 text-left rounded-tl-lg">ID</th>
-                    <th className="px-3 py-2 text-left">Nama</th>
-                    <th className="px-3 py-2 text-left">Opsyen</th>
-                    <th className="px-3 py-2 text-left">Subjek Teras</th>
-                    <th className="px-3 py-2 text-left rounded-tr-lg">Peranan</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {guru.map((g, i) => (
-                    <tr key={g.id} className={i % 2 === 0 ? 'bg-slate-900' : 'bg-slate-800'}>
-                      <td className="px-3 py-2 font-mono text-emerald-400">{g.id}</td>
-                      <td className="px-3 py-2 font-semibold">{g.nama}</td>
-                      <td className="px-3 py-2 text-slate-300">{g.opsyen}</td>
-                      <td className="px-3 py-2 text-slate-300">{g.subjekTeras}</td>
-                      <td className="px-3 py-2 text-slate-300">{g.peranan}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Jadual Waktu Bimbingan Anjal */}
-          <div className={CARD + ' p-5'}>
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h2 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
-                <Icon name="calendar" size={22} /> Jadual Waktu Bimbingan Anjal
-              </h2>
-              <button onClick={printJadual} className={BTN_AMBER}>
-                <Icon name="printer" size={18} /> Simpan PDF Jadual Waktu
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs border-2 border-slate-700">
-                <thead>
-                  <tr className="bg-slate-700">
-                    <th className="px-2 py-2 text-left text-emerald-400 sticky left-0 bg-slate-700">Waktu</th>
-                    {HARI.map(h => <th key={h} className="px-2 py-2 text-center text-emerald-400">{h}</th>)}
-                  </tr>
-                </thead>
-                <tbody>
-                  {WAKTU.map((w, wi) => (
-                    <tr key={w} className={wi % 2 === 0 ? 'bg-slate-900' : 'bg-slate-800'}>
-                      <td className="px-2 py-2 font-mono text-amber-400 font-semibold sticky left-0 bg-inherit">{w}</td>
-                      {HARI.map(h => (
-                        <td key={h + w} className="px-2 py-2 text-center cursor-pointer hover:bg-emerald-900/40 transition-colors min-w-[120px]"
-                          onClick={() => setEditSlot({ hari: h, waktu: w, value: jadual[h]?.[w] || '' })}>
-                          {jadual[h]?.[w] ? <span className="text-slate-200">{jadual[h][w]}</span> : <span className="text-slate-600">+ Klik untuk edit</span>}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="text-xs text-slate-400 mt-2">Klik pada mana-mana slot untuk mengedit kelas bimbingan atau subjek.</p>
-          </div>
-
-          {/* Laporan LDP & Pencerapan */}
-          <div className={CARD + ' p-5'}>
-            <h2 className="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
-              <Icon name="graduation-cap" size={22} /> Laporan LDP & Pencerapan
-            </h2>
-            <textarea value={ldp} onChange={e => setLdp(e.target.value)} rows={16}
-              className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-200 focus:border-emerald-500 outline-none resize-y" />
-            <div className="mt-3">
-              <button onClick={printLdp} className={BTN_AMBER}>
-                <Icon name="printer" size={18} /> Simpan PDF Laporan LDP
-              </button>
-            </div>
-          </div>
-
-          <Modal open={!!editSlot} onClose={() => setEditSlot(null)} title={`Edit Slot: ${editSlot?.hari || ''} ${editSlot?.waktu || ''}`} maxWidth="max-w-md">
-            {editSlot && <EditSlotForm slot={editSlot} onSave={saveSlot} />}
-          </Modal>
-
-          <div id="print-jadual" className="print-container" style={{ display: 'none' }}></div>
-          <div id="print-ldp" className="print-container" style={{ display: 'none' }}></div>
-        </div>
-      );
-    }
-
-    function EditSlotForm({ slot, onSave }) {
-      const [val, setVal] = useState(slot.value);
-      return (
-        <div className="space-y-3">
-          <label className="block text-sm font-semibold text-slate-300">Kandungan Slot (Subjek / Guru / Murid)</label>
-          <input value={val} onChange={e => setVal(e.target.value)} autoFocus
-            className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none"
-            placeholder="cth: BM - Pn. Noraini (M01,M02)" />
-          <div className="flex gap-2">
-            <button onClick={() => onSave(slot.hari, slot.waktu, val)} className={BTN_GREEN + ' flex-1'}>
-              <Icon name="check" size={18} /> Simpan
-            </button>
-            <button onClick={() => onSave(slot.hari, slot.waktu, '')} className={BTN_ROSE + ' flex-1'}>
-              <Icon name="trash-2" size={18} /> Kosongkan
-            </button>
+          <ul className="text-sm text-slate-700 space-y-2 list-disc pl-5">
+            <li>Setiap murid berkeperluan khas (MBK) berhak mendapat pendidikan dalam persekitaran arus perdana yang inklusif.</li>
+            <li>Guru pendamping dilantik untuk menyokong pembelajaran murid inklusif separa di kelas arus perdana.</li>
+            <li>Penempatan murid ditentukan melalui saringan oleh pasukan pelbagai disiplin (PMD) dan diluluskan oleh JPKS.</li>
+            <li>Prasarana mesra OKU perlu disediakan mengikut garis panduan KPM dan JKR.</li>
+            <li>Laporan pelaksanaan PPI disediakan secara tahunan untuk pemantauan JPN dan KPM.</li>
+          </ul>
+          <div className="pt-2 border-t border-blue-100">
+            <p className="text-xs text-slate-500">Rujukan rasmi: Surat Pekeliling Indera Negeri Bil. 1/2026, Kementerian Pendidikan Malaysia.</p>
           </div>
         </div>
-      );
-    }
+      </Card>
 
-    function renderJadualHTML(j) {
-      let html = `<div style="font-family: Arial, sans-serif; color: #1e293b; padding: 20px; background: #fff;">
-        <div style="text-align: center; margin-bottom: 16px; border-bottom: 3px double #047857; padding-bottom: 10px;">
-          <h1 style="font-size: 20px; font-weight: bold; margin: 0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>
-          <p style="font-size: 13px; margin: 2px 0;">Jadual Waktu Bimbingan Anjal PPKI 2026</p>
-        </div>
-        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-          <thead><tr style="background: #047857; color: #fff;">
-            <th style="border: 1px solid #064e3b; padding: 6px;">Waktu</th>`;
-      HARI.forEach(h => { html += `<th style="border: 1px solid #064e3b; padding: 6px;">${h}</th>`; });
-      html += `</tr></thead><tbody>`;
-      WAKTU.forEach(w => {
-        html += `<tr><td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold; background: #f1f5f9;">${w}</td>`;
-        HARI.forEach(h => {
-          html += `<td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center;">${j[h]?.[w] || '-'}</td>`;
-        });
-        html += '</tr>';
-      });
-      html += `</tbody></table></div>`;
-      return html;
-    }
-
-    function renderLdpHTML(text) {
-      return `<div style="font-family: 'Times New Roman', serif; color: #1e293b; padding: 20px; background: #fff; white-space: pre-wrap; font-size: 13px; line-height: 1.6;">
-        <div style="text-align: center; margin-bottom: 20px; border-bottom: 3px double #047857; padding-bottom: 12px;">
-          <h1 style="font-size: 20px; font-weight: bold; margin: 0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>
-          <p style="font-size: 13px; margin: 2px 0;">Kementerian Pendidikan Malaysia</p>
-        </div>
-        ${text.replace(/\n/g, '<br>')}
-      </div>`;
-    }
-
-    // ============================================================
-    // FAIL 3: PROFIL MBK, SARINGAN & MINDA AI GROQ
-    // ============================================================
-    function Fail3({ murid, setMurid, saveToServer, deleteFromServer, uploadFile, showToast }) {
-      const [showForm, setShowForm] = useState(false);
-      const [editRec, setEditRec] = useState(null);
-      const [saringanMurid, setSaringanMurid] = useState(null);
-      const [aiModal, setAiModal] = useState(null);
-      const [aiLoading, setAiLoading] = useState(false);
-      const [borangModal, setBorangModal] = useState(null);
-      const fileInputRef = useRef(null);
-      const [uploadTarget, setUploadTarget] = useState(null);
-
-      const handleSave = async (rec) => {
-        const exists = murid.some(m => m.id === rec.id);
-        let newMurid;
-        if (exists) {
-          newMurid = murid.map(m => m.id === rec.id ? rec : m);
-        } else {
-          const newId = 'M' + String(murid.length + 1).padStart(2, '0');
-          rec.id = newId;
-          newMurid = [...murid, rec];
-        }
-        setMurid(newMurid);
-        localStorage.setItem('spib_murid', JSON.stringify(newMurid));
-        const res = await saveToServer('saveMurid', rec);
-        showToast(res.message || 'Rekod disimpan', res.success === false ? 'error' : 'success');
-        setShowForm(false);
-        setEditRec(null);
-      };
-
-      const handleDelete = async (id) => {
-        if (!confirm('Padam rekod murid ini? Tindakan ini tidak boleh dibuat asal.')) return;
-        const newMurid = murid.filter(m => m.id !== id);
-        setMurid(newMurid);
-        localStorage.setItem('spib_murid', JSON.stringify(newMurid));
-        const res = await deleteFromServer('deleteMurid', id);
-        showToast(res.message || 'Rekod dipadam', res.success === false ? 'error' : 'success');
-      };
-
-      const runAI = async (m) => {
-        const settings = getSettings();
-        if (!settings.groqApiKey) {
-          showToast('Sila tetapkan Groq API Key di Papan Tetapan Utama.', 'error');
-          return;
-        }
-        setAiLoading(true);
-        setAiModal({ murid: m, laporan: '', loading: true });
-        try {
-          const failedItems = (saringanMurid && saringanMurid.id === m.id) ? (saringanMurid.failedItems || []) : [];
-          const prompt = `Analisis data saringan murid berikut dan hasilkan Laporan Diagnostik profesional dalam Bahasa Melayu.\n\nNama: ${m.nama}\nDiagnosis: ${m.diagnosis}\nSkor Saringan SSKI-IS: ${m.skorSaringan}%\nItem yang gagal dikuasai (jawapan Tidak): ${failedItems.length ? failedItems.join(', ') : 'Tiada data item terperinci'}\n\nLaporan mesti mengandungi: (1) Ulasan Tahap Kesediaan, (2) Analisis Kelemahan Spesifik Domain, (3) 3 Pelan Tindakan RPI Berfokus, dan (4) Cadangan Pedagogi Terbeza di Kelas Biasa. Tulis dalam format Markdown yang sangat kemas.`;
-
-          const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + settings.groqApiKey
-            },
-            body: JSON.stringify({
-              model: 'llama-3.3-70b-versatile',
-              messages: [
-                { role: 'system', content: 'Anda adalah Pakar Pendidikan Khas KPM di Malaysia. Analisis data saringan murid ini dan hasilkan Laporan Diagnostik profesional dalam Bahasa Melayu. Laporan mesti mengandungi: (1) Ulasan Tahap Kesediaan, (2) Analisis Kelemahan Spesifik Domain, (3) 3 Pelan Tindakan RPI Berfokus, dan (4) Cadangan Pedagogi Terbeza di Kelas Biasa. Tulis dalam format Markdown yang sangat kemas.' },
-                { role: 'user', content: prompt }
-              ],
-              temperature: 0.7,
-              max_tokens: 2000
-            })
-          });
-
-          if (!res.ok) {
-            const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.error?.message || 'Ralat API Groq: ' + res.status);
-          }
-          const data = await res.json();
-          const laporan = data.choices?.[0]?.message?.content || 'Tiada respons daripada AI.';
-          setAiModal({ murid: m, laporan, loading: false });
-        } catch (e) {
-          setAiModal({ murid: m, laporan: 'RALAT: ' + e.message, loading: false });
-          showToast('Ralat Groq AI: ' + e.message, 'error');
-        } finally {
-          setAiLoading(false);
-        }
-      };
-
-      const printAiReport = () => {
-        if (!aiModal) return;
-        const c = document.getElementById('print-ai');
-        if (c) c.innerHTML = renderAiHTML(aiModal.murid, aiModal.laporan);
-        generatePDF('print-ai', 'laporan-diagnostik-ai-' + slug(aiModal.murid.nama) + '-' + getTodayStr() + '.pdf');
-      };
-
-      const printBorang = () => {
-        if (!borangModal) return;
-        const c = document.getElementById('print-borang');
-        if (c) c.innerHTML = renderBorangHTML(borangModal.murid);
-        generatePDF('print-borang', 'borang-' + (borangModal.murid.skorSaringan >= 50 ? 'persetujuan' : 'intervensi') + '-' + slug(borangModal.murid.nama) + '-' + getTodayStr() + '.pdf');
-      };
-
-      const handleUploadClick = (m) => {
-        setUploadTarget(m);
-        if (fileInputRef.current) fileInputRef.current.click();
-      };
-
-      const handleFileChange = async (e) => {
-        const file = e.target.files?.[0];
-        if (!file || !uploadTarget) return;
-        if (file.size > 10 * 1024 * 1024) { showToast('Saiz fail melebihi 10MB.', 'error'); return; }
-        showToast('Memuat naik fail ke Google Drive...', 'info');
-        const reader = new FileReader();
-        reader.onload = async (ev) => {
-          const base64 = ev.target.result.split(',')[1];
-          const fileName = 'Borang_' + uploadTarget.id + '_' + slug(uploadTarget.nama) + '_' + getTodayStr() + '.' + file.name.split('.').pop();
-          const res = await uploadFile(base64, fileName);
-          if (res.success) {
-            const updated = { ...uploadTarget, failDrive: res.webViewLink || res.directUrl || res.driveUrl };
-            const newMurid = murid.map(m => m.id === uploadTarget.id ? updated : m);
-            setMurid(newMurid);
-            localStorage.setItem('spib_murid', JSON.stringify(newMurid));
-            await saveToServer('saveMurid', updated);
-            showToast('Fail berjaya dimuat naik! Pautan Drive disimpan.', 'success');
-          } else {
-            showToast(res.error || 'Gagal memuat naik fail.', 'error');
-          }
-          setUploadTarget(null);
-          if (fileInputRef.current) fileInputRef.current.value = '';
-        };
-        reader.readAsDataURL(file);
-      };
-
-      return (
-        <div className="space-y-6">
-          {/* Pangkalan Data 10 Murid */}
-          <div className={CARD + ' p-5'}>
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h2 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
-                <Icon name="database" size={22} /> Pangkalan Data 10 Murid Inklusif
-              </h2>
-              <button onClick={() => { setEditRec(null); setShowForm(true); }} className={BTN_GREEN}>
-                <Icon name="user-plus" size={18} /> Tambah Murid Baru
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-emerald-700 text-white">
-                    <th className="px-2 py-2 text-left rounded-tl-lg">ID</th>
-                    <th className="px-2 py-2 text-left">Nama</th>
-                    <th className="px-2 py-2 text-left">MyKid</th>
-                    <th className="px-2 py-2 text-left">Diagnosis</th>
-                    <th className="px-2 py-2 text-left">Kelas</th>
-                    <th className="px-2 py-2 text-center">Skor</th>
-                    <th className="px-2 py-2 text-center rounded-tr-lg">Tindakan</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {murid.map((m, i) => (
-                    <tr key={m.id} className={i % 2 === 0 ? 'bg-slate-900' : 'bg-slate-800'}>
-                      <td className="px-2 py-2 font-mono text-emerald-400">{m.id}</td>
-                      <td className="px-2 py-2 font-semibold">{m.nama}</td>
-                      <td className="px-2 py-2 text-slate-400 font-mono text-xs">{m.mykid}</td>
-                      <td className="px-2 py-2 text-slate-300">{m.diagnosis}</td>
-                      <td className="px-2 py-2 text-slate-300">{m.kelas}</td>
-                      <td className="px-2 py-2 text-center">
-                        <span className={(m.skorSaringan >= 50 ? 'text-emerald-400' : 'text-rose-400') + ' font-bold'}>{m.skorSaringan}%</span>
-                      </td>
-                      <td className="px-2 py-2">
-                        <div className="flex flex-wrap gap-1 justify-center">
-                          <button onClick={() => { setEditRec(m); setShowForm(true); }} className="bg-blue-600 hover:bg-blue-500 text-white p-1.5 rounded-lg border-b-2 border-blue-800 active:border-b-0 active:translate-y-0.5 transition-all" title="Edit">
-                            <Icon name="edit-3" size={14} />
-                          </button>
-                          <button onClick={() => setSaringanMurid(m)} className="bg-amber-500 hover:bg-amber-400 text-slate-900 p-1.5 rounded-lg border-b-2 border-amber-700 active:border-b-0 active:translate-y-0.5 transition-all" title="Saringan">
-                            <Icon name="clipboard-check" size={14} />
-                          </button>
-                          <button onClick={() => runAI(m)} disabled={aiLoading} className="bg-purple-600 hover:bg-purple-500 text-white p-1.5 rounded-lg border-b-2 border-purple-800 active:border-b-0 active:translate-y-0.5 transition-all disabled:opacity-50" title="Jana Laporan AI">
-                            <Icon name="sparkles" size={14} />
-                          </button>
-                          <button onClick={() => setBorangModal({ murid: m })} className="bg-emerald-600 hover:bg-emerald-500 text-white p-1.5 rounded-lg border-b-2 border-emerald-800 active:border-b-0 active:translate-y-0.5 transition-all" title="Borang Persetujuan">
-                            <Icon name="file-signature" size={14} />
-                          </button>
-                          <button onClick={() => handleUploadClick(m)} className="bg-teal-600 hover:bg-teal-500 text-white p-1.5 rounded-lg border-b-2 border-teal-800 active:border-b-0 active:translate-y-0.5 transition-all" title="Upload Borang">
-                            <Icon name="upload-cloud" size={14} />
-                          </button>
-                          <button onClick={() => handleDelete(m.id)} className="bg-rose-600 hover:bg-rose-500 text-white p-1.5 rounded-lg border-b-2 border-rose-800 active:border-b-0 active:translate-y-0.5 transition-all" title="Padam">
-                            <Icon name="trash-2" size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {murid.some(m => m.failDrive) && (
-              <div className="mt-3 text-xs text-slate-400">
-                <p className="font-semibold text-emerald-400 mb-1">Fail Drive Tersimpan:</p>
-                {murid.filter(m => m.failDrive).map(m => (
-                  <a key={m.id} href={m.failDrive} target="_blank" rel="noopener noreferrer" className="block text-blue-400 hover:underline truncate">
-                    {m.id} - {m.nama}: {m.failDrive}
-                  </a>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Saringan SSKI-IS */}
-          {saringanMurid && (
-            <SaringanPanel murid={saringanMurid} onClose={() => setSaringanMurid(null)} onSaveScore={(id, skor, failed) => {
-              const newMurid = murid.map(m => m.id === id ? { ...m, skorSaringan: skor } : m);
-              setMurid(newMurid);
-              localStorage.setItem('spib_murid', JSON.stringify(newMurid));
-              saveToServer('saveMurid', newMurid.find(m => m.id === id));
-              setSaringanMurid(prev => ({ ...prev, skorSaringan: skor, failedItems: failed }));
-              showToast('Skor saringan dikemaskini: ' + skor + '%', 'success');
-            }} />
-          )}
-
-          {/* Modal AI */}
-          <Modal open={!!aiModal} onClose={() => setAiModal(null)} title="Laporan Diagnostik AI Groq" maxWidth="max-w-3xl">
-            {aiModal && (
-              <div>
-                {aiModal.loading ? (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                    <p className="text-emerald-400 font-semibold">AI Groq sedang menganalisis data saringan...</p>
-                    <p className="text-slate-400 text-sm mt-1">Model: llama-3.3-70b-versatile</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="bg-slate-900 border-2 border-slate-700 rounded-lg p-4 mb-4">
-                      <p className="text-sm text-slate-300"><strong className="text-emerald-400">Murid:</strong> {aiModal.murid.nama}</p>
-                      <p className="text-sm text-slate-300"><strong className="text-emerald-400">Diagnosis:</strong> {aiModal.murid.diagnosis}</p>
-                      <p className="text-sm text-slate-300"><strong className="text-emerald-400">Skor Saringan:</strong> {aiModal.murid.skorSaringan}%</p>
-                    </div>
-                    <div className="bg-slate-900 border-2 border-emerald-700 rounded-lg p-4 max-h-[400px] overflow-y-auto">
-                      <pre className="text-sm text-slate-200 whitespace-pre-wrap font-sans">{aiModal.laporan}</pre>
-                    </div>
-                    <div className="mt-4 flex gap-2">
-                      <button onClick={printAiReport} className={BTN_AMBER + ' flex-1'}>
-                        <Icon name="printer" size={18} /> Simpan PDF Laporan AI
-                      </button>
-                      <button onClick={() => setAiModal(null)} className={BTN_BLUE + ' flex-1'}>
-                        <Icon name="x" size={18} /> Tutup
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </Modal>
-
-          {/* Modal Borang */}
-          <Modal open={!!borangModal} onClose={() => setBorangModal(null)} title={borangModal?.murid?.skorSaringan >= 50 ? 'Borang Persetujuan Ibu Bapa' : 'Borang Intervensi PPKI'} maxWidth="max-w-2xl">
-            {borangModal && (
-              <div>
-                <div className="bg-slate-900 border-2 border-slate-700 rounded-lg p-4 mb-4 text-sm text-slate-300">
-                  <p><strong className="text-emerald-400">Murid:</strong> {borangModal.murid.nama}</p>
-                  <p><strong className="text-emerald-400">MyKid:</strong> {borangModal.murid.mykid}</p>
-                  <p><strong className="text-emerald-400">Skor Saringan:</strong> {borangModal.murid.skorSaringan}%</p>
-                  <p><strong className="text-emerald-400">Jenis Borang:</strong> {borangModal.murid.skorSaringan >= 50 ? 'Persetujuan Penempatan Inklusif' : 'Intervensi PPKI'}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={printBorang} className={BTN_AMBER + ' flex-1'}>
-                    <Icon name="printer" size={18} /> Simpan PDF Borang
-                  </button>
-                  <button onClick={() => handleUploadClick(borangModal.murid)} className={BTN_GREEN + ' flex-1'}>
-                    <Icon name="upload-cloud" size={18} /> Upload Borang Ditandatangani
-                  </button>
-                </div>
-                <p className="text-xs text-slate-400 mt-3">Cetak borang, dapatkan tandatangan ibu bapa, imbas/skan, kemudian muat naik fail. Pautan Google Drive akan disimpan automatik ke rekod murid.</p>
-              </div>
-            )}
-          </Modal>
-
-          {/* Modal Form Murid */}
-          <Modal open={showForm} onClose={() => { setShowForm(false); setEditRec(null); }} title={editRec ? 'Edit Butiran Murid' : 'Tambah Murid Baru'} maxWidth="max-w-xl">
-            <MuridForm rec={editRec} onSave={handleSave} onCancel={() => { setShowForm(false); setEditRec(null); }} />
-          </Modal>
-
-          <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={handleFileChange} />
-          <div id="print-ai" className="print-container" style={{ display: 'none' }}></div>
-          <div id="print-borang" className="print-container" style={{ display: 'none' }}></div>
-        </div>
-      );
-    }
-
-    function MuridForm({ rec, onSave, onCancel }) {
-      const [form, setForm] = useState(rec || { nama: '', mykid: '', diagnosis: '', kelas: 'Pemulihan Khas 1', skorSaringan: 0, jantina: 'Lelaki', tarikhLahir: '', ibubapa: '', telefon: '', failDrive: '' });
-      return (
-        <div className="space-y-3">
-          <div className="grid md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-1">Nama Penuh</label>
-              <input value={form.nama} onChange={e => setForm({ ...form, nama: e.target.value })}
-                className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-1">No. MyKid</label>
-              <input value={form.mykid} onChange={e => setForm({ ...form, mykid: e.target.value })}
-                className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" placeholder="180101-14-0123" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-1">Diagnosis</label>
-              <select value={form.diagnosis} onChange={e => setForm({ ...form, diagnosis: e.target.value })}
-                className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none">
-                <option value="">Pilih...</option>
-                <option>Disleksia</option>
-                <option>Disgrafia</option>
-                <option>Diskalkulia</option>
-                <option>ADHD</option>
-                <option>Autisme Ringan</option>
-                <option>Lambat Belajar</option>
-                <option>Pendengaran Terhad</option>
-                <option>Penglihatan Terhad</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-1">Kelas Inklusif</label>
-              <select value={form.kelas} onChange={e => setForm({ ...form, kelas: e.target.value })}
-                className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none">
-                <option>Pemulihan Khas 1</option>
-                <option>Pemulihan Khas 2</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-1">Jantina</label>
-              <select value={form.jantina} onChange={e => setForm({ ...form, jantina: e.target.value })}
-                className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none">
-                <option>Lelaki</option>
-                <option>Perempuan</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-1">Skor Saringan (%)</label>
-              <input type="number" min="0" max="100" value={form.skorSaringan} onChange={e => setForm({ ...form, skorSaringan: parseInt(e.target.value) || 0 })}
-                className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-1">Tarikh Lahir</label>
-              <input type="date" value={form.tarikhLahir} onChange={e => setForm({ ...form, tarikhLahir: e.target.value })}
-                className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-1">Telefon Ibu Bapa</label>
-              <input value={form.telefon} onChange={e => setForm({ ...form, telefon: e.target.value })}
-                className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" placeholder="012-3456789" />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-slate-300 mb-1">Nama Ibu Bapa / Penjaga</label>
-              <input value={form.ibubapa} onChange={e => setForm({ ...form, ibubapa: e.target.value })}
-                className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" />
-            </div>
-          </div>
-          <div className="flex gap-2 pt-2">
-            <button onClick={() => onSave(form)} className={BTN_GREEN + ' flex-1'}>
-              <Icon name="save" size={18} /> Simpan
-            </button>
-            <button onClick={onCancel} className={BTN_ROSE + ' flex-1'}>
-              <Icon name="x" size={18} /> Batal
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    function SaringanPanel({ murid, onClose, onSaveScore }) {
-      const [answers, setAnswers] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('spib_saringan_' + murid.id) || '[]'); }
-        catch { return []; }
-      });
-
-      const allItems = useMemo(() => SARINGAN_ITEMS.flatMap(d => d.items.map(item => ({ domain: d.domain, item }))), []);
-      const yaCount = answers.filter(a => a === 'ya').length;
-      const skor = Math.round((yaCount / 25) * 100);
-      const failedItems = allItems.filter((_, i) => answers[i] !== 'ya').map(x => x.item);
-
-      useEffect(() => { localStorage.setItem('spib_saringan_' + murid.id, JSON.stringify(answers)); }, [answers, murid.id]);
-
-      const setAns = (i, val) => {
-        const next = [...answers];
-        next[i] = val;
-        setAnswers(next);
-      };
-
-      return (
-        <div className={CARD_EMERALD + ' p-5'}>
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h2 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
-              <Icon name="clipboard-check" size={22} /> Saringan SSKI-IS - {murid.nama}
-            </h2>
-            <button onClick={onClose} className={BTN_ROSE + ' text-sm'}>
-              <Icon name="x" size={16} /> Tutup
-            </button>
-          </div>
-
-          <div className="bg-slate-900 border-2 border-emerald-700 rounded-xl p-4 mb-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-400">Skor Saringan</p>
-              <p className={'text-3xl font-bold ' + (skor >= 50 ? 'text-emerald-400' : 'text-rose-400')}>{skor}%</p>
-              <p className="text-xs text-slate-500">({yaCount} YA / 25 item)</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-slate-400">Status</p>
-              <p className={'text-lg font-bold ' + (skor >= 50 ? 'text-emerald-400' : 'text-rose-400')}>
-                {skor >= 50 ? 'Layak Inklusif' : 'Perlu Intervensi'}
-              </p>
-            </div>
-          </div>
-
+      {/* Modal Edit Carta Organisasi */}
+      <Modal open={!!editOrg} onClose={() => setEditOrg(null)} title="Edit Maklumat Carta Organisasi" wide>
+        {editOrg && (
           <div className="space-y-4">
-            {SARINGAN_ITEMS.map((dom, di) => {
-              const startIdx = SARINGAN_ITEMS.slice(0, di).reduce((s, d) => s + d.items.length, 0);
-              return (
-                <div key={dom.domain} className="border-2 border-slate-700 rounded-lg overflow-hidden">
-                  <div className="bg-slate-700 px-3 py-2 font-bold text-emerald-400 text-sm">{dom.domain}</div>
-                  {dom.items.map((item, ii) => {
-                    const idx = startIdx + ii;
-                    return (
-                      <div key={idx} className="flex items-center justify-between px-3 py-2 border-t border-slate-700 bg-slate-900">
-                        <span className="text-sm text-slate-200">{idx + 1}. {item}</span>
-                        <div className="flex gap-1">
-                          <button onClick={() => setAns(idx, 'ya')}
-                            className={'px-3 py-1 rounded-lg text-xs font-bold border-b-2 transition-all ' + (answers[idx] === 'ya' ? 'bg-emerald-600 text-white border-emerald-800' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700')}>Ya</button>
-                          <button onClick={() => setAns(idx, 'tidak')}
-                            className={'px-3 py-1 rounded-lg text-xs font-bold border-b-2 transition-all ' + (answers[idx] === 'tidak' ? 'bg-rose-600 text-white border-rose-800' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700')}>Tidak</button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+            {editOrg.map((row, i) => (
+              <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-xl">
+                <Field label="Jawatan"><Input value={row.jawatan} onChange={e => { const c=[...editOrg]; c[i]={...c[i], jawatan:e.target.value}; setEditOrg(c); }} /></Field>
+                <Field label="Nama Ahli"><Input value={row.nama} onChange={e => { const c=[...editOrg]; c[i]={...c[i], nama:e.target.value}; setEditOrg(c); }} /></Field>
+                <Field label="Jawatan Penuh"><Input value={row.jawatan_full} onChange={e => { const c=[...editOrg]; c[i]={...c[i], jawatan_full:e.target.value}; setEditOrg(c); }} /></Field>
+              </div>
+            ))}
+            <div className="flex gap-2 justify-end">
+              <Btn variant="white" onClick={() => setEditOrg(null)}>Batal</Btn>
+              <Btn variant="blue" onClick={saveOrg}><Icon name="save" size={16} /> Simpan</Btn>
+            </div>
           </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
 
-          <div className="mt-4 flex gap-2">
-            <button onClick={() => onSaveScore(murid.id, skor, failedItems)} className={BTN_GREEN + ' flex-1'}>
-              <Icon name="save" size={18} /> Simpan Skor Saringan
-            </button>
+/* --- Surat Pelantikan --- */
+function SuratPelantikan({ onToast }) {
+  const [form, setForm] = useState({ nama: '', jawatan: '', tarikh: '', sekolah: 'SK Selama (K)', guruBesar: 'Tn. Hj. Abdul Rahman bin Hassan' });
+  const suratRef = useRef(null);
+  function generatePDF() {
+    if (!form.nama || !form.jawatan) { onToast({ type: 'error', msg: 'Sila isi nama dan jawatan dahulu.' }); return; }
+    const opt = { margin: 10, filename: `Surat_Pelantikan_${form.nama.replace(/\s/g,'_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+    window.html2pdf().set(opt).from(suratRef.current).save();
+    onToast({ type: 'success', msg: 'PDF surat pelantikan dijana.' });
+  }
+  return (
+    <Card className="p-6">
+      <SectionTitle icon="file-signature" title="Penjana Surat Pelantikan Jawatankuasa" desc="Jana surat rasmi KPM berkepala surat sekolah" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <Field label="Nama Guru"><Input value={form.nama} onChange={e => setForm({...form, nama: e.target.value})} placeholder="Cth: En. Ahmad bin Isa" /></Field>
+        <Field label="Jawatan"><Input value={form.jawatan} onChange={e => setForm({...form, jawatan: e.target.value})} placeholder="Cth: Guru Pendamping PPKI" /></Field>
+        <Field label="Tarikh Pelantikan"><Input type="date" value={form.tarikh} onChange={e => setForm({...form, tarikh: e.target.value})} /></Field>
+        <Field label="Guru Besar"><Input value={form.guruBesar} onChange={e => setForm({...form, guruBesar: e.target.value})} /></Field>
+      </div>
+      <div className="flex justify-end mb-4">
+        <Btn variant="green" onClick={generatePDF}><Icon name="download" size={16} /> Simpan PDF</Btn>
+      </div>
+      {/* Preview Surat */}
+      <div ref={suratRef} className="bg-white border border-slate-200 rounded-xl p-8 text-slate-900" style={{ fontFamily: 'Times New Roman, serif' }}>
+        <div className="text-center border-b-2 border-slate-800 pb-3 mb-6">
+          <div className="flex items-center justify-center gap-3 mb-1">
+            <span className="text-3xl">🎓</span>
+            <div>
+              <h2 className="text-lg font-bold uppercase">{form.sekolah}</h2>
+              <p className="text-xs">Kementerian Pendidikan Malaysia</p>
+              <p className="text-xs">Negeri Perak Darul Ridzuan</p>
+            </div>
           </div>
         </div>
-      );
-    }
+        <div className="text-right mb-6 text-sm">
+          <p>Rujukan: JPKS/SKSA/2026/01</p>
+          <p>Tarikh: {form.tarikh ? new Date(form.tarikh).toLocaleDateString('ms-MY', { day: '2-digit', month: 'long', year: 'numeric' }) : '____'}</p>
+        </div>
+        <div className="text-center mb-6">
+          <h3 className="font-bold text-base underline">SURAT PELANTIKAN JAWATANKUASA</h3>
+          <p className="text-sm">PROGRAM PENDIDIKAN INKLUSIF (PPI) 2026</p>
+        </div>
+        <div className="text-sm space-y-3 leading-relaxed">
+          <p>Dengan hormatnya, dengan ini {form.guruBesar}, Guru Besar {form.sekolah}, dengan kuasa yang diberikan oleh Kementerian Pendidikan Malaysia, melantik:</p>
+          <div className="text-center py-3">
+            <p className="font-bold text-base">{form.nama || '________________________'}</p>
+            <p className="text-sm">sebagai</p>
+            <p className="font-bold text-base">{form.jawatan || '________________________'}</p>
+          </div>
+          <p>Jawatankuasa ini berkuat kuasa mulai tarikh pelantikan sehingga 31 Disember 2026. Ahli jawatankuasa dikehendaki melaksanakan tugas dan tanggungjawab seperti yang termaktub dalam Pekeliling SPI Bil. 1/2026.</p>
+          <p>Kerjasama dan komitmen anda dalam menjayakan Program Pendidikan Inklusif amat dihargai dan dijangka.</p>
+        </div>
+        <div className="mt-10 text-right">
+          <p className="text-sm mb-1">Saya yang menurut perintah,</p>
+          <div className="inline-block text-center">
+            <div className="w-40 h-20 border-b border-slate-400 mb-1"></div>
+            <p className="font-bold text-sm">{form.guruBesar}</p>
+            <p className="text-xs">Guru Besar {form.sekolah}</p>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
 
-    function renderAiHTML(m, laporan) {
-      const htmlContent = (laporan || '').split('\n').map(line => {
-        if (line.startsWith('### ')) return `<h3 style="color:#047857;font-size:14px;font-weight:bold;margin:12px 0 6px;">${line.slice(4)}</h3>`;
-        if (line.startsWith('## ')) return `<h2 style="color:#047857;font-size:16px;font-weight:bold;margin:14px 0 8px;">${line.slice(3)}</h2>`;
-        if (line.startsWith('# ')) return `<h1 style="color:#047857;font-size:18px;font-weight:bold;margin:16px 0 8px;">${line.slice(2)}</h1>`;
-        if (line.startsWith('- ') || line.startsWith('* ')) return `<p style="margin:4px 0;padding-left:16px;">${line}</p>`;
-        return `<p style="margin:4px 0;">${line}</p>`;
-      }).join('');
-      return `<div style="font-family: 'Times New Roman', serif; color: #1e293b; padding: 20px; background: #fff;">
-        <div style="text-align: center; margin-bottom: 20px; border-bottom: 3px double #047857; padding-bottom: 12px;">
-          <h1 style="font-size: 20px; font-weight: bold; margin: 0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>
-          <p style="font-size: 13px; margin: 2px 0;">Laporan Diagnostik AI - PPKI</p>
-        </div>
-        <div style="margin-bottom: 16px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
-          <p><strong>Nama Murid:</strong> ${m.nama}</p>
-          <p><strong>Diagnosis:</strong> ${m.diagnosis}</p>
-          <p><strong>Skor Saringan:</strong> ${m.skorSaringan}%</p>
-          <p><strong>Tarikh Laporan:</strong> ${getTodayStr()}</p>
-        </div>
-        <div style="font-size: 13px; line-height: 1.6;">${htmlContent}</div>
-        <div style="margin-top: 32px; text-align: right; font-size: 12px;">
-          <p>Dijana oleh: SPIB-Pintar AI (Groq Llama 3.3)</p>
-          <p>Ketua PPKI: Pn. Noraini binti Mahmud</p>
-        </div>
-      </div>`;
-    }
+/* ============================================================
+   TAB 2: SUMBER MANUSIA & PENJADUALAN
+   ============================================================ */
+function TabSumberManusia({ onToast }) {
+  const [teachers, setTeachers] = useState(DEFAULT_TEACHERS);
+  const [editing, setEditing] = useState(null);
+  const [schedule, setSchedule] = useState(DEFAULT_SCHEDULE);
+  const [editSlot, setEditSlot] = useState(null);
 
-    function renderBorangHTML(m) {
-      const isPersetujuan = m.skorSaringan >= 50;
-      const title = isPersetujuan ? 'BORANG PERSETUJUAN IBU BAPA PENEMPATAN MURID INKLUSIF' : 'BORANG INTERVENSI PPKI';
-      const body = isPersetujuan
-        ? `<p style="font-size:14px;margin:16px 0;">Saya/ibu bapa/penjaga yang bertandatangan di bawah, dengan ini bersetuju penempatan anak saya <strong>${m.nama}</strong> (MyKid: ${m.mykid}) ke dalam program pendidikan inklusif di SK Selama (K) bagi sesi 2026.</p>
-           <p style="font-size:14px;margin:16px 0;">Saya memahami bahawa anak saya akan belajar bersama rakan aliran perdana dengan sokongan guru PPKI dan RPI yang disediakan berdasarkan keputusan saringan (Skor: ${m.skorSaringan}%).</p>`
-        : `<p style="font-size:14px;margin:16px 0;">Berdasarkan keputusan saringan SSKI-IS (Skor: ${m.skorSaringan}%), anak saya <strong>${m.nama}</strong> (MyKid: ${m.mykid}) memerlukan intervensi khas dalam Program Pendidikan Khas Integrasi (PPKI) di SK Selama (K).</p>
-           <p style="font-size:14px;margin:16px 0;">Saya bersetuju anak saya menerima intervensensi khas dan RPI yang disediakan oleh guru PPKI bagi meningkatkan tahap kesediaan beliau.</p>`;
-      return `<div style="font-family: 'Times New Roman', serif; color: #1e293b; padding: 20px; background: #fff;">
-        <div style="text-align: center; margin-bottom: 20px; border-bottom: 3px double #047857; padding-bottom: 12px;">
-          <h1 style="font-size: 20px; font-weight: bold; margin: 0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>
-          <p style="font-size: 13px; margin: 2px 0;">Kementerian Pendidikan Malaysia</p>
+  function saveTeacher(t) {
+    if (t.id) {
+      setTeachers(teachers.map(x => x.id === t.id ? t : x));
+      onToast({ type: 'success', msg: 'Profil guru dikemas kini.' });
+    } else {
+      setTeachers([...teachers, { ...t, id: 't' + Date.now() }]);
+      onToast({ type: 'success', msg: 'Profil guru baharu ditambah.' });
+    }
+    setEditing(null);
+  }
+  function deleteTeacher(id) {
+    setTeachers(teachers.filter(t => t.id !== id));
+    onToast({ type: 'success', msg: 'Profil guru dipadam.' });
+  }
+  function saveSlot(day, time, value) {
+    setSchedule(prev => ({ ...prev, [day]: { ...prev[day], [time]: value } }));
+    setEditSlot(null);
+    onToast({ type: 'success', msg: `Slot ${day} ${time} dikemas kini.` });
+  }
+
+  return (
+    <div className="space-y-6 fade-in">
+      {/* Sub-Tajuk 1: Profil Guru PPKI */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <SectionTitle icon="users" title="Profil Guru PPKI" desc="Senarai guru Program Pendidikan Khas Integrasi" />
+          <Btn variant="blue" onClick={() => setEditing({ id: '', nama: '', gred: '', opsyen: '', subjek: '' })}><Icon name="plus" size={16} /> Tambah Guru</Btn>
         </div>
-        <h2 style="text-align:center;font-size:15px;font-weight:bold;margin:20px 0;text-decoration:underline;">${title}</h2>
-        ${body}
-        <div style="margin-top:40px;">
-          <table style="width:100%;font-size:14px;border-collapse:collapse;">
-            <tr><td style="padding:8px 0;">Nama Murid:</td><td style="padding:8px 0;font-weight:bold;">${m.nama}</td></tr>
-            <tr><td style="padding:8px 0;">No. MyKid:</td><td style="padding:8px 0;">${m.mykid}</td></tr>
-            <tr><td style="padding:8px 0;">Diagnosis:</td><td style="padding:8px 0;">${m.diagnosis}</td></tr>
-            <tr><td style="padding:8px 0;">Kelas:</td><td style="padding:8px 0;">${m.kelas}</td></tr>
-            <tr><td style="padding:8px 0;">Skor Saringan:</td><td style="padding:8px 0;">${m.skorSaringan}%</td></tr>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-left text-slate-500">
+                <th className="py-3 px-4 font-semibold">Nama</th>
+                <th className="py-3 px-4 font-semibold">Gred</th>
+                <th className="py-3 px-4 font-semibold">Opsyen</th>
+                <th className="py-3 px-4 font-semibold">Subjek</th>
+                <th className="py-3 px-4 font-semibold text-right">Tindakan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {teachers.map(t => (
+                <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                  <td className="py-3 px-4 font-semibold text-slate-900">{t.nama}</td>
+                  <td className="py-3 px-4"><Badge color="blue">{t.gred}</Badge></td>
+                  <td className="py-3 px-4 text-slate-600">{t.opsyen}</td>
+                  <td className="py-3 px-4 text-slate-600">{t.subjek}</td>
+                  <td className="py-3 px-4">
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={() => setEditing({...t})} className="p-2 rounded-lg hover:bg-blue-50 text-blue-600"><Icon name="pencil" size={16} /></button>
+                      <button onClick={() => deleteTeacher(t.id)} className="p-2 rounded-lg hover:bg-rose-50 text-rose-600"><Icon name="trash-2" size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
-        <div style="margin-top:48px;display:flex;justify-content:space-between;">
-          <div>
-            <p style="font-size:14px;">Tandatangan Ibu Bapa:</p>
-            <p style="font-size:14px;margin-top:40px;">.................................</p>
-            <p style="font-size:12px;">Tarikh: ............................</p>
-          </div>
-          <div>
-            <p style="font-size:14px;">Tandatangan Guru PPKI:</p>
-            <p style="font-size:14px;margin-top:40px;">.................................</p>
-            <p style="font-size:12px;">Tarikh: ............................</p>
-          </div>
-        </div>
-      </div>`;
-    }
+      </Card>
 
-    // ============================================================
-    // FAIL 4: PRESTASI & PELAPORAN
-    // ============================================================
-    function Fail4({ murid, prasarana, setPrasarana, saveToServer, deleteFromServer, showToast }) {
-      const [prestasi, setPrestasi] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('spib_prestasi') || 'null') || defaultPrestasi(murid); }
-        catch { return defaultPrestasi(murid); }
-      });
-      const [editPrasarana, setEditPrasarana] = useState(null);
-      const [swot, setSwot] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('spib_swot') || 'null') || defaultSwot(); }
-        catch { return defaultSwot(); }
-      });
-
-      function defaultPrestasi(m) {
-        return m.map(x => ({
-          id: x.id, nama: x.nama,
-          bm: Math.floor(Math.random() * 30) + 50,
-          mt: Math.floor(Math.random() * 30) + 45,
-          bi: Math.floor(Math.random() * 30) + 48,
-          sains: Math.floor(Math.random() * 30) + 50,
-          sahsiah: 'Baik'
-        }));
-      }
-
-      function defaultSwot() {
-        return {
-          kekuatan: '1. 5 guru PPKI berkelayakan opsyen pendidikan khas\n2. Sokongan penuh Guru Besar & JPKS\n3. Integrasi AI Groq untuk diagnostik murid\n4. 10 murid inklusif ditempatkan dengan jadual bimbingan anjal',
-          kelemahan: '1. Prasarana OKU masih belum lengkap (tandas, susur taktik)\n2. Beban tugas guru PPKI yang tinggi\n3. Sumber kewangan terhad untuk alatan bantuan mengajar',
-          peluang: '1. Sokongan KPM melalui SPI Bil. 1/2026\n2. Kerjasama dengan ibu bapa yang responsif\n3. Latihan dalaman perkhidmatan pedagogi terbeza & AI\n4. Bantuan NGO pendidikan khas',
-          ancaman: '1. Masalah internet di bilik darjah menjejaskan akses AI\n2. Risiko murid inklusif tersisih di kelas aliran perdana\n3. Perubahan dasar pendidikan khas'
-        };
-      }
-
-      useEffect(() => { localStorage.setItem('spib_prestasi', JSON.stringify(prestasi)); }, [prestasi]);
-      useEffect(() => { localStorage.setItem('spib_swot', JSON.stringify(swot)); }, [swot]);
-
-      const updateGred = (id, subj, val) => {
-        setPrestasi(prev => prev.map(p => p.id === id ? { ...p, [subj]: parseInt(val) || 0 } : p));
-      };
-      const updateSahsiah = (id, val) => {
-        setPrestasi(prev => prev.map(p => p.id === id ? { ...p, sahsiah: val } : p));
-      };
-
-      const printPrestasi = () => {
-        const c = document.getElementById('print-prestasi');
-        if (c) c.innerHTML = renderPrestasiHTML(prestasi);
-        generatePDF('print-prestasi', 'laporan-prestasi-ppt-2026.pdf');
-      };
-
-      const printSwot = () => {
-        const c = document.getElementById('print-swot');
-        if (c) c.innerHTML = renderSwotHTML(swot);
-        generatePDF('print-swot', 'analisis-swot-ppki-2026.pdf');
-      };
-
-      const handleSavePrasarana = async (rec) => {
-        const exists = prasarana.some(p => p.id === rec.id);
-        let newList;
-        if (exists) {
-          newList = prasarana.map(p => p.id === rec.id ? rec : p);
-        } else {
-          rec.id = 'P' + String(prasarana.length + 1).padStart(2, '0');
-          newList = [...prasarana, rec];
-        }
-        setPrasarana(newList);
-        localStorage.setItem('spib_prasarana', JSON.stringify(newList));
-        await saveToServer('savePrasarana', rec);
-        showToast('Rekod prasarana disimpan.', 'success');
-        setEditPrasarana(null);
-      };
-
-      const handleDeletePrasarana = async (id) => {
-        if (!confirm('Padam item prasarana ini?')) return;
-        const newList = prasarana.filter(p => p.id !== id);
-        setPrasarana(newList);
-        localStorage.setItem('spib_prasarana', JSON.stringify(newList));
-        await deleteFromServer('deletePrasarana', id);
-        showToast('Item prasarana dipadam.', 'success');
-      };
-
-      return (
-        <div className="space-y-6">
-          {/* Rekod Prestasi PPT 2026 */}
-          <div className={CARD + ' p-5'}>
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h2 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
-                <Icon name="award" size={22} /> Rekod Prestasi PPT 2026
-              </h2>
-              <button onClick={printPrestasi} className={BTN_AMBER}>
-                <Icon name="printer" size={18} /> Simpan PDF Laporan Prestasi
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-emerald-700 text-white">
-                    <th className="px-2 py-2 text-left rounded-tl-lg">Nama</th>
-                    <th className="px-2 py-2 text-center">BM</th>
-                    <th className="px-2 py-2 text-center">MT</th>
-                    <th className="px-2 py-2 text-center">BI</th>
-                    <th className="px-2 py-2 text-center">Sains</th>
-                    <th className="px-2 py-2 text-center">Sahsiah Sosial</th>
-                    <th className="px-2 py-2 text-center rounded-tr-lg">Purata</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {prestasi.map((p, i) => {
-                    const purata = Math.round((p.bm + p.mt + p.bi + p.sains) / 4);
+      {/* Sub-Tajuk 2: Jadual Waktu Bimbingan Anjal */}
+      <Card className="p-6">
+        <SectionTitle icon="calendar" title="Jadual Waktu Bimbingan Anjal" desc="Klik slot untuk tukar subjek/kelas. Matriks Isnin-Jumaat." />
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr>
+                <th className="border border-slate-200 bg-slate-50 py-2 px-3 text-slate-600 font-semibold text-left">Masa</th>
+                {DAYS.map(d => <th key={d} className="border border-slate-200 bg-slate-50 py-2 px-3 text-slate-600 font-semibold text-center min-w-[120px]">{d}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {TIME_SLOTS.map(time => (
+                <tr key={time}>
+                  <td className="border border-slate-200 bg-slate-50 py-2 px-3 text-slate-500 font-medium text-xs whitespace-nowrap">{time}</td>
+                  {DAYS.map(day => {
+                    const val = schedule[day]?.[time] || '';
+                    const isRehat = time === 'Rehat';
                     return (
-                      <tr key={p.id} className={i % 2 === 0 ? 'bg-slate-900' : 'bg-slate-800'}>
-                        <td className="px-2 py-2 font-semibold">{p.nama}</td>
-                        <td className="px-2 py-2 text-center"><input type="number" value={p.bm} onChange={e => updateGred(p.id, 'bm', e.target.value)} className="w-14 bg-slate-900 border border-slate-600 rounded px-1 py-0.5 text-center text-xs" /></td>
-                        <td className="px-2 py-2 text-center"><input type="number" value={p.mt} onChange={e => updateGred(p.id, 'mt', e.target.value)} className="w-14 bg-slate-900 border border-slate-600 rounded px-1 py-0.5 text-center text-xs" /></td>
-                        <td className="px-2 py-2 text-center"><input type="number" value={p.bi} onChange={e => updateGred(p.id, 'bi', e.target.value)} className="w-14 bg-slate-900 border border-slate-600 rounded px-1 py-0.5 text-center text-xs" /></td>
-                        <td className="px-2 py-2 text-center"><input type="number" value={p.sains} onChange={e => updateGred(p.id, 'sains', e.target.value)} className="w-14 bg-slate-900 border border-slate-600 rounded px-1 py-0.5 text-center text-xs" /></td>
-                        <td className="px-2 py-2 text-center">
-                          <select value={p.sahsiah} onChange={e => updateSahsiah(p.id, e.target.value)} className="bg-slate-900 border border-slate-600 rounded px-1 py-0.5 text-xs">
-                            <option>Baik</option><option>Memuaskan</option><option>Perlu Sokongan</option>
-                          </select>
-                        </td>
-                        <td className="px-2 py-2 text-center"><span className={'font-bold ' + (purata >= 50 ? 'text-emerald-400' : 'text-rose-400')}>{purata}</span></td>
-                      </tr>
+                      <td key={day} className={`border border-slate-200 py-2 px-2 text-center cursor-pointer transition-all ${isRehat ? 'bg-amber-50 cursor-default' : 'hover:bg-blue-50'}`}
+                        onClick={() => !isRehat && setEditSlot({ day, time, value: val })}>
+                        {isRehat ? <span className="text-amber-600 text-xs font-semibold">REHAT</span> :
+                          val ? <span className="text-blue-700 font-medium text-xs">{val}</span> : <span className="text-slate-300 text-xs">+ Slot</span>}
+                      </td>
                     );
                   })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Inventori Prasarana OKU */}
-          <div className={CARD + ' p-5'}>
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h2 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
-                <Icon name="building" size={22} /> Inventori Prasarana OKU
-              </h2>
-              <button onClick={() => setEditPrasarana({})} className={BTN_GREEN}>
-                <Icon name="plus" size={18} /> Tambah Item
-              </button>
-            </div>
-            <div className="space-y-2">
-              {prasarana.map(p => (
-                <div key={p.id} className="bg-slate-900 border-2 border-slate-700 rounded-lg p-3 flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <p className="font-semibold text-slate-100">{p.item}</p>
-                    <p className="text-xs text-slate-400">{p.lokasi} | {p.tarikhPemantauan}</p>
-                    <p className="text-xs text-slate-500">{p.catatan}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={'px-2 py-1 rounded-lg text-xs font-bold ' + (p.status === 'Baik' ? 'bg-emerald-600 text-white' : p.status === 'Memuaskan' ? 'bg-amber-500 text-slate-900' : 'bg-rose-600 text-white')}>{p.status}</span>
-                    <button onClick={() => setEditPrasarana(p)} className="bg-blue-600 hover:bg-blue-500 text-white p-1.5 rounded-lg border-b-2 border-blue-800 active:border-b-0 active:translate-y-0.5 transition-all">
-                      <Icon name="edit-3" size={14} />
-                    </button>
-                    <button onClick={() => handleDeletePrasarana(p.id)} className="bg-rose-600 hover:bg-rose-500 text-white p-1.5 rounded-lg border-b-2 border-rose-800 active:border-b-0 active:translate-y-0.5 transition-all">
-                      <Icon name="trash-2" size={14} />
-                    </button>
-                  </div>
-                </div>
+                </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Sub-Tajuk 3: Laporan LDP & Pencerapan PdP */}
+      <Card className="p-6">
+        <SectionTitle icon="clipboard-list" title="Laporan LDP & Pencerapan PdP" desc="Draf laporan aktiviti latihan dalam perkhidmatan KPM" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Nama Guru"><Input placeholder="Cth: En. Ahmad bin Isa" /></Field>
+            <Field label="Tarikh Pencerapan"><Input type="date" /></Field>
+            <Field label="Tajuk LDP"><Input placeholder="Cth: Pedagogi Inklusif Berbeza" /></Field>
+            <Field label="Pencerap"><Input placeholder="Cth: Penyelaras PPKI" /></Field>
+          </div>
+          <Field label="Objektif Pencerapan"><Textarea rows={2} placeholder="Menilai pelaksanaan PdP mesra inklusif..." /></Field>
+          <Field label="Catatan Pencerapan"><Textarea rows={4} placeholder="Kelebihan, kekurangan dan cadangan penambahbaikan..." /></Field>
+          <Field label="Cadangan Tindakan Susulan"><Textarea rows={3} placeholder="Program pemerkasaan, bimbingan, kursus..." /></Field>
+          <div className="flex justify-end"><Btn variant="blue"><Icon name="save" size={16} /> Simpan Laporan</Btn></div>
+        </div>
+      </Card>
+
+      {/* Modal Edit Guru */}
+      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? 'Edit Profil Guru' : 'Tambah Guru PPKI'}>
+        {editing && (
+          <div className="space-y-4">
+            <Field label="Nama Guru"><Input value={editing.nama} onChange={e => setEditing({...editing, nama: e.target.value})} /></Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Gred"><Select value={editing.gred} onChange={e => setEditing({...editing, gred: e.target.value})}>
+                <option value="">Pilih...</option><option>DG41</option><option>DG44</option><option>DG48</option><option>N17</option>
+              </Select></Field>
+              <Field label="Opsyen"><Input value={editing.opsyen} onChange={e => setEditing({...editing, opsyen: e.target.value})} /></Field>
+            </div>
+            <Field label="Subjek"><Input value={editing.subjek} onChange={e => setEditing({...editing, subjek: e.target.value})} /></Field>
+            <div className="flex gap-2 justify-end">
+              <Btn variant="white" onClick={() => setEditing(null)}>Batal</Btn>
+              <Btn variant="blue" onClick={() => saveTeacher(editing)}><Icon name="save" size={16} /> Simpan</Btn>
             </div>
           </div>
+        )}
+      </Modal>
 
-          {/* Analisis SWOT */}
-          <div className={CARD + ' p-5'}>
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <h2 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
-                <Icon name="grid" size={22} /> Analisis SWOT Tahunan
-              </h2>
-              <button onClick={printSwot} className={BTN_AMBER}>
-                <Icon name="printer" size={18} /> Simpan PDF SWOT
-              </button>
-            </div>
-            <div className="grid md:grid-cols-2 gap-3">
-              {[
-                { key: 'kekuatan', label: 'Kekuatan (S)', color: 'emerald' },
-                { key: 'kelemahan', label: 'Kelemahan (W)', color: 'rose' },
-                { key: 'peluang', label: 'Peluang (O)', color: 'blue' },
-                { key: 'ancaman', label: 'Ancaman (T)', color: 'amber' }
-              ].map(s => (
-                <div key={s.key} className={'border-2 rounded-lg p-3 bg-slate-900 border-' + s.color + '-600'}>
-                  <h3 className={'font-bold text-' + s.color + '-400 mb-2 text-sm'}>{s.label}</h3>
-                  <textarea value={swot[s.key]} onChange={e => setSwot({ ...swot, [s.key]: e.target.value })} rows={5}
-                    className={'w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:border-' + s.color + '-500 outline-none resize-y'} />
-                </div>
-              ))}
+      {/* Modal Edit Slot */}
+      <Modal open={!!editSlot} onClose={() => setEditSlot(null)} title={`Edit Slot: ${editSlot?.day} ${editSlot?.time}`}>
+        {editSlot && (
+          <div className="space-y-4">
+            <Field label="Subjek / Kelas">
+              <Input value={editSlot.value} onChange={e => setEditSlot({...editSlot, value: e.target.value})} placeholder="Cth: Matematik / 1 Bestari" />
+            </Field>
+            <div className="flex gap-2 justify-end">
+              <Btn variant="white" onClick={() => setEditSlot(null)}>Batal</Btn>
+              <Btn variant="blue" onClick={() => saveSlot(editSlot.day, editSlot.time, editSlot.value)}><Icon name="save" size={16} /> Simpan</Btn>
             </div>
           </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
 
-          <Modal open={!!editPrasarana} onClose={() => setEditPrasarana(null)} title={editPrasarana?.id ? 'Edit Prasarana' : 'Tambah Prasarana'} maxWidth="max-w-md">
-            {editPrasarana && <PrasaranaForm rec={editPrasarana} onSave={handleSavePrasarana} onCancel={() => setEditPrasarana(null)} />}
-          </Modal>
+/* ============================================================
+   TAB 3: PROFIL MBK, SARINGAN & MINDA AI
+   ============================================================ */
+function TabProfilMBK({ onToast }) {
+  const [students, setStudents] = useState(DEFAULT_STUDENTS);
+  const [editing, setEditing] = useState(null);
+  const [aiInput, setAiInput] = useState('');
+  const [aiResult, setAiResult] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
-          <div id="print-prestasi" className="print-container" style={{ display: 'none' }}></div>
-          <div id="print-swot" className="print-container" style={{ display: 'none' }}></div>
-        </div>
-      );
+  function saveStudent(s) {
+    if (s.id) {
+      setStudents(students.map(x => x.id === s.id ? s : x));
+      onToast({ type: 'success', msg: 'Profil murid dikemas kini.' });
+    } else {
+      setStudents([...students, { ...s, id: 's' + Date.now() }]);
+      onToast({ type: 'success', msg: 'Profil murid baharu ditambah.' });
     }
+    setEditing(null);
+  }
+  function deleteStudent(id) {
+    setStudents(students.filter(s => s.id !== id));
+    onToast({ type: 'success', msg: 'Profil murid dipadam.' });
+  }
+  function getMarkahColor(m) {
+    if (m >= 80) return 'green';
+    if (m >= 60) return 'blue';
+    if (m >= 40) return 'amber';
+    return 'rose';
+  }
+  function runAI() {
+    if (!aiInput.trim()) { onToast({ type: 'error', msg: 'Sila masukkan soalan atau data murid.' }); return; }
+    setAiLoading(true);
+    setTimeout(() => {
+      const input = aiInput.toLowerCase();
+      let result = '';
+      if (input.includes('amirul')) {
+        result = `Analisis Minda AI untuk Muhammad Amirul bin Roslan:\n\n• Diagnosis: Slow Learner (Markah Saringan: 64)\n• Status: Layak Inklusif Separa (Bukan Akademik)\n\nCadangan Intervensi:\n1. Penggunaan bahan bantu mengajar visual dan kinestetik\n2. Masa tugasan dipendekkan dengan rehat lebih kerap\n3. Penempatan di barisan hadapan untuk tumpuan optimum\n4. Bimbingan sosial untuk kemahiran interaksi rakan\n5. Penilaian formatif berterusan setiap 2 minggu`;
+      } else if (input.includes('wei han') || input.includes('chong')) {
+        result = `Analisis Minda AI untuk Chong Wei Han:\n\n• Diagnosis: Masalah Pendengaran (Markah Saringan: 76)\n• Status: Layak Inklusif Separa (Akademik)\n\nCadangan Intervensi:\n1. Penggunaan FM System / gelung pendengaran dalam kelas\n2. Arahan visual dan penambahan teks pada papan tulis\n3. Tempat duduk menghadap guru untuk pembacaan bibir\n4. Rakan pendamping (peer tutoring) untuk nota tambahan\n5. Penilaian lisan digantikan dengan bertulis/visual`;
+      } else if (input.includes('farah')) {
+        result = `Analisis Minda AI untuk Farah Shahidah binti Ahmad:\n\n• Diagnosis: Autisme Ringan (Markah Saringan: 84)\n• Status: Layak Inklusif Separa (Akademik)\n\nCadangan Intervensi:\n1. Struktur rutin harian yang jelas dan boleh ramal\n2. Visual schedule untuk pengurusan transisi aktiviti\n3. Ruang tenang (quiet corner) jika berlaku sensory overload\n4. Sosial cerita (social stories) untuk interaksi rakan\n5. Pengukuhan positif untuk pencapaian akademik`;
+      } else {
+        result = `Analisis Minda AI:\n\nBerdasarkan input yang diberikan, sistem mengesyorkan:\n1. Jalankan saringan PMD untuk pengesahan diagnosis\n2. Tetapkan jenis inklusif (separa/penuh) berdasarkan markah saringan\n3. Lampirkan guru pendamping mengikut keperluan\n4. Sediakan pelan intervensen individu (IEP) untuk setiap murid\n5. Pemantauan dan penilaian berkala oleh JPKS\n\nTip: Taip nama murid (Amirul, Wei Han, atau Farah) untuk analisis spesifik.`;
+      }
+      setAiResult(result);
+      setAiLoading(false);
+    }, 1200);
+  }
 
-    function PrasaranaForm({ rec, onSave, onCancel }) {
-      const [form, setForm] = useState(rec.id ? rec : { item: '', lokasi: '', status: 'Baik', catatan: '', tarikhPemantauan: getTodayStr() });
-      return (
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-1">Item</label>
-            <input value={form.item} onChange={e => setForm({ ...form, item: e.target.value })} className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" placeholder="cth: Tandas OKU" />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-1">Lokasi</label>
-            <input value={form.lokasi} onChange={e => setForm({ ...form, lokasi: e.target.value })} className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-1">Status</label>
-            <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none">
-              <option>Baik</option><option>Memuaskan</option><option>Rosak</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-1">Catatan</label>
-            <textarea value={form.catatan} onChange={e => setForm({ ...form, catatan: e.target.value })} rows={2} className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none resize-y" />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-1">Tarikh Pemantauan</label>
-            <input type="date" value={form.tarikhPemantauan} onChange={e => setForm({ ...form, tarikhPemantauan: e.target.value })} className="w-full bg-slate-900 border-2 border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none" />
-          </div>
-          <div className="flex gap-2 pt-2">
-            <button onClick={() => onSave(form)} className={BTN_GREEN + ' flex-1'}><Icon name="save" size={18} /> Simpan</button>
-            <button onClick={onCancel} className={BTN_ROSE + ' flex-1'}><Icon name="x" size={18} /> Batal</button>
-          </div>
+  return (
+    <div className="space-y-6 fade-in">
+      {/* Sub-Tajuk 1: Pangkalan Data Murid Inklusif */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <SectionTitle icon="database" title="Pangkalan Data Murid Inklusif" desc="Profil murid PPKI dengan saringan dan status penempatan" />
+          <Btn variant="blue" onClick={() => setEditing({ id: '', nama: '', mykid: '', oku: '', diagnosis: '', kelas: '', jenis: 'Inklusif Separa', guru_mentor: '', markah_saringan: 0, status: '' })}><Icon name="plus" size={16} /> Tambah Murid</Btn>
         </div>
-      );
-    }
-
-    function renderPrestasiHTML(p) {
-      let rows = p.map(x => {
-        const purata = Math.round((x.bm + x.mt + x.bi + x.sains) / 4);
-        return `<tr><td style="border:1px solid #cbd5e1;padding:5px;">${x.nama}</td>
-          <td style="border:1px solid #cbd5e1;padding:5px;text-align:center;">${x.bm}</td>
-          <td style="border:1px solid #cbd5e1;padding:5px;text-align:center;">${x.mt}</td>
-          <td style="border:1px solid #cbd5e1;padding:5px;text-align:center;">${x.bi}</td>
-          <td style="border:1px solid #cbd5e1;padding:5px;text-align:center;">${x.sains}</td>
-          <td style="border:1px solid #cbd5e1;padding:5px;text-align:center;">${x.sahsiah}</td>
-          <td style="border:1px solid #cbd5e1;padding:5px;text-align:center;font-weight:bold;">${purata}</td></tr>`;
-      }).join('');
-      return `<div style="font-family: Arial, sans-serif; color: #1e293b; padding: 20px; background: #fff;">
-        <div style="text-align: center; margin-bottom: 16px; border-bottom: 3px double #047857; padding-bottom: 10px;">
-          <h1 style="font-size: 20px; font-weight: bold; margin: 0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>
-          <p style="font-size: 13px; margin: 2px 0;">Laporan Prestasi Peperiksaan Pertengahan Tahun 2026</p>
-        </div>
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-          <thead><tr style="background: #047857; color: #fff;">
-            <th style="border:1px solid #064e3b;padding:6px;text-align:left;">Nama</th>
-            <th style="border:1px solid #064e3b;padding:6px;">BM</th>
-            <th style="border:1px solid #064e3b;padding:6px;">MT</th>
-            <th style="border:1px solid #064e3b;padding:6px;">BI</th>
-            <th style="border:1px solid #064e3b;padding:6px;">Sains</th>
-            <th style="border:1px solid #064e3b;padding:6px;">Sahsiah</th>
-            <th style="border:1px solid #064e3b;padding:6px;">Purata</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>`;
-    }
-
-    function renderSwotHTML(s) {
-      return `<div style="font-family: Arial, sans-serif; color: #1e293b; padding: 20px; background: #fff;">
-        <div style="text-align: center; margin-bottom: 16px; border-bottom: 3px double #047857; padding-bottom: 10px;">
-          <h1 style="font-size: 20px; font-weight: bold; margin: 0;">SEKOLAH KEBANGSAAN SELAMA (K)</h1>
-          <p style="font-size: 13px; margin: 2px 0;">Analisis SWOT Program Inklusif PPKI 2026</p>
-        </div>
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-          <tr>
-            <td style="border:2px solid #047857;padding:10px;width:50%;vertical-align:top;background:#ecfdf5;"><strong style="color:#047857;">KEKUATAN (S)</strong><br><br>${(s.kekuatan||'').replace(/\n/g,'<br>')}</td>
-            <td style="border:2px solid #be123c;padding:10px;width:50%;vertical-align:top;background:#fff1f2;"><strong style="color:#be123c;">KELEMAHAN (W)</strong><br><br>${(s.kelemahan||'').replace(/\n/g,'<br>')}</td>
-          </tr>
-          <tr>
-            <td style="border:2px solid #1d4ed8;padding:10px;width:50%;vertical-align:top;background:#eff6ff;"><strong style="color:#1d4ed8;">PELUANG (O)</strong><br><br>${(s.peluang||'').replace(/\n/g,'<br>')}</td>
-            <td style="border:2px solid #b45309;padding:10px;width:50%;vertical-align:top;background:#fffbeb;"><strong style="color:#b45309;">ANCAMAN (T)</strong><br><br>${(s.ancaman||'').replace(/\n/g,'<br>')}</td>
-          </tr>
-        </table>
-      </div>`;
-    }
-
-    // ============================================================
-    // KOMPONEN APLIKASI UTAMA
-    // ============================================================
-    function App() {
-      const [tab, setTab] = useState('fail1');
-      const [toast, setToast] = useState(null);
-      const [refreshKey, setRefreshKey] = useState(0);
-      const backend = useBackendData();
-
-      const showToast = (msg, type = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3500);
-      };
-
-      useEffect(() => { refreshIcons(); }, [tab]);
-      useEffect(() => {
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('./sw.js').catch(() => {});
-        }
-      }, []);
-
-      const tabs = [
-        { id: 'fail1', label: 'Fail 1: Tadbir Urus', icon: 'landmark' },
-        { id: 'fail2', label: 'Fail 2: Sumber Manusia', icon: 'users' },
-        { id: 'fail3', label: 'Fail 3: Murid & AI', icon: 'brain' },
-        { id: 'fail4', label: 'Fail 4: Prestasi', icon: 'bar-chart-3' }
-      ];
-
-      return (
-        <div className="min-h-screen bg-slate-900">
-          <header className="bg-slate-800 border-b-4 border-emerald-600 sticky top-0 z-40">
-            <div className="max-w-6xl mx-auto px-4 py-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-sm border-2 border-emerald-800 shadow-md">SPIB</div>
-                  <div>
-                    <h1 className="text-base font-bold text-emerald-400 leading-tight">SPIB-Pintar PPKI</h1>
-                    <p className="text-xs text-slate-400 leading-tight">SK Selama (K)</p>
+        <div className="space-y-4">
+          {students.map(s => (
+            <div key={s.id} className="border border-slate-200 rounded-2xl p-4 hover:shadow-md transition-shadow">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex-1 min-w-[200px]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-bold text-slate-900">{s.nama}</h4>
+                    <Badge color={getMarkahColor(s.markah_saringan)}>Saringan: {s.markah_saringan}</Badge>
                   </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-sm">
+                    <p className="text-slate-500">MyKid: <span className="font-medium text-slate-700">{s.mykid}</span></p>
+                    <p className="text-slate-500">OKU: <span className="font-medium text-slate-700">{s.oku}</span></p>
+                    <p className="text-slate-500">Diagnosis: <span className="font-medium text-slate-700">{s.diagnosis}</span></p>
+                    <p className="text-slate-500">Kelas: <span className="font-medium text-slate-700">{s.kelas}</span></p>
+                    <p className="text-slate-500">Jenis: <span className="font-medium text-slate-700">{s.jenis}</span></p>
+                    <p className="text-slate-500">Mentor: <span className="font-medium text-slate-700">{s.guru_mentor}</span></p>
+                  </div>
+                  <div className="mt-2"><Badge color={s.status.includes('Akademik') ? 'green' : 'amber'}>{s.status}</Badge></div>
                 </div>
-                {backend.loading && (
-                  <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                )}
+                <div className="flex gap-2">
+                  <button onClick={() => setEditing({...s})} className="p-2 rounded-lg hover:bg-blue-50 text-blue-600"><Icon name="pencil" size={16} /></button>
+                  <button onClick={() => deleteStudent(s.id)} className="p-2 rounded-lg hover:bg-rose-50 text-rose-600"><Icon name="trash-2" size={16} /></button>
+                </div>
               </div>
             </div>
-            <nav className="max-w-6xl mx-auto px-4 pb-2 flex gap-1.5 overflow-x-auto">
-              {tabs.map(t => (
-                <button key={t.id} onClick={() => setTab(t.id)}
-                  className={'flex items-center gap-1.5 px-3 py-2 rounded-t-lg text-xs font-bold whitespace-nowrap border-b-4 transition-all ' +
-                    (tab === t.id ? 'bg-emerald-600 text-white border-emerald-800' : 'bg-slate-700 text-slate-300 border-slate-700 hover:bg-slate-600')}>
-                  <Icon name={t.icon} size={16} /> {t.label}
-                </button>
-              ))}
-            </nav>
-          </header>
-
-          <main className="max-w-6xl mx-auto px-4 py-5">
-            <div className="mb-5">
-              <AdminSettings onSaved={() => { setRefreshKey(k => k + 1); showToast('Tetapan disimpan. Klik semula tab untuk muat semula data.', 'success'); }} />
-            </div>
-            <div key={tab} className="tab-active">
-              {tab === 'fail1' && <Fail1 guru={backend.guru} />}
-              {tab === 'fail2' && <Fail2 guru={backend.guru} />}
-              {tab === 'fail3' && <Fail3 murid={backend.murid} setMurid={backend.setMurid} saveToServer={backend.saveToServer} deleteFromServer={backend.deleteFromServer} uploadFile={backend.uploadFile} showToast={showToast} />}
-              {tab === 'fail4' && <Fail4 murid={backend.murid} prasarana={backend.prasarana} setPrasarana={backend.setPrasarana} saveToServer={backend.saveToServer} deleteFromServer={backend.deleteFromServer} showToast={showToast} />}
-            </div>
-          </main>
-
-          <footer className="border-t-2 border-slate-700 mt-8 py-4 text-center text-xs text-slate-500">
-            <p>SPIB-Pintar PPKI &copy; 2026 SK Selama (K) | Sistem Pengurusan Inklusif Bersepadu Pintar</p>
-          </footer>
-
-          <Toast {...(toast || { msg: '' })} />
+          ))}
         </div>
-      );
-    }
+      </Card>
 
-    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
-  </script>
+      {/* Minda AI */}
+      <Card className="p-6">
+        <SectionTitle icon="brain" title="Minda AI — Analisis Intervensi Inklusif" desc="Masukkan nama murid untuk cadangan intervensen AI" />
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <Input value={aiInput} onChange={e => setAiInput(e.target.value)} placeholder="Cth: Analisis Amirul / Cadangan untuk Wei Han" onKeyDown={e => e.key === 'Enter' && runAI()} />
+            <Btn variant="blue" onClick={runAI} disabled={aiLoading}><Icon name="sparkles" size={16} /> {aiLoading ? 'Menganalisis...' : 'Analisis'}</Btn>
+          </div>
+          {aiLoading && <Loading msg="Minda AI sedang menganalisis..." />}
+          {aiResult && !aiLoading && (
+            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 slide-up">
+              <pre className="text-sm text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">{aiResult}</pre>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Modal Edit Murid */}
+      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? 'Edit Profil Murid' : 'Tambah Murid Inklusif'} wide>
+        {editing && (
+          <div className="space-y-4">
+            <Field label="Nama Murid"><Input value={editing.nama} onChange={e => setEditing({...editing, nama: e.target.value})} /></Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="No. MyKid"><Input value={editing.mykid} onChange={e => setEditing({...editing, mykid: e.target.value})} /></Field>
+              <Field label="No. OKU"><Input value={editing.oku} onChange={e => setEditing({...editing, oku: e.target.value})} /></Field>
+              <Field label="Diagnosis"><Input value={editing.diagnosis} onChange={e => setEditing({...editing, diagnosis: e.target.value})} /></Field>
+              <Field label="Kelas"><Input value={editing.kelas} onChange={e => setEditing({...editing, kelas: e.target.value})} /></Field>
+              <Field label="Jenis Inklusif"><Select value={editing.jenis} onChange={e => setEditing({...editing, jenis: e.target.value})}>
+                <option>Inklusif Separa</option><option>Inklusif Penuh</option>
+              </Select></Field>
+              <Field label="Guru Mentor"><Input value={editing.guru_mentor} onChange={e => setEditing({...editing, guru_mentor: e.target.value})} /></Field>
+              <Field label="Markah Saringan"><Input type="number" value={editing.markah_saringan} onChange={e => setEditing({...editing, markah_saringan: parseInt(e.target.value) || 0})} /></Field>
+              <Field label="Status"><Input value={editing.status} onChange={e => setEditing({...editing, status: e.target.value})} /></Field>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Btn variant="white" onClick={() => setEditing(null)}>Batal</Btn>
+              <Btn variant="blue" onClick={() => saveStudent(editing)}><Icon name="save" size={16} /> Simpan</Btn>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+/* ============================================================
+   TAB 4: PRESTASI & PELAPORAN
+   ============================================================ */
+function TabPrestasi({ onToast }) {
+  const [ppt, setPpt] = useState(DEFAULT_PPT);
+  const [editingPpt, setEditingPpt] = useState(null);
+  const [prasarana, setPrasarana] = useState(DEFAULT_PRASARANA);
+  const [editPras, setEditPras] = useState(null);
+  const [swot, setSwot] = useState({ kekuatan: '', kelemahan: '', peluang: '', ancaman: '', tahun: '2026' });
+
+  function savePpt(p) {
+    if (p.id) { setPpt(ppt.map(x => x.id === p.id ? p : x)); onToast({ type: 'success', msg: 'Keputusan PPT dikemas kini.' }); }
+    else { setPpt([...ppt, { ...p, id: 'p' + Date.now() }]); onToast({ type: 'success', msg: 'Rekod PPT ditambah.' }); }
+    setEditingPpt(null);
+  }
+  function deletePpt(id) { setPpt(ppt.filter(p => p.id !== id)); onToast({ type: 'success', msg: 'Rekod PPT dipadam.' }); }
+  function savePras(p) {
+    if (p.id) { setPrasarana(prasarana.map(x => x.id === p.id ? p : x)); onToast({ type: 'success', msg: 'Inventori dikemas kini.' }); }
+    else { setPrasarana([...prasarana, { ...p, id: 'pr' + Date.now() }]); onToast({ type: 'success', msg: 'Item prasarana ditambah.' }); }
+    setEditPras(null);
+  }
+  function deletePras(id) { setPrasarana(prasarana.filter(p => p.id !== id)); onToast({ type: 'success', msg: 'Item prasarana dipadam.' }); }
+  function getGrade(m) { if (m >= 80) return 'A'; if (m >= 70) return 'B'; if (m >= 60) return 'C'; if (m >= 50) return 'D'; return 'E'; }
+  function getGradeColor(g) { if (g === 'A') return 'green'; if (g === 'B') return 'blue'; if (g === 'C') return 'amber'; return 'rose'; }
+
+  return (
+    <div className="space-y-6 fade-in">
+      {/* Sub-Tajuk 1: Rekod Prestasi PPT 2026 */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <SectionTitle icon="bar-chart-3" title="Rekod Prestasi PPT 2026" desc="Keputusan peperiksaan subjek teras murid inklusif" />
+          <Btn variant="blue" onClick={() => setEditingPpt({ id: '', nama: '', kelas: '', bm: 0, bi: 0, matematik: 0, sains: 0 })}><Icon name="plus" size={16} /> Tambah Rekod</Btn>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-left text-slate-500">
+                <th className="py-3 px-4 font-semibold">Nama</th>
+                <th className="py-3 px-4 font-semibold">Kelas</th>
+                <th className="py-3 px-4 font-semibold text-center">BM</th>
+                <th className="py-3 px-4 font-semibold text-center">BI</th>
+                <th className="py-3 px-4 font-semibold text-center">Matematik</th>
+                <th className="py-3 px-4 font-semibold text-center">Sains</th>
+                <th className="py-3 px-4 font-semibold text-center">Gred</th>
+                <th className="py-3 px-4 font-semibold text-right">Tindakan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ppt.map(p => {
+                const avg = Math.round((p.bm + p.bi + p.matematik + p.sains) / 4);
+                const grade = getGrade(avg);
+                return (
+                  <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                    <td className="py-3 px-4 font-semibold text-slate-900">{p.nama}</td>
+                    <td className="py-3 px-4 text-slate-600">{p.kelas}</td>
+                    <td className="py-3 px-4 text-center font-medium">{p.bm}</td>
+                    <td className="py-3 px-4 text-center font-medium">{p.bi}</td>
+                    <td className="py-3 px-4 text-center font-medium">{p.matematik}</td>
+                    <td className="py-3 px-4 text-center font-medium">{p.sains}</td>
+                    <td className="py-3 px-4 text-center"><Badge color={getGradeColor(grade)}>{grade} ({avg})</Badge></td>
+                    <td className="py-3 px-4">
+                      <div className="flex gap-2 justify-end">
+                        <button onClick={() => setEditingPpt({...p})} className="p-2 rounded-lg hover:bg-blue-50 text-blue-600"><Icon name="pencil" size={16} /></button>
+                        <button onClick={() => deletePpt(p.id)} className="p-2 rounded-lg hover:bg-rose-50 text-rose-600"><Icon name="trash-2" size={16} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Sub-Tajuk 2: Inventori Prasarana OKU */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <SectionTitle icon="accessibility" title="Inventori Prasarana OKU" desc="Checklist kemudahan fizikal mesra OKU" />
+          <Btn variant="blue" onClick={() => setEditPras({ id: '', item: '', lokasi: '', status: 'Ada', catatan: '' })}><Icon name="plus" size={16} /> Tambah Item</Btn>
+        </div>
+        <div className="space-y-3">
+          {prasarana.map(p => (
+            <div key={p.id} className="flex items-center justify-between gap-3 border border-slate-200 rounded-xl p-4 hover:shadow-sm transition-shadow">
+              <div className="flex items-center gap-3 flex-1">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${p.status === 'Ada' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                  <Icon name={p.status === 'Ada' ? 'check' : 'x'} size={20} />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">{p.item}</p>
+                  <p className="text-xs text-slate-500">{p.lokasi} — {p.catatan}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge color={p.status === 'Ada' ? 'green' : 'rose'}>{p.status}</Badge>
+                <button onClick={() => setEditPras({...p})} className="p-2 rounded-lg hover:bg-blue-50 text-blue-600"><Icon name="pencil" size={16} /></button>
+                <button onClick={() => deletePras(p.id)} className="p-2 rounded-lg hover:bg-rose-50 text-rose-600"><Icon name="trash-2" size={16} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* Sub-Tajuk 3: Analisis SWOT */}
+      <Card className="p-6">
+        <SectionTitle icon="grid-2x2" title="Analisis SWOT Tahunan PPI" desc="Borang analisis kekuatan, kelemahan, peluang, ancaman" />
+        <div className="mb-4"><Field label="Tahun"><Input value={swot.tahun} onChange={e => setSwot({...swot, tahun: e.target.value})} className="max-w-[120px]" /></Field></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2"><Icon name="trending-up" size={18} className="text-emerald-600" /><h4 className="font-bold text-emerald-800">Kekuatan (Strengths)</h4></div>
+            <Textarea rows={4} value={swot.kekuatan} onChange={e => setSwot({...swot, kekuatan: e.target.value})} placeholder="Cth: Guru PPKI berkelayakan, prasarana asas lengkap..." />
+          </div>
+          <div className="bg-rose-50 border border-rose-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2"><Icon name="trending-down" size={18} className="text-rose-600" /><h4 className="font-bold text-rose-800">Kelemahan (Weaknesses)</h4></div>
+            <Textarea rows={4} value={swot.kelemahan} onChange={e => setSwot({...swot, kelemahan: e.target.value})} placeholder="Cth: Kekurangan alat bantu pendengaran, laluan taktil tidak lengkap..." />
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2"><Icon name="target" size={18} className="text-blue-600" /><h4 className="font-bold text-blue-800">Peluang (Opportunities)</h4></div>
+            <Textarea rows={4} value={swot.peluang} onChange={e => setSwot({...swot, peluang: e.target.value})} placeholder="Cth: Sokongan PIBG, peruntukan KPM, kursus LDP..." />
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2"><Icon name="alert-triangle" size={18} className="text-amber-600" /><h4 className="font-bold text-amber-800">Ancaman (Threats)</h4></div>
+            <Textarea rows={4} value={swot.ancaman} onChange={e => setSwot({...swot, ancaman: e.target.value})} placeholder="Cth: Pemindahan guru, kekurangan dana, perubahan dasar..." />
+          </div>
+        </div>
+        <div className="flex justify-end mt-4"><Btn variant="blue" onClick={() => onToast({ type: 'success', msg: 'Analisis SWOT disimpan.' })}><Icon name="save" size={16} /> Simpan SWOT</Btn></div>
+      </Card>
+
+      {/* Modal Edit PPT */}
+      <Modal open={!!editingPpt} onClose={() => setEditingPpt(null)} title={editingPpt?.id ? 'Edit Rekod PPT' : 'Tambah Rekod PPT'}>
+        {editingPpt && (
+          <div className="space-y-4">
+            <Field label="Nama Murid"><Input value={editingPpt.nama} onChange={e => setEditingPpt({...editingPpt, nama: e.target.value})} /></Field>
+            <Field label="Kelas"><Input value={editingPpt.kelas} onChange={e => setEditingPpt({...editingPpt, kelas: e.target.value})} /></Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="BM"><Input type="number" value={editingPpt.bm} onChange={e => setEditingPpt({...editingPpt, bm: parseInt(e.target.value)||0})} /></Field>
+              <Field label="BI"><Input type="number" value={editingPpt.bi} onChange={e => setEditingPpt({...editingPpt, bi: parseInt(e.target.value)||0})} /></Field>
+              <Field label="Matematik"><Input type="number" value={editingPpt.matematik} onChange={e => setEditingPpt({...editingPpt, matematik: parseInt(e.target.value)||0})} /></Field>
+              <Field label="Sains"><Input type="number" value={editingPpt.sains} onChange={e => setEditingPpt({...editingPpt, sains: parseInt(e.target.value)||0})} /></Field>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Btn variant="white" onClick={() => setEditingPpt(null)}>Batal</Btn>
+              <Btn variant="blue" onClick={() => savePpt(editingPpt)}><Icon name="save" size={16} /> Simpan</Btn>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal Edit Prasarana */}
+      <Modal open={!!editPras} onClose={() => setEditPras(null)} title={editPras?.id ? 'Edit Item Prasarana' : 'Tambah Item Prasarana'}>
+        {editPras && (
+          <div className="space-y-4">
+            <Field label="Item"><Input value={editPras.item} onChange={e => setEditPras({...editPras, item: e.target.value})} /></Field>
+            <Field label="Lokasi"><Input value={editPras.lokasi} onChange={e => setEditPras({...editPras, lokasi: e.target.value})} /></Field>
+            <Field label="Status"><Select value={editPras.status} onChange={e => setEditPras({...editPras, status: e.target.value})}>
+              <option>Ada</option><option>Tiada</option><option>Dalam Penambahbaikan</option>
+            </Select></Field>
+            <Field label="Catatan"><Textarea rows={2} value={editPras.catatan} onChange={e => setEditPras({...editPras, catatan: e.target.value})} /></Field>
+            <div className="flex gap-2 justify-end">
+              <Btn variant="white" onClick={() => setEditPras(null)}>Batal</Btn>
+              <Btn variant="blue" onClick={() => savePras(editPras)}><Icon name="save" size={16} /> Simpan</Btn>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+/* ============================================================
+   APP UTAMA
+   ============================================================ */
+function App() {
+  const [activeTab, setActiveTab] = useState('tadbir');
+  const [toast, setToast] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const onToast = useCallback((t) => setToast(t), []);
+  const closeToast = useCallback(() => setToast(null), []);
+
+  return (
+    <div className="min-h-screen bg-blue-50/30">
+      <Header onSettings={() => setSettingsOpen(true)} />
+      <TabNav active={activeTab} onChange={setActiveTab} />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        {activeTab === 'tadbir' && <TabTadbirUrus onToast={onToast} />}
+        {activeTab === 'sumber' && <TabSumberManusia onToast={onToast} />}
+        {activeTab === 'profil' && <TabProfilMBK onToast={onToast} />}
+        {activeTab === 'prestasi' && <TabPrestasi onToast={onToast} />}
+      </main>
+      <footer className="max-w-7xl mx-auto px-4 sm:px-6 py-6 text-center text-xs text-slate-400">
+        <p>Sistem Pengurusan JPKS SK Selama (K) &middot; Program Pendidikan Inklusif 2026 &middot; Pekeliling SPI Bil. 1/2026</p>
+      </footer>
+      <Toast toast={toast} onClose={closeToast} />
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} onSave={() => { setSettingsOpen(false); onToast({ type: 'success', msg: 'URL API disimpan.' }); }} />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>
